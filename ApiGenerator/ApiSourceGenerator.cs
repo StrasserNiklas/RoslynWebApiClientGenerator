@@ -29,24 +29,10 @@ namespace ApiGenerator
         public ApiSourceGenerator() { }
         public void Execute(GeneratorExecutionContext context)
         {
-            Debug.WriteLine("Execute code generator");
-            //System.Diagnostics.Debugger.Launch();
-            var trees = context.Compilation.SyntaxTrees;
-
-            var endpoints = new List<(TypeSyntax requestType, TypeSyntax responseType)>();
-
-            //foreach (var treee in trees)
-            //{
-            //    endpoints.AddRange(Analyz.FindEndpoints(treee.GetRoot()));
-            //}
-
-
             var assemblyClasses = context.Compilation.SyntaxTrees.SelectMany(
                 x => x.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>());
 
             var apiControllers = assemblyClasses.GetApiControllers();
-
-            // TODO find a way to couple parents and children to reduce time searching
 
             foreach (var classDeclaration in apiControllers)
             {
@@ -64,25 +50,69 @@ namespace ApiGenerator
                 //var generatedCode = syntaxGenerator.GenerateTypeDeclaration(classDeclaration);
 
                 var methods = classDeclaration.Members.OfType<MethodDeclarationSyntax>().GetPublicMethods();
+                var route = classDeclaration.GetBaseRoute(classAttributes);
+
+                Debug.WriteLine("---------------------------------------------");
+                Debug.WriteLine("Class: " + classDeclaration.Identifier.ToFullString());
+                Debug.WriteLine("Route: " + route);
+                Debug.WriteLine("Methods:");
 
                 foreach (var method in methods)
                 {
-                    Debug.WriteLine($"{classDeclaration.Identifier.ToFullString()}: {method.Identifier.ToFullString()}");
+                    Debug.WriteLine("***********");
+
+                    // Get the request and response types for the endpoint
+                    var methodParameters = method.ParameterList.Parameters;
+
+                    var parameterStringified = string.Join(string.Empty, methodParameters.Select(parameter => parameter.Type.ToFullString() + parameter.Identifier.ValueText));
+
+                    TypeSyntax requestType = method.ParameterList.Parameters
+                        .Select(p => p.Type)
+                        .FirstOrDefault();
+                    TypeSyntax responseType = method.ReturnType;
+
+                    // Add the endpoint to the list
+                    //_endpoints.Add((requestType, responseType));
+
+                    Debug.WriteLine($"public {responseType.ToFullString().Trim()} {method.Identifier.ToFullString().Trim()}({parameterStringified.Trim()})");
+
+                    Debug.WriteLine("Request class(es) used:");
+
+                    foreach (var parameter in methodParameters)
+                    {
+                        var parameterClass = assemblyClasses.SingleOrDefault(classInstance => classInstance.Identifier.ValueText == parameter.Identifier.ValueText);
+                        var propertyTypes = classDeclaration?
+                            .DescendantNodes().OfType<PropertyDeclarationSyntax>()
+                            .Where(p => p.Modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword)))
+                            .Select(p => p.Type)
+                            .ToList() ?? new List<TypeSyntax>();
+
+                        Debug.WriteLine(@"
+
+");
+
+                    }
+
+                    Debug.WriteLine("Response class(es) used:");
+
+                    var res = method.ReturnType;
+                    //res.
+                    
                 }
 
-            //    foreach (var method in publicMethods)
-            //    {
-            //        var routeAttribute = method.AttributeLists.SelectMany(al => al.Attributes)
-            //.SingleOrDefault(a => a.Name.ToString() == "Route")?.ArgumentList?.Arguments.FirstOrDefault();
-            //        // Get the request and response types for the endpoint
-            //        TypeSyntax requestType = method.ParameterList.Parameters
-            //            .Select(p => p.Type)
-            //            .FirstOrDefault();
-            //        TypeSyntax responseType = method.ReturnType;
+                //    foreach (var method in publicMethods)
+                //    {
+                //        var routeAttribute = method.AttributeLists.SelectMany(al => al.Attributes)
+                //.SingleOrDefault(a => a.Name.ToString() == "Route")?.ArgumentList?.Arguments.FirstOrDefault();
+                //        // Get the request and response types for the endpoint
+                //        TypeSyntax requestType = method.ParameterList.Parameters
+                //            .Select(p => p.Type)
+                //            .FirstOrDefault();
+                //        TypeSyntax responseType = method.ReturnType;
 
-            //        // Add the endpoint to the list
-            //        _endpoints.Add((requestType, responseType));
-            //    }
+                //        // Add the endpoint to the list
+                //        _endpoints.Add((requestType, responseType));
+                //    }
             }
         }
 
@@ -91,88 +121,14 @@ namespace ApiGenerator
 
     }
 
-    public class Analyz : CSharpSyntaxWalker
-    {
-        private readonly List<(TypeSyntax requestType, TypeSyntax responseType)> _endpoints =
-            new List<(TypeSyntax requestType, TypeSyntax responseType)>();
-
-        public static IEnumerable<(TypeSyntax requestType, TypeSyntax responseType)> FindEndpoints(SyntaxNode root)
-        {
-            var analyzer = new Analyz();
-            analyzer.Visit(root);
-            return analyzer._endpoints;
-        }
-
-        public override void VisitAttribute(AttributeSyntax node)
-        {
-            base.VisitAttribute(node);
-        }
-
-        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-            //if (IsController(node))
-            //{
-                // Get the methods in the class
-                var methods = node.Members.OfType<MethodDeclarationSyntax>();
-                var publicMethods = methods.GetPublicMethods();
-
-                // Find the endpoints in the methods
-                foreach (var method in publicMethods)
-                {
-                    var routeAttribute = method.AttributeLists.SelectMany(al => al.Attributes)
-            .SingleOrDefault(a => a.Name.ToString() == "Route")?.ArgumentList?.Arguments.FirstOrDefault();
-                    // Get the request and response types for the endpoint
-                    TypeSyntax requestType = method.ParameterList.Parameters
-                        .Select(p => p.Type)
-                        .FirstOrDefault();
-                    TypeSyntax responseType = method.ReturnType;
-
-                    // Add the endpoint to the list
-                    _endpoints.Add((requestType, responseType));
-                }
-            //}
-
-            base.VisitClassDeclaration(node);
-        }
-
-        private static bool IsController(ClassDeclarationSyntax node)
-        {
-            //var baseTypes = node.BaseList?.Types;
-
-
-            var classAttributes = node.AttributeLists.SelectMany(al => al.Attributes).ToList();
-
-            var hasApiControllerAttribute = classAttributes.Any(a => a.Name.ToString() == "ApiController");
-            //var isController = baseTypes?.Any(t => t.Type.ToString() == "ControllerBase" || t.Type.ToString() == "Controller") ?? false;
-
-            //if (isController)
-            //{
-            //    return true;
-            //}
-
-            //baseTypes?.Node
-            //IsController(wat);
-            //var baseType = baseTypes?.SingleOrDefault(b => classDeclarations.Any(c => c.Identifier.Text == b.Type.ToString()));
-
-            //var baseClass = classDeclarations.FirstOrDefault(c => c.Identifier.Text == baseType?.Type.ToString());
-
-            return hasApiControllerAttribute;
-        }
-
-
-    }
-
-    
-
     public static class DeclarationSyntaxExtensions
     {
-        //public static string GetBaseRoute(this ClassDeclarationSyntax classDeclaration, List<AttributeSyntax> classAttributes)
-        //{
-        //    var routeAttribute = classAttributes.SingleOrDefault(a => a.Name.ToString() == "Route");
+        public static string GetBaseRoute(this ClassDeclarationSyntax classDeclaration, List<AttributeSyntax> classAttributes)
+        {
+            var routeAttribute = classAttributes.SingleOrDefault(a => a.Name.ToString() == "Route");
 
-
-        //    var baseRoute = routeAttribute?.ArgumentList?.Arguments.Single();
-        //}
+            return routeAttribute?.ArgumentList?.Arguments.Single().ToString();
+        }
 
         private static bool GetBaseRoute(this ClassDeclarationSyntax classDeclaration,
         IReadOnlyCollection<ClassDeclarationSyntax> classDeclarations)

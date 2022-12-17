@@ -2,6 +2,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
+    //[Route("[controller]")]
+    public class SoloControlNoRoute : Controller
+    {
+        [Route("ok")]
+        [HttpGet]
+        public ActionResult<Response> Get([FromBody] Request request)
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+    }
 
     [ApiController]
     [Route("[controller]")]
@@ -18,17 +29,7 @@ namespace ApiTest.Controllers
         }
     }
 
-    //[Route("[controller]")]
-    public class SoloControlNoRoute : Controller
-    {
-        [Route("ok")]
-        [HttpGet]
-        public ActionResult<Response> Get()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-    }
+
 
     [Route("[controller]")]
     public class ContRouteo : ControllerBase
@@ -98,7 +99,9 @@ namespace ApiTest.Controllers
 
     public class Response
     {
+        public int Id { get; set; }
 
+        public string ReturnText { get; set; }
     }
 
     public class Request
