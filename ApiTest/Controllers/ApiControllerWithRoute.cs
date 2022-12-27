@@ -2,12 +2,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
-    //[Route("[controller]")]
-    public class SoloControlNoRoute : Controller
+    [Route("[controller]")]
+    public class ControllerWithNoRouteButWithMethodRoutes : Controller
     {
         [Route("ok")]
         [HttpGet]
         public ActionResult<Response> Get([FromBody] Request request)
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+
+        [Route("ok/{id}")]
+        [HttpGet]
+        public static ActionResult<Response> Getit(int id)
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+
+        [Route("TestNoHttp")]
+        public static ActionResult<Response> NoHttp()
         {
             return new ActionResult<Response>(new Response());
             //return Ok(new Response());
@@ -17,22 +32,26 @@ namespace ApiTest.Controllers
     [ApiController]
     [Route("[controller]")]
     //[Route("hmm")]
-    public class ContRoute// : ControllerBase
+    public class ApiControllerWithRoute// : ControllerBase
     {
         // lool oder wenn bei lol route(some)
         // contRoute
         [HttpGet]
-        public ActionResult<Response> Get()
+        public ActionResult<Response> GetThisLol()
         {
             return new ActionResult<Response>(new Response());
             //return Ok(new Response());
         }
+
+
+
     }
 
 
 
     [Route("[controller]")]
-    public class ContRouteo : ControllerBase
+    [Route("kak")]
+    public class ControllerBaseWithRoute : ControllerBase
     {
         [Route("ok")]
         [HttpGet]
@@ -44,7 +63,7 @@ namespace ApiTest.Controllers
     }
 
 
-    public class ContRouteoo : ContRouteo
+    public class InheritControllerBaseWithRoute : ControllerBaseWithRoute
     {
         // /ok
         [Route("ok")]
@@ -57,7 +76,7 @@ namespace ApiTest.Controllers
     }
 
     //[Route("some")]
-    public class Lool : ContRoute
+    public class InheritFromApiControllerWithRoute : ApiControllerWithRoute
     {
         // some/ok
         //[Route("ok")]
@@ -102,6 +121,7 @@ namespace ApiTest.Controllers
         public int Id { get; set; }
 
         public string ReturnText { get; set; }
+        public string? NullableReturnText { get; set; }
     }
 
     public class Request
