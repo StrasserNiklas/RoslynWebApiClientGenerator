@@ -95,9 +95,9 @@ namespace ApiGenerator
                         IsAbstract: false
                     } methodSymbol)
                 {
-                    var attribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute");
+                    var httpMethodAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute");
 
-                    var httpMethod = attribute?.AttributeClass?.Name switch
+                    var httpMethod = httpMethodAttribute?.AttributeClass?.Name switch
                     {
                         "HttpGetAttribute" => HttpMethod.Get,
                         "HttpPutAttribute" => HttpMethod.Put,
@@ -107,16 +107,40 @@ namespace ApiGenerator
                     };
 
 
-                    var httpMethodAttributeRoute = attribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
+                    var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
+                    var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
+                    var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, baseRoute, methodRoute);
 
-                    var routeAttr = methodSymbol.GetRouteAttribute();
 
-                    if (routeAttr != null)
+                    var methodParameters = methodSymbol.Parameters;
+
+                    foreach (var methodParameter in methodParameters)
                     {
-                        httpMethodAttributeRoute = routeAttr.ConstructorArguments.FirstOrDefault().Value.ToString() ?? string.Empty;
+                        // filter out from services attribute
+                        // Microsoft.AspNetCore.Mvc.FromServicesAttribute
+                        var parameterAttributes = methodParameter.GetAttributes();
                     }
 
-                    var httpMethodInformation = new ControllerMethodDetails(httpMethod);
+                    var returnType = methodSymbol.ReturnType;
+
+                    // Unwrap Task<T>
+                    if (returnType is INamedTypeSymbol taskType && taskType.OriginalDefinition.ToString() == "System.Threading.Tasks.Task<TResult>")
+                    {
+                        returnType = taskType.TypeArguments.First();
+                    }
+
+                    if (returnType is INamedTypeSymbol actionResultType && actionResultType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.ActionResult<TValue>")
+                    {
+                        returnType = actionResultType.TypeArguments.First();
+                    }
+
+                    if (returnType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.IActionResult" || returnType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.ActionResult")
+                    {
+                        returnType = null;
+                    }
+
+
+                    var httpMethodInformation = new ControllerMethodDetails(httpMethod, methodNameWithoutAsnyc, finalRoute);
                     yield return httpMethodInformation;
                 }
 
@@ -125,6 +149,44 @@ namespace ApiGenerator
                 Debug.WriteLine("Is abstract: " + method.IsAbstract);
                 Debug.WriteLine(method.GetAttributes().FirstOrDefault()?.ToString());
             }
+        }
+
+        // TODO move methods like these somewhere?
+        private string BuildFinalMethodRoute(string methodName, string baseRoute, string methodRoute)
+        {
+            if (baseRoute.Contains("[action]"))
+            {
+                return baseRoute.Replace("[action]", methodName);
+            }
+             
+            return string.IsNullOrWhiteSpace(methodRoute) ? baseRoute : $"{baseRoute}/{methodRoute}";
+        }
+
+        public string GetMethodRoute(IMethodSymbol methodSymbol, AttributeData httpMethodAttribute)
+        {
+            var routeAttribute = methodSymbol.GetRouteAttribute();
+
+            if (routeAttribute != null)
+            {
+                return routeAttribute.ConstructorArguments.FirstOrDefault().Value.ToString() ?? string.Empty;
+            }
+
+            // TODO think about if route name has any meaning 
+            return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
+        }
+
+    }
+
+    public static class StringExtensions
+    {
+        public static string RemoveSuffix(this string stringWithPotentialSuffix, string suffix)
+        {
+            if (stringWithPotentialSuffix.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return stringWithPotentialSuffix.Substring(0, stringWithPotentialSuffix.Length - suffix.Length);
+            }
+
+            return stringWithPotentialSuffix;
         }
     }
 
@@ -160,9 +222,11 @@ namespace ApiGenerator
 
     public class ControllerMethodDetails
     {
-        public ControllerMethodDetails(HttpMethod httpMethod)
+        public ControllerMethodDetails(HttpMethod httpMethod, string methodName, string finalRoute)
         {
             this.HttpMethod = httpMethod;
+            this.MethodName = methodName + "Async";
+            this.Route = finalRoute;
         }
 
         public string Route { get; } //also via constructor
@@ -173,6 +237,7 @@ namespace ApiGenerator
         // Request class information
         // Response class information
 
+        public INamedTypeSymbol ReturnType { get; set; }
         // SettleBet, Response, Request
     }
 

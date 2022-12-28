@@ -5,28 +5,28 @@ namespace ApiTest.Controllers
     [Route("[controller]")]
     public class ControllerWithNoRouteButWithMethodRoutes : Controller
     {
-        [Route("ok")]
-        [HttpGet]
-        public ActionResult<Response> Get([FromBody] Request request)
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
+        //[Route("ok")]
+        //[HttpGet]
+        //public ActionResult<Response> Get([FromBody] Request request)
+        //{
+        //    return new ActionResult<Response>(new Response());
+        //    //return Ok(new Response());
+        //}
 
         [Route("ok/{id}")]
         [HttpGet]
-        public static ActionResult<Response> Getit(int id)
+        public static Task<ActionResult<IEnumerable<Response>>> Getit([FromServices] ITestService testservice, int id)
         {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
+            return Task.FromResult(new ActionResult<IEnumerable<Response>>(new List<Response>()));
+            //return Ok();
         }
 
-        [Route("TestNoHttp")]
-        public static ActionResult<Response> NoHttp()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
+        //[Route("TestNoHttp")]
+        //public static ActionResult<Response> NoHttp()
+        //{
+        //    return new ActionResult<Response>(new Response());
+        //    //return Ok(new Response());
+        //}
     }
 
     [ApiController]
