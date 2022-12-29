@@ -1,34 +1,8 @@
+using ClassLibrary;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
-    [Route("[controller]")]
-    public class ControllerWithNoRouteButWithMethodRoutes : Controller
-    {
-        //[Route("ok")]
-        //[HttpGet]
-        //public ActionResult<Response> Get([FromBody] Request request)
-        //{
-        //    return new ActionResult<Response>(new Response());
-        //    //return Ok(new Response());
-        //}
-
-        [Route("ok/{id}")]
-        [HttpGet]
-        public static Task<ActionResult<IEnumerable<Response>>> Getit([FromServices] ITestService testservice, int id)
-        {
-            return Task.FromResult(new ActionResult<IEnumerable<Response>>(new List<Response>()));
-            //return Ok();
-        }
-
-        //[Route("TestNoHttp")]
-        //public static ActionResult<Response> NoHttp()
-        //{
-        //    return new ActionResult<Response>(new Response());
-        //    //return Ok(new Response());
-        //}
-    }
-
     [ApiController]
     [Route("[controller]")]
     //[Route("hmm")]
@@ -43,9 +17,45 @@ namespace ApiTest.Controllers
             //return Ok(new Response());
         }
 
+        [HttpGet]
+        public ActionResult<Response> GetThisLol2()
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+
 
 
     }
+
+    [Route("[controller]")]
+    public class ControllerWithNoRouteButWithMethodRoutes : Controller
+    {
+        //[Route("ok")]
+        //[HttpGet]
+        //public ActionResult<Response> Get([FromBody] Request request)
+        //{
+        //    return new ActionResult<Response>(new Response());
+        //    //return Ok(new Response());
+        //}
+
+        [Route("ok/{id}")]
+        [HttpGet]
+        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit([FromServices] ITestService testservice, int id)
+        {
+            return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
+            //return Ok();
+        }
+
+        //[Route("TestNoHttp")]
+        //public static ActionResult<Response> NoHttp()
+        //{
+        //    return new ActionResult<Response>(new Response());
+        //    //return Ok(new Response());
+        //}
+    }
+
+    
 
 
 

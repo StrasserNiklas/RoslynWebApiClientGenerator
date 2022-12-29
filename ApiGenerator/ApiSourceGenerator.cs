@@ -9,7 +9,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Resources;
+using System.Text;
 
 namespace ApiGenerator
 {
@@ -28,6 +30,13 @@ namespace ApiGenerator
 
         public void Execute(GeneratorExecutionContext context)
         {
+            var x1 = context.Compilation.GetMetadataReference(context.Compilation.Assembly);
+            var x2 = context.Compilation.GetUsedAssemblyReferences();
+            //var x3 = context.Compilation.
+
+            var assemblyReferences = context.Compilation. GetUsedAssemblyReferences().ToList();
+            //.OfType<AssemblyMetadata>();
+
             var assemblyClasses = context.Compilation .SyntaxTrees.SelectMany(
                 x => x.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>());
 
@@ -37,12 +46,36 @@ namespace ApiGenerator
             {
                 var semanticModel = context.Compilation.GetSemanticModel(tree);
 
+                var ref1 = semanticModel.Compilation.DirectiveReferences.ToList();
+                var ref2 = semanticModel.Compilation.References.ToList();
+                var ref3 = semanticModel.Compilation.ExternalReferences.ToList();
+                var ref4 = semanticModel.Compilation.ReferencedAssemblyNames.ToList();
+                var ref5 = semanticModel.Compilation.GetMetadataReference(semanticModel.Compilation.Assembly);
+
                 if (!semanticModel.ContainsControllerTypes())
                 {
                     // TODO return or yield break or continue
                     //yield break;
                     continue;
                 }
+
+                CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+                // Use the syntax tree to find "using System;"
+                UsingDirectiveSyntax usingSystem = root.Usings[0];
+                NameSyntax systemName = usingSystem.Name;
+
+                // Use the semantic model for symbol information:
+                SymbolInfo nameInfo = semanticModel.GetSymbolInfo(systemName);
+
+                var systemSymbol = (INamespaceSymbol)nameInfo.Symbol;
+                foreach (INamespaceSymbol ns in systemSymbol.GetNamespaceMembers())
+                {
+                    //Console.WriteLine(ns);
+                }
+
+                //INamespaceSymbol x;
+                //x.ContainingAssembly;
+                //semanticModel.SyntaxTree.GetRoot().
 
                 var classNodes = semanticModel.SyntaxTree
                     .GetRoot()
@@ -139,6 +172,7 @@ namespace ApiGenerator
                         returnType = null;
                     }
 
+                    var test = ((INamedTypeSymbol)returnType).GenerateClassString();
 
                     var httpMethodInformation = new ControllerMethodDetails(httpMethod, methodNameWithoutAsnyc, finalRoute);
                     yield return httpMethodInformation;
@@ -327,6 +361,78 @@ namespace ApiGenerator
                 //        _endpoints.Add((requestType, responseType));
                 //    }
             }
+        }
+    }
+
+    public static class SymbolStringRepresentationExtensions
+    {
+        public static string GenerateClassString(this INamedTypeSymbol symbol)
+        {
+            // Step 1: Get the name of the class
+            string className = symbol.Name;
+
+            // Step 2: Determine the accessibility of the class
+            string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
+
+            // Step 3: Determine if the class is abstract or sealed
+            string classModifiers = string.Empty;
+            if (symbol.IsAbstract)
+            {
+                classModifiers += "abstract ";
+            }
+            if (symbol.IsSealed)
+            {
+                classModifiers += "sealed ";
+            }
+
+            // Step 4: Determine the type of the class
+            string classType = symbol.TypeKind.ToString().ToLowerInvariant();
+
+            // Step 5: Get the members of the class
+            var members = symbol.GetMembers();
+
+            // Step 6: Generate a string representation for each member
+            StringBuilder sb = new StringBuilder();
+            foreach (var member in members)
+            {
+                if (member is IFieldSymbol field)
+                {
+                    if (field.DeclaredAccessibility != Accessibility.Public)// || field.Name.StartsWith("get_") || field.Name.StartsWith("set_"))
+                    {
+                        continue;
+                    }
+                    //field.Name.Contains("k_BackingField")
+
+                    // Generate string for field: "public int MyField;"
+                    sb.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
+                    sb.AppendLine();
+                }
+                else if (member is IPropertySymbol property)
+                {
+                    // Check if the property is a class
+                    if (property.Type is INamedTypeSymbol propertyTypeSymbol && propertyTypeSymbol.TypeKind == TypeKind.Class)
+                    {
+                        if (propertyTypeSymbol.IsPrimitive())
+                        {
+                            continue;
+                        }
+                        // Generate a string representation of the property's class type
+                        string propertyClassTypeString = GenerateClassString(propertyTypeSymbol);
+
+                        // Append the property's class type string to the string builder
+                        sb.Append(propertyClassTypeString);
+                    }
+
+                    // Generate string for property: "public int MyProperty { get; set; }"
+                    sb.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, property.Type, property.Name);
+                    sb.AppendLine();
+                }
+                // Add additional code here to handle other types of members (methods, events, etc.)
+            }
+
+            // Assemble the final string for the class
+            string classString = string.Format("{0} {1} {2} {3} {{\n{4}\n}}", accessibility, classModifiers, classType, className, sb.ToString());
+            return classString;
         }
     }
 }
