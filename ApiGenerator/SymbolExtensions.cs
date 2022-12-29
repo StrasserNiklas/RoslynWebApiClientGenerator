@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace ApiGenerator
 {
-
     public static class SymbolExtensions
     {
         public static AttributeData GetRouteAttribute(this ISymbol symbol)

@@ -130,6 +130,7 @@ namespace ApiTest.Controllers
     {
         public int Id { get; set; }
 
+        public ResponseClass WellWellWell { get; set; }
         public string ReturnText { get; set; }
         public string? NullableReturnText { get; set; }
     }
@@ -137,5 +138,10 @@ namespace ApiTest.Controllers
     public class Request
     {
 
+    }
+
+    public class ResponseClass
+    {
+        public int IndoorInteger { get; set; }
     }
 }

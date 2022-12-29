@@ -106,18 +106,17 @@ namespace ApiGenerator
                 {
                     var routeAttribute = classSymbol.GetRouteAttribute();
                     var clientInformation = new ControllerClientDetails(classSymbol.Name, routeAttribute);
-                    var controllerMethods = this.GetControllerMethods(classSymbol.GetMembers(), clientInformation.BaseRoute);
-                    clientInformation.HttpMethods.AddRange(controllerMethods);
+                    this.AddControllerMethods(classSymbol.GetMembers(), clientInformation);
                     yield return clientInformation;
                 }
             }
         }
 
-        public IEnumerable<ControllerMethodDetails> GetControllerMethods(IEnumerable<ISymbol> methods, string baseRoute)
+        public void AddControllerMethods(IEnumerable<ISymbol> methods, ControllerClientDetails clientInformation)
         {
-            // get http method
-            // get request and return types
-            // beware off Task<Response>
+            // TODO make this clearer by extracting methods...
+
+            IDictionary<string, string> generatedClasses = new Dictionary<string, string>();
 
             foreach (var method in methods)
             {
@@ -142,7 +141,7 @@ namespace ApiGenerator
 
                     var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
                     var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
-                    var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, baseRoute, methodRoute);
+                    var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, clientInformation.BaseRoute, methodRoute);
 
 
                     var methodParameters = methodSymbol.Parameters;
@@ -172,17 +171,22 @@ namespace ApiGenerator
                         returnType = null;
                     }
 
-                    var test = ((INamedTypeSymbol)returnType).GenerateClassString();
+                    var test = returnType.GenerateClassString();
+
+                    foreach (var item in test)
+                    {
+                        if (!generatedClasses.ContainsKey(item.Key))
+                        {
+                            generatedClasses.Add(item.Key, item.Value);
+                        }
+                    }
 
                     var httpMethodInformation = new ControllerMethodDetails(httpMethod, methodNameWithoutAsnyc, finalRoute);
-                    yield return httpMethodInformation;
+                    clientInformation.HttpMethods.Add(httpMethodInformation);
                 }
-
-                Debug.WriteLine("---------------------------------------------");
-                Debug.WriteLine(method.Name);
-                Debug.WriteLine("Is abstract: " + method.IsAbstract);
-                Debug.WriteLine(method.GetAttributes().FirstOrDefault()?.ToString());
             }
+
+            clientInformation.GeneratedCodeClasses = generatedClasses;
         }
 
         // TODO move methods like these somewhere?
@@ -208,6 +212,11 @@ namespace ApiGenerator
             // TODO think about if route name has any meaning 
             return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
         }
+
+    }
+
+    public static class ControllerExtensions
+    {
 
     }
 
@@ -245,6 +254,7 @@ namespace ApiGenerator
             this.Name = $"{baseName}Client";
             this.BaseRoute = string.IsNullOrWhiteSpace(route) ? string.Empty : route.Replace("[controller]", baseName);
             this.HttpMethods = new List<ControllerMethodDetails>();
+            this.GeneratedCodeClasses= new Dictionary<string, string>();
         }
 
         public string Name { get; }
@@ -252,6 +262,8 @@ namespace ApiGenerator
 
         public bool ContainsHttpMethods => this.HttpMethods.Count() == 0;
         public List<ControllerMethodDetails> HttpMethods { get; set; }
+
+        public IDictionary<string, string> GeneratedCodeClasses { get; set; }
     }
 
     public class ControllerMethodDetails
@@ -273,6 +285,75 @@ namespace ApiGenerator
 
         public INamedTypeSymbol ReturnType { get; set; }
         // SettleBet, Response, Request
+    }
+
+    public static class SymbolStringRepresentationExtensions
+    {
+        public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
+        {
+            string className = symbol.Name;
+            string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
+            string classModifiers = string.Empty;
+
+            if (symbol.IsAbstract)
+            {
+                classModifiers += "abstract ";
+            }
+            if (symbol.IsSealed)
+            {
+                classModifiers += "sealed ";
+            }
+
+            string classType = symbol.TypeKind.ToString().ToLowerInvariant();
+
+            var stringClassRepresentations = new Dictionary<string, string>();
+
+            var codeBuilder = new CodeStringBuilder();
+            codeBuilder.AppendFormat("{0} {1} {2} {3}", accessibility, classModifiers, classType, className);
+            codeBuilder.OpenCurlyBracketLine();
+            
+            foreach (var member in symbol.GetMembers())
+            {
+                if (member is IFieldSymbol field)
+                {
+                    if (field.DeclaredAccessibility != Accessibility.Public)// || field.Name.StartsWith("get_") || field.Name.StartsWith("set_"))
+                    {
+                        continue;
+                    }
+
+                    codeBuilder.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
+                    codeBuilder.AppendNewLine();
+                }
+                else if (member is IPropertySymbol property)
+                {
+                    if (property.Type is INamedTypeSymbol propertyTypeSymbol && propertyTypeSymbol.TypeKind == TypeKind.Class)
+                    {
+                        if (!propertyTypeSymbol.IsPrimitive())
+                        {
+                            // TODO rename this
+                            var propertyClassTypeString = GenerateClassString(propertyTypeSymbol);
+
+                            foreach (var classStringRepresentation in propertyClassTypeString)
+                            {
+                                if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
+                                {
+                                    stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                                }
+                            }
+                        }
+                    }
+
+                    // TODO check if set is available?
+                    codeBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, property.Type.ToString().Split('.').LastOrDefault() ?? string.Empty, property.Name);
+                    codeBuilder.AppendNewLine();
+                }
+            }
+
+            codeBuilder.CloseCurlyBracketLine();
+            codeBuilder.AppendNewLine();
+            stringClassRepresentations.Add(className, codeBuilder.ToString());
+            return stringClassRepresentations;
+        }
     }
 
     public class OldCode
@@ -361,78 +442,6 @@ namespace ApiGenerator
                 //        _endpoints.Add((requestType, responseType));
                 //    }
             }
-        }
-    }
-
-    public static class SymbolStringRepresentationExtensions
-    {
-        public static string GenerateClassString(this INamedTypeSymbol symbol)
-        {
-            // Step 1: Get the name of the class
-            string className = symbol.Name;
-
-            // Step 2: Determine the accessibility of the class
-            string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
-
-            // Step 3: Determine if the class is abstract or sealed
-            string classModifiers = string.Empty;
-            if (symbol.IsAbstract)
-            {
-                classModifiers += "abstract ";
-            }
-            if (symbol.IsSealed)
-            {
-                classModifiers += "sealed ";
-            }
-
-            // Step 4: Determine the type of the class
-            string classType = symbol.TypeKind.ToString().ToLowerInvariant();
-
-            // Step 5: Get the members of the class
-            var members = symbol.GetMembers();
-
-            // Step 6: Generate a string representation for each member
-            StringBuilder sb = new StringBuilder();
-            foreach (var member in members)
-            {
-                if (member is IFieldSymbol field)
-                {
-                    if (field.DeclaredAccessibility != Accessibility.Public)// || field.Name.StartsWith("get_") || field.Name.StartsWith("set_"))
-                    {
-                        continue;
-                    }
-                    //field.Name.Contains("k_BackingField")
-
-                    // Generate string for field: "public int MyField;"
-                    sb.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
-                    sb.AppendLine();
-                }
-                else if (member is IPropertySymbol property)
-                {
-                    // Check if the property is a class
-                    if (property.Type is INamedTypeSymbol propertyTypeSymbol && propertyTypeSymbol.TypeKind == TypeKind.Class)
-                    {
-                        if (propertyTypeSymbol.IsPrimitive())
-                        {
-                            continue;
-                        }
-                        // Generate a string representation of the property's class type
-                        string propertyClassTypeString = GenerateClassString(propertyTypeSymbol);
-
-                        // Append the property's class type string to the string builder
-                        sb.Append(propertyClassTypeString);
-                    }
-
-                    // Generate string for property: "public int MyProperty { get; set; }"
-                    sb.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, property.Type, property.Name);
-                    sb.AppendLine();
-                }
-                // Add additional code here to handle other types of members (methods, events, etc.)
-            }
-
-            // Assemble the final string for the class
-            string classString = string.Format("{0} {1} {2} {3} {{\n{4}\n}}", accessibility, classModifiers, classType, className, sb.ToString());
-            return classString;
         }
     }
 }
