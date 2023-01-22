@@ -37,8 +37,8 @@ namespace ApiGenerator
             var assemblyReferences = context.Compilation. GetUsedAssemblyReferences().ToList();
             //.OfType<AssemblyMetadata>();
 
-            var assemblyClasses = context.Compilation .SyntaxTrees.SelectMany(
-                x => x.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>());
+            //var assemblyClasses = context.Compilation .SyntaxTrees.SelectMany(
+            //    x => x.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>());
 
             var apiClients = new List<ControllerClientDetails>();
 
@@ -82,12 +82,20 @@ namespace ApiGenerator
                     .DescendantNodes()
                     .OfType<ClassDeclarationSyntax>();
 
-                apiClients.AddRange(this.GetApiClients(classNodes, semanticModel));
+
+                var apiClientList = this.GetApiClients(classNodes, semanticModel);
+
+                var dictionaries = apiClientList.Select(client => client.GeneratedCodeClasses);
+
+                var mergedDictionary = dictionaries.Aggregate((d1, d2) => d1.Concat(d2).ToDictionary(k => k.Key, v => v.Value));
+
+
+                apiClients.AddRange(apiClientList);
             }
 
             var tek = apiClients.Where(client => client.ContainsHttpMethods);
 
-            var apiControllers = assemblyClasses.GetApiControllers();
+            //var apiControllers = assemblyClasses.GetApiControllers();
             //this.Run(apiControllers);
         }
 
@@ -107,6 +115,9 @@ namespace ApiGenerator
                     var routeAttribute = classSymbol.GetRouteAttribute();
                     var clientInformation = new ControllerClientDetails(classSymbol.Name, routeAttribute);
                     this.AddControllerMethods(classSymbol.GetMembers(), clientInformation);
+
+                    // TODO check if there are even methods inside, if not, dont add it!
+
                     yield return clientInformation;
                 }
             }
@@ -129,6 +140,8 @@ namespace ApiGenerator
                 {
                     var httpMethodAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute");
 
+                    // TODO check if this is even there (public methods that do nothing maybe)
+
                     var httpMethod = httpMethodAttribute?.AttributeClass?.Name switch
                     {
                         "HttpGetAttribute" => HttpMethod.Get,
@@ -138,6 +151,8 @@ namespace ApiGenerator
                         _ => HttpMethod.Get // TODO does this work / do we even want it
                     };
 
+                    // yeah, if we even want this, see above
+                    // else continue here...
 
                     var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
                     var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
@@ -212,7 +227,6 @@ namespace ApiGenerator
             // TODO think about if route name has any meaning 
             return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
         }
-
     }
 
     public static class ControllerExtensions
@@ -275,9 +289,9 @@ namespace ApiGenerator
             this.Route = finalRoute;
         }
 
-        public string Route { get; } //also via constructor
+        public string Route { get; }
 
-        public string MethodName { get; } // get from symbol + "Async"
+        public string MethodName { get; }
 
         public HttpMethod HttpMethod { get; }
         // Request class information
