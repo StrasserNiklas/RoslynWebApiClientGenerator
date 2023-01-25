@@ -14,7 +14,7 @@ namespace ApiGenerator;
 [Generator]
 public class ApiClientGenerator : ISourceGenerator
 {
-    private List<IClientGenerator> clientGenerators = new List<IClientGenerator>();
+    private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
 
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -25,8 +25,7 @@ public class ApiClientGenerator : ISourceGenerator
         }
 #endif
 
-        // in the future this could be done via config, e.g. whether to add a typescript client as well
-        this.clientGenerators.Add(new CSharpClientGenerator());
+        
     }
 
     public void Execute(GeneratorExecutionContext context)
@@ -39,6 +38,11 @@ public class ApiClientGenerator : ISourceGenerator
         var assemblyReferences = context.Compilation.GetUsedAssemblyReferences().ToList();
         //.OfType<AssemblyMetadata>();
         #endregion
+
+        // in the future this could be done via config, e.g. whether to add a typescript client as well
+        // TODO get project name
+        var projectName = "TODO";
+        this.clientGenerators.Add(new CSharpClientGenerator(projectName));
 
         var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
@@ -90,10 +94,24 @@ public class ApiClientGenerator : ISourceGenerator
             completeControllerDetailList.AddRange(controllerClients);
         }
 
+        // TODO error when there are no clients (possible diagnostic warning)
+
         // TODO config if each client in respective file (config in appsettings?)
+        var useIndependendFiles = false;
+
         foreach (var clientGenerator in this.clientGenerators)
         {
-            clientGenerator.GenerateClient(completeControllerDetailList);
+            if (useIndependendFiles)
+            {
+                foreach (var controllerDetail in completeControllerDetailList)
+                {
+                    clientGenerator.GenerateClient(controllerDetail);
+                }
+            }
+            else
+            {
+                clientGenerator.GenerateClient(completeControllerDetailList);
+            }
         }
     }
 }
