@@ -31,34 +31,29 @@ public class ApiClientGenerator : ISourceGenerator
 
     public void Execute(GeneratorExecutionContext context)
     {
+        #region OngoingReferenceSearch
         var x1 = context.Compilation.GetMetadataReference(context.Compilation.Assembly);
         var x2 = context.Compilation.GetUsedAssemblyReferences();
         //var x3 = context.Compilation.
 
         var assemblyReferences = context.Compilation.GetUsedAssemblyReferences().ToList();
         //.OfType<AssemblyMetadata>();
+        #endregion
 
-        //var assemblyClasses = context.Compilation .SyntaxTrees.SelectMany(
-        //    x => x.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>());
+        var controllerClientBuilder = new ControllerClientBuilder();
+        var completeControllerDetailList = new List<ControllerClientDetails>();
 
-        var apiClients = new List<ControllerClientDetails>();
-
+        // TODO what about partial controller classes, must work!
         foreach (var tree in context.Compilation.SyntaxTrees)
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 
+            #region OngoingReferenceSearchWIP
             var ref1 = semanticModel.Compilation.DirectiveReferences.ToList();
             var ref2 = semanticModel.Compilation.References.ToList();
             var ref3 = semanticModel.Compilation.ExternalReferences.ToList();
             var ref4 = semanticModel.Compilation.ReferencedAssemblyNames.ToList();
             var ref5 = semanticModel.Compilation.GetMetadataReference(semanticModel.Compilation.Assembly);
-
-            if (!semanticModel.ContainsControllerTypes())
-            {
-                // TODO return or yield break or continue
-                //yield break;
-                continue;
-            }
 
             CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             // Use the syntax tree to find "using System;"
@@ -78,33 +73,34 @@ public class ApiClientGenerator : ISourceGenerator
             //x.ContainingAssembly;
             //semanticModel.SyntaxTree.GetRoot().
 
+            #endregion
+
+            if (!semanticModel.ContainsControllerTypes())
+            {
+                continue;
+            }
+
             var classNodes = semanticModel.SyntaxTree
                 .GetRoot()
                 .DescendantNodes()
                 .OfType<ClassDeclarationSyntax>();
 
-
-            var apiClientList = this.GetApiClients(classNodes, semanticModel);
-
-            var dictionaries = apiClientList.Select(client => client.GeneratedCodeClasses);
-
-            var mergedDictionary = dictionaries.Aggregate((d1, d2) => d1.Concat(d2).ToDictionary(k => k.Key, v => v.Value));
-
-
-            apiClients.AddRange(apiClientList);
+            // usually there should only one single controller be present in a file (possible diagnostic warning)
+            var controllerClients = controllerClientBuilder.GetControllerClientDetails(classNodes, semanticModel);
+            completeControllerDetailList.AddRange(controllerClients);
         }
 
-        var tek = apiClients.Where(client => client.ContainsHttpMethods);
-
-
-
+        // TODO config if each client in respective file (config in appsettings?)
         foreach (var clientGenerator in this.clientGenerators)
         {
-            clientGenerator.GenerateClient();
+            clientGenerator.GenerateClient(completeControllerDetailList);
         }
     }
+}
 
-    private IEnumerable<ControllerClientDetails> GetApiClients(IEnumerable<ClassDeclarationSyntax> classNodes, SemanticModel semanticModel)
+public class ControllerClientBuilder
+{
+    public IEnumerable<ControllerClientDetails> GetControllerClientDetails(IEnumerable<ClassDeclarationSyntax> classNodes, SemanticModel semanticModel)
     {
         foreach (var classNode in classNodes)
         {
@@ -119,18 +115,23 @@ public class ApiClientGenerator : ISourceGenerator
             {
                 var routeAttribute = classSymbol.GetRouteAttribute();
                 var clientInformation = new ControllerClientDetails(classSymbol.Name, routeAttribute);
-                this.AddControllerMethods(classSymbol.GetMembers(), clientInformation);
 
-                // TODO check if there are even methods inside, if not, dont add it!
+                var methods = classSymbol.GetMembers();
 
+                if (methods.Count() == 0)
+                {
+                    continue;
+                }
+
+                this.AddControllerMethods(methods, clientInformation);
                 yield return clientInformation;
             }
         }
     }
 
-    public void AddControllerMethods(IEnumerable<ISymbol> methods, ControllerClientDetails clientInformation)
+    private void AddControllerMethods(IEnumerable<ISymbol> methods, ControllerClientDetails clientInformation)
     {
-        // TODO make this clearer by extracting methods...
+        // TODO make this whole method clearer by extracting methods...
 
         IDictionary<string, string> generatedClasses = new Dictionary<string, string>();
 
@@ -209,7 +210,6 @@ public class ApiClientGenerator : ISourceGenerator
         clientInformation.GeneratedCodeClasses = generatedClasses;
     }
 
-    // TODO move methods like these somewhere?
     private string BuildFinalMethodRoute(string methodName, string baseRoute, string methodRoute)
     {
         if (baseRoute.Contains("[action]"))
@@ -233,15 +233,3 @@ public class ApiClientGenerator : ISourceGenerator
         return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
     }
 }
-
-
-public class StringRepresentation
-{
-    public string GetStringRepresentation(ControllerMethodDetails endpoint)
-    {
-        return string.Empty;
-    }
-}
-
-
-

@@ -26,7 +26,6 @@ public class ControllerClientDetails
     public string Name { get; }
     public string BaseRoute { get; }
 
-    public bool ContainsHttpMethods => this.HttpMethods.Count() == 0;
     public List<ControllerMethodDetails> HttpMethods { get; set; }
 
     public IDictionary<string, string> GeneratedCodeClasses { get; set; }

@@ -68,6 +68,8 @@ public static class SymbolStringRepresentationExtensions
 
         codeBuilder.CloseCurlyBracketLine();
         codeBuilder.AppendNewLine();
+
+        // TODO instead of class name, might use full name with namespace?
         stringClassRepresentations.Add(className, codeBuilder.ToString());
         return stringClassRepresentations;
     }
