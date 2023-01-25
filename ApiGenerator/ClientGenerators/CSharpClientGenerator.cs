@@ -47,7 +47,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private void GenerateSingleClient(ControllerClientDetails controllerClientDetails)
     {
         // TODO could add whether to add an interface or not in config, not sure if I want to though (but no interface = performance)
-        this.GenerateClientInterface(controllerClientDetails);
+        this.AddClientInterface(controllerClientDetails);
         this.GenerateClientImplementation(controllerClientDetails);
         
     }
@@ -57,34 +57,68 @@ public class CSharpClientGenerator : ClientGeneratorBase
         this.CodeStringBuilder.AppendLine($"public partial class {controllerClientDetails.Name} : I{controllerClientDetails.Name}");
         this.CodeStringBuilder.OpenCurlyBracketLine();
 
+        this.AddConstructor(controllerClientDetails.Name);
+
         // add implementation methods
         foreach (var method in controllerClientDetails.HttpMethods)
         {
             this.GenerateSingleMethod(method);
+            this.GenerateSingleMethodWithoutCancellationToken(method);
         }
 
         this.CodeStringBuilder.CloseCurlyBracketLine();
     }
 
-    private void GenerateSingleMethod(ControllerMethodDetails controllerMethodDetails)
+    private void GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
 
     }
 
-    private void GenerateClientInterface(ControllerClientDetails controllerClientDetails)
+    private void GenerateSingleMethodWithoutCancellationToken(ControllerMethodDetails methodDetails)
+    {
+        /*
+         * public virtual System.Threading.Tasks.Task<EvaluateBetslipResponse> EvaluateBetslipAsync(string x_asw_sessiontoken, EvaluateBetslipRequest request)
+        {
+            return EvaluateBetslipAsync(x_asw_sessiontoken, request, System.Threading.CancellationToken.None);
+        }
+         * */
+
+        // TODO add the correct return type... or whatever how you get it I dont care
+        var returnType = "TODO";
+        // TODO add the paramter to method details, we should have it, think about auth too
+        var parameter = "TODO";
+
+        this.CodeStringBuilder.AppendLine($"public virtual Task<{returnType}> {methodDetails.MethodName}({parameter})");
+        this.CodeStringBuilder.OpenCurlyBracketLine();
+
+        // TODO once again add the parameter/s
+        this.CodeStringBuilder.AppendLine($"return this.{methodDetails.MethodName}(CancellationToken.None);");
+        this.CodeStringBuilder.CloseCurlyBracketLine();
+    }
+
+    // TODO maybe we will ned serializer settings here as well
+    private void AddConstructor(string clientName)
+    {
+        this.CodeStringBuilder.AppendLine($"public {clientName}(HttpClient httpClient)");
+        this.CodeStringBuilder.OpenCurlyBracketLine();
+        this.CodeStringBuilder.AppendLine($"this.httpClient = httpClient;");
+        this.CodeStringBuilder.CloseCurlyBracketLine();
+    }
+
+    private void AddClientInterface(ControllerClientDetails controllerClientDetails)
     {
         this.CodeStringBuilder.AppendLine($"public partial interface I{controllerClientDetails.Name}");
         this.CodeStringBuilder.OpenCurlyBracketLine();
 
         foreach (var method in controllerClientDetails.HttpMethods)
         {
-            this.GenerateInterfaceMethod(method);
+            this.AddInterfaceMethod(method);
         }
 
         this.CodeStringBuilder.CloseCurlyBracketLine();
     }
 
-    private void GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
+    private void AddInterfaceMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
         var returnType = "TODO";
@@ -104,6 +138,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         this.CodeStringBuilder.AppendLine("using System;");
         this.CodeStringBuilder.AppendLine("using System.Threading;"); // for cancellation token
         this.CodeStringBuilder.AppendLine("using System.Threading.Tasks;");
+        this.CodeStringBuilder.AppendLine("using System.Net.Http;"); // http client
 
         if (additionalUsings is not null)
         {
