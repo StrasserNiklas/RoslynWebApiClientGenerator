@@ -1,9 +1,8 @@
 ﻿using ApiGenerator.Extensions;
 using ApiGenerator.Models;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace ApiGenerator.ClientGenerators;
 
@@ -20,6 +19,10 @@ public class CSharpClientGenerator : ClientGeneratorBase
             .Select(client => client.GeneratedCodeClasses)
             .Merge();
 
+//        var sb = new StringBuilder();
+//        sb.AppendLine(@"
+//namespace {this.ProjectName}.CSharp;
+//");
 
         // beginning of file
         // name of the .cs file is the first controller (if single file) and before that the project name
@@ -28,7 +31,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         // add the necessary usings
         this.AddUsings();
 
-        this.CodeStringBuilder.AppendLine($"namespace {this.ProjectName}.CSharp");
+        this.CodeStringBuilder.AppendLine($"namespace {this.ProjectName}.CSharp;");
         // TODO check if client works without opening bracket and closing for namespace (new namespace change)
         // if it doesnt work, indent lines
 
@@ -48,16 +51,15 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         // TODO could add whether to add an interface or not in config, not sure if I want to though (but no interface = performance)
         this.AddClientInterface(controllerClientDetails);
-        this.GenerateClientImplementation(controllerClientDetails);
-        
+        this.AddClientImplementation(controllerClientDetails);
     }
 
-    private void GenerateClientImplementation(ControllerClientDetails controllerClientDetails)
+    private void AddClientImplementation(ControllerClientDetails controllerClientDetails)
     {
         this.CodeStringBuilder.AppendLine($"public partial class {controllerClientDetails.Name} : I{controllerClientDetails.Name}");
         this.CodeStringBuilder.OpenCurlyBracketLine();
 
-        this.AddConstructor(controllerClientDetails.Name);
+        this.AddHttpClientConstructor(controllerClientDetails.Name);
 
         // add implementation methods
         foreach (var method in controllerClientDetails.HttpMethods)
@@ -71,34 +73,74 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private void GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
+        // TODO add the correct return type... or whatever how you get it I dont care
+        var returnType = "TODO";
+        // TODO parameter might not be neccessary for GET and DELETE
+        // TODO add the paramter to method details, we should have it, think about auth too
+        var parameter = "TODO";
 
+        // TODO parameter might not be neccessary for GET and DELETE
+        this.CodeStringBuilder.AppendLine($"public virtual async Task<{returnType}> {methodDetails.MethodName}({parameter} request, CancellationToken cancellationToken)");
+        this.CodeStringBuilder.OpenCurlyBracketLine();
+
+        // code for calling the httpclient...
+
+        // TODO parameter might not be neccessary for GET and DELETE
+        // TODO check if is is working
+        this.CodeStringBuilder.AppendLine($"if (request) is null)");
+        this.CodeStringBuilder.OpenCurlyBracketLine();
+        this.CodeStringBuilder.AppendLine("throw new ArgumentNullException(\"nameof(request)\", \"The request object can´t be null.\"");
+        this.CodeStringBuilder.CloseCurlyBracketLine();
+
+
+        this.CodeStringBuilder.CloseCurlyBracketLine();
     }
 
     private void GenerateSingleMethodWithoutCancellationToken(ControllerMethodDetails methodDetails)
     {
-        /*
-         * public virtual System.Threading.Tasks.Task<EvaluateBetslipResponse> EvaluateBetslipAsync(string x_asw_sessiontoken, EvaluateBetslipRequest request)
-        {
-            return EvaluateBetslipAsync(x_asw_sessiontoken, request, System.Threading.CancellationToken.None);
-        }
-         * */
-
         // TODO add the correct return type... or whatever how you get it I dont care
         var returnType = "TODO";
+
         // TODO add the paramter to method details, we should have it, think about auth too
         var parameter = "TODO";
 
-        this.CodeStringBuilder.AppendLine($"public virtual Task<{returnType}> {methodDetails.MethodName}({parameter})");
+        if (methodDetails.HasParameters)
+        {
+            this.CodeStringBuilder.AppendLine($"public virtual Task<{returnType}> {methodDetails.MethodName}({parameter})");
+        }
+        else
+        {
+            // TODO no parameter, still think about auth
+            this.CodeStringBuilder.AppendLine($"public virtual Task<{returnType}> {methodDetails.MethodName}()");
+        }
+
         this.CodeStringBuilder.OpenCurlyBracketLine();
 
-        // TODO once again add the parameter/s
-        this.CodeStringBuilder.AppendLine($"return this.{methodDetails.MethodName}(CancellationToken.None);");
+        if (methodDetails.HasParameters)
+        {
+            this.CodeStringBuilder.AppendLine($"return this.{methodDetails.MethodName}(CancellationToken.None);");
+        }
+        else
+        {
+            // TODO no parameter, still think about auth
+            this.CodeStringBuilder.AppendLine($"return this.{methodDetails.MethodName}(CancellationToken.None);");
+        }
+
         this.CodeStringBuilder.CloseCurlyBracketLine();
     }
 
     // TODO maybe we will ned serializer settings here as well
-    private void AddConstructor(string clientName)
+    public void AddHttpClientConstructor(string clientName)
     {
+        // version 1
+//        this.CodeStringBuilder.AppendLine($@"
+//public {clientName}(HttpClient httpClient)
+//{{
+//    this.httpClient = httpClient;
+//}}
+//");
+
+        // version 2
         this.CodeStringBuilder.AppendLine($"public {clientName}(HttpClient httpClient)");
         this.CodeStringBuilder.OpenCurlyBracketLine();
         this.CodeStringBuilder.AppendLine($"this.httpClient = httpClient;");
@@ -127,8 +169,18 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         // TODO be aware that authentication might be added here as a first parameter
         // TODO multiple parameters possible? (except authentication)
-        this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}({parameter});");
-        this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}({parameter}, CancellationToken cancellationToken);");
+
+        if (methodDetails.HasParameters)
+        {
+            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}({parameter});");
+            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}({parameter}, CancellationToken cancellationToken);");
+        }
+        else
+        {
+            // TODO dont forget authentication
+            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}();");
+            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}(CancellationToken cancellationToken);");
+        }
     }
 
     // TODO global usings?

@@ -38,6 +38,12 @@ public class ControllerMethodDetails
         this.HttpMethod = httpMethod;
         this.MethodName = methodName + "Async";
         this.Route = finalRoute;
+
+        // TODO this is obviously based on what is there
+        this.HasParameters = false;
+
+        // TODO same here
+        this.HasReturnType = false;
     }
 
     public string Route { get; }
@@ -47,6 +53,11 @@ public class ControllerMethodDetails
     public HttpMethod HttpMethod { get; }
     // Request class information
     // Response class information
+
+    public bool HasParameters { get;  }
+
+    // TODO might just check null on the return type?
+    public bool HasReturnType { get; }
 
     public INamedTypeSymbol ReturnType { get; set; }
     // SettleBet, Response, Request

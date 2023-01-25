@@ -39,6 +39,10 @@ public class ApiClientGenerator : ISourceGenerator
         //.OfType<AssemblyMetadata>();
         #endregion
 
+        var keke = new CSharpClientGenerator("bla");
+        keke.AddHttpClientConstructor("BettingClient");
+        var res = keke.CodeStringBuilder.ToString();
+
         // in the future this could be done via config, e.g. whether to add a typescript client as well
         // TODO get project name
         var projectName = "TODO";
