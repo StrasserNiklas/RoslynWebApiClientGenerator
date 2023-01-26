@@ -69,6 +69,13 @@ public class ApiClientGenerator : ISourceGenerator
                 .OfType<InvocationExpressionSyntax>()
                 .Where(x => x.Expression is MemberAccessExpressionSyntax expression && minimalApiMethods.Contains(expression.Name.Identifier.Value));
 
+            //var teeee = ;
+
+            if (methodInvocations.First().ArgumentList.Arguments.First().Expression is LiteralExpressionSyntax literal)
+            {
+                var route = literal.Token.ValueText;
+            }
+
             var test = semanticModel.GetSymbolInfo(methodInvocations.First());
 
             if (test.Symbol is not null && test.Symbol is IMethodSymbol methodSymbol)
@@ -80,8 +87,11 @@ public class ApiClientGenerator : ISourceGenerator
                     continue;
                 }
 
+                var methodSyntax = methodSymbol.DeclaringSyntaxReferences;// (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxReferences[0].GetSyntax();
+                //var parameterValue = methodSyntax.ParameterList.Parameters.First().Identifier.ValueText;
+
                 // TODO get the string value WTFF
-                var route = parameters.First();
+                var route = parameters.First() .GetAttributes();//.ExplicitDefaultValue;
                 // assign a controller (make one up)
                 // place route and give option to suggest the type you think will come, else it will be object
             }

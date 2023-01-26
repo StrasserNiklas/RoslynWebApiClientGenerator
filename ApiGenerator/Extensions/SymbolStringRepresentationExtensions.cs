@@ -6,6 +6,7 @@ namespace ApiGenerator.Extensions;
 
 public static class SymbolStringRepresentationExtensions
 {
+    // TODO use literal string instead of code builder!
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
         string className = symbol.Name;
