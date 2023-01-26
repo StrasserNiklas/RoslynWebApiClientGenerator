@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using ApiGenerator.Models;
+using System.Text.RegularExpressions;
 
 namespace ApiGenerator;
 
@@ -58,6 +59,46 @@ public class ApiClientGenerator : ISourceGenerator
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 
+
+            var root = tree.GetRoot();
+
+            var minimalApiMethods = new[] { "MapGet", "MapPost", "MapPut", "MapDelete" };//, "Map", "MapWhen" }; MapMethods
+
+            var methodInvocations = root
+                .DescendantNodes()
+                .OfType<InvocationExpressionSyntax>()
+                .Where(x => x.Expression is MemberAccessExpressionSyntax expression && minimalApiMethods.Contains(expression.Name.Identifier.Value));
+
+            var test = semanticModel.GetSymbolInfo(methodInvocations.First());
+
+            if (test.Symbol is not null && test.Symbol is IMethodSymbol methodSymbol)
+            {
+                var parameters = methodSymbol.Parameters;
+
+                if (parameters.Count() != 2)
+                {
+                    continue;
+                }
+
+                // TODO get the string value WTFF
+                var route = parameters.First();
+                // assign a controller (make one up)
+                // place route and give option to suggest the type you think will come, else it will be object
+            }
+
+            foreach (var invocation in methodInvocations)
+            {
+                var argument = invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression;
+                var argumentValue = argument.ToString();
+
+                if (!string.IsNullOrEmpty(argumentValue))
+                {
+                    
+                }
+            }
+
+            //var semanticModel = context.Compilation.GetSemanticModel(tree);
+
             #region OngoingReferenceSearchWIP
             var ref1 = semanticModel.Compilation.DirectiveReferences.ToList();
             var ref2 = semanticModel.Compilation.References.ToList();
@@ -85,6 +126,7 @@ public class ApiClientGenerator : ISourceGenerator
 
             #endregion
 
+            // TODO right now is always true because the metadata is there wtf...
             if (!semanticModel.ContainsControllerTypes())
             {
                 continue;

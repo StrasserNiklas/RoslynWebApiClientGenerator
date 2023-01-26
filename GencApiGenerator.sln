@@ -9,11 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTest", "ApiTest\ApiTest.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassLibrary", "ClassLibrary\ClassLibrary.csproj", "{F655E4D2-E903-4ED6-9F8A-CE19E11500F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleWebApi", "SimpleWebApi\SimpleWebApi.csproj", "{4EBC5D2C-8822-4775-B151-227373A0BAC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebApi", "SimpleWebApi\SimpleWebApi.csproj", "{4EBC5D2C-8822-4775-B151-227373A0BAC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleWebApiWindowsAuth", "SimpleWebApiWindowsAuth\SimpleWebApiWindowsAuth.csproj", "{EBD41B15-EEA3-4F08-BC70-84DA03F51C62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebApiWindowsAuth", "SimpleWebApiWindowsAuth\SimpleWebApiWindowsAuth.csproj", "{EBD41B15-EEA3-4F08-BC70-84DA03F51C62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplexWebApi", "ComplexWebApi\ComplexWebApi.csproj", "{381DE120-9858-407A-9DDE-6C3FDFD0A779}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComplexWebApi", "ComplexWebApi\ComplexWebApi.csproj", "{381DE120-9858-407A-9DDE-6C3FDFD0A779}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinimalWebApi", "MinimalWebApi\MinimalWebApi.csproj", "{282AA12B-5269-4DA5-B3BC-948EB3443102}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Release|Any CPU.Build.0 = Release|Any CPU
+		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,6 +4,7 @@ namespace ApiGenerator.Extensions;
 
 public static class SemanticModelExtensions
 {
+    // TODO is always true because the metadata is there wtf...
     public static bool ContainsControllerTypes(this SemanticModel semanticModel)
     {
         var controllerBase = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.ControllerBase");
