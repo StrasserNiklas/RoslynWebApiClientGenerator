@@ -5,14 +5,15 @@ namespace ApiGenerator.ClientGenerators;
 
 public abstract class ClientGeneratorBase
 {
-	public ClientGeneratorBase(string projectName)
+	public ClientGeneratorBase(Configuration configuration, string projectName)
 	{
+        Configuration = configuration;
         ProjectName = projectName;
         this.CodeStringBuilder = new CodeStringBuilder();
     }
 
     public CodeStringBuilder CodeStringBuilder { get; }
-
+    public Configuration Configuration { get; }
     public string ProjectName { get; }
 
     public abstract void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails);

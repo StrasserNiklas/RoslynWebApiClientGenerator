@@ -1,6 +1,7 @@
 ﻿using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace ApiGenerator.ClientGenerators;
 
 public class CSharpClientGenerator : ClientGeneratorBase
 {
-    public CSharpClientGenerator(string projectName) : base(projectName) { }
+    public CSharpClientGenerator(Configuration configuration, string projectName) : base(configuration, projectName) { }
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails)
     {
@@ -19,151 +20,151 @@ public class CSharpClientGenerator : ClientGeneratorBase
             .Select(client => client.GeneratedCodeClasses)
             .Merge();
 
-//        var sb = new StringBuilder();
-//        sb.AppendLine(@"
-//namespace {this.ProjectName}.CSharp;
-//");
-
         // beginning of file
         // name of the .cs file is the first controller (if single file) and before that the project name
         var fileName = $"{this.ProjectName}.{controllerClientDetails.First().Name}.cs";
 
-        // add the necessary usings
-        this.AddUsings();
+        var clientCodeStringBuilder = new StringBuilder();
 
-        this.CodeStringBuilder.AppendLine($"namespace {this.ProjectName}.CSharp;");
-        // TODO check if client works without opening bracket and closing for namespace (new namespace change)
-        // if it doesnt work, indent lines
-
-        // add the clients
         foreach (var controllerClient in controllerClientDetails)
         {
-            this.GenerateSingleClient(controllerClient);
+            if (this.Configuration.UseInterfacesForClients)
+            {
+                clientCodeStringBuilder.AppendLine(this.AddClientInterfaceWithMethods(controllerClient));
+            }
+
+            clientCodeStringBuilder.AppendLine(this.AddClientImplementation(controllerClient));
         }
 
-        // TODO see above about closing, dont forget to unindent line
+        // TODO check if client works without opening bracket and closing for namespace (new namespace change), if it doesnt work, indent lines
+        var finalClientCodeString = $$"""
+            {{this.AddUsings()}}
 
-        // TODO decide where to write to (out folder?)
+            namespace {{this.ProjectName}}.CSharp;
+
+            {{clientCodeStringBuilder}}
+
+            """.PrettifyCode();
+
+
+        // TODO decide where to write to (out folder or via config?)
         // write to file
+        File.WriteAllText("C:\\Workspace\\TestingApp\\TestingApp\\Test\\GeneratedClient.cs", finalClientCodeString);
     }
 
-    private void GenerateSingleClient(ControllerClientDetails controllerClientDetails)
+    private string AddClientImplementation(ControllerClientDetails controllerClientDetails)
     {
-        // TODO could add whether to add an interface or not in config, not sure if I want to though (but no interface = performance)
-        this.AddClientInterface(controllerClientDetails);
-        this.AddClientImplementation(controllerClientDetails);
-    }
+        var methodsBuilder = new StringBuilder();
 
-    private void AddClientImplementation(ControllerClientDetails controllerClientDetails)
-    {
-        this.CodeStringBuilder.AppendLine($"public partial class {controllerClientDetails.Name} : I{controllerClientDetails.Name}");
-        this.CodeStringBuilder.OpenCurlyBracketLine();
-
-        this.AddHttpClientConstructor(controllerClientDetails.Name);
-
-        // add implementation methods
         foreach (var method in controllerClientDetails.HttpMethods)
         {
-            this.GenerateSingleMethod(method);
-            this.GenerateSingleMethodWithoutCancellationToken(method);
+            methodsBuilder.AppendLine(this.GenerateSingleMethodWithoutCancellationToken(method));
+            methodsBuilder.AppendLine(this.GenerateSingleMethod(method));
         }
 
-        this.CodeStringBuilder.CloseCurlyBracketLine();
+        var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+
+        return $$"""
+            public{{partialString}} class {{controllerClientDetails.Name}} : I{{controllerClientDetails.Name}}
+            {
+                {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
+
+                {{methodsBuilder}}
+            }
+            """;
+
     }
 
-    private void GenerateSingleMethod(ControllerMethodDetails methodDetails)
+    private string GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnType = "TODO";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
+
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO add the paramter to method details, we should have it, think about auth too
-        var parameter = "TODO";
+        // TODO option for several parameters (auth as above e.g.)
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.HasParameters} request, " : string.Empty;
 
-        // TODO parameter might not be neccessary for GET and DELETE
-        this.CodeStringBuilder.AppendLine($"public virtual async Task<{returnType}> {methodDetails.MethodName}({parameter} request, CancellationToken cancellationToken)");
-        this.CodeStringBuilder.OpenCurlyBracketLine();
-
-        // code for calling the httpclient...
+        var parameterCheck = methodDetails.HasParameters ? """
+            if(request is null)
+            {
+                throw new ArgumentNullException(nameof(request), "The request object can´t ben null");
+            }
+            """ : string.Empty;
 
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO check if is is working
-        this.CodeStringBuilder.AppendLine($"if (request) is null)");
-        this.CodeStringBuilder.OpenCurlyBracketLine();
-        this.CodeStringBuilder.AppendLine("throw new ArgumentNullException(\"nameof(request)\", \"The request object can´t be null.\"");
-        this.CodeStringBuilder.CloseCurlyBracketLine();
-
-
-        this.CodeStringBuilder.CloseCurlyBracketLine();
+        return $$"""
+            public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken)
+            {
+                {{parameterCheck}}
+            }
+            """;
     }
 
-    private void GenerateSingleMethodWithoutCancellationToken(ControllerMethodDetails methodDetails)
+    private string GenerateSingleMethodWithoutCancellationToken(ControllerMethodDetails methodDetails)
     {
+        //// TODO add the correct return type... or whatever how you get it I dont care
+        //var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
+
+        //// TODO add the paramter to method details, we should have it, think about auth too
+        //var parameter = "TODO";
+
+        var methodNameString = methodDetails.HasParameters ? ", " : string.Empty;
+
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnType = "TODO";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
 
+        // TODO parameter might not be neccessary for GET and DELETE
         // TODO add the paramter to method details, we should have it, think about auth too
-        var parameter = "TODO";
+        // TODO option for several parameters (auth as above e.g.)
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.HasParameters} request, " : string.Empty;
+        var existingParameter = methodDetails.HasParameters ? "request, " : string.Empty;
 
-        if (methodDetails.HasParameters)
-        {
-            this.CodeStringBuilder.AppendLine($"public virtual Task<{returnType}> {methodDetails.MethodName}({parameter})");
-        }
-        else
-        {
-            // TODO no parameter, still think about auth
-            this.CodeStringBuilder.AppendLine($"public virtual Task<{returnType}> {methodDetails.MethodName}()");
-        }
-
-        this.CodeStringBuilder.OpenCurlyBracketLine();
-
-        if (methodDetails.HasParameters)
-        {
-            this.CodeStringBuilder.AppendLine($"return this.{methodDetails.MethodName}(CancellationToken.None);");
-        }
-        else
-        {
-            // TODO no parameter, still think about auth
-            this.CodeStringBuilder.AppendLine($"return this.{methodDetails.MethodName}(CancellationToken.None);");
-        }
-
-        this.CodeStringBuilder.CloseCurlyBracketLine();
+        return $$"""
+            public virtual {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}})
+            {
+                return this.{{methodDetails.MethodName}}({{existingParameter}}CancellationToken.None);
+            }
+            """;
     }
 
     // TODO maybe we will ned serializer settings here as well
-    public void AddHttpClientConstructor(string clientName)
+    public string AddHttpClientConstructorWithField(string clientName)
     {
-        // version 1
-//        this.CodeStringBuilder.AppendLine($@"
-//public {clientName}(HttpClient httpClient)
-//{{
-//    this.httpClient = httpClient;
-//}}
-//");
+        return $$"""
+            private HttpClient httpClient;
 
-        // version 2
-        this.CodeStringBuilder.AppendLine($"public {clientName}(HttpClient httpClient)");
-        this.CodeStringBuilder.OpenCurlyBracketLine();
-        this.CodeStringBuilder.AppendLine($"this.httpClient = httpClient;");
-        this.CodeStringBuilder.CloseCurlyBracketLine();
+            public {{clientName}}(HttpClient httpClient)
+            {
+                this.httpClient = httpClient;
+            }
+            """;
     }
 
-    private void AddClientInterface(ControllerClientDetails controllerClientDetails)
+    private string AddClientInterfaceWithMethods(ControllerClientDetails controllerClientDetails)
     {
-        this.CodeStringBuilder.AppendLine($"public partial interface I{controllerClientDetails.Name}");
-        this.CodeStringBuilder.OpenCurlyBracketLine();
+        var interfaceMethodsBuilder = new StringBuilder();
 
         foreach (var method in controllerClientDetails.HttpMethods)
         {
-            this.AddInterfaceMethod(method);
+            interfaceMethodsBuilder.AppendLine(this.GenerateInterfaceMethod(method));
         }
 
-        this.CodeStringBuilder.CloseCurlyBracketLine();
+        var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+
+        return $$"""
+            public{{partialString}} interface I{{controllerClientDetails.Name}}
+            {
+                {{interfaceMethodsBuilder}}
+            }
+            """;
     }
 
-    private void AddInterfaceMethod(ControllerMethodDetails methodDetails)
+    private string GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnType = "TODO";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
         // TODO add the paramter to method details, we should have it
         var parameter = "TODO";
 
@@ -172,33 +173,46 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         if (methodDetails.HasParameters)
         {
-            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}({parameter});");
-            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}({parameter}, CancellationToken cancellationToken);");
+            // TODO dont forget authentication
+            return $"""
+            {returnTypeString} {methodDetails.MethodName}({parameter});
+            {returnTypeString} {methodDetails.MethodName}({parameter}, CancellationToken cancellationToken);
+            """;
         }
         else
         {
             // TODO dont forget authentication
-            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}();");
-            this.CodeStringBuilder.AppendLine($"Task<{returnType}> {methodDetails.MethodName}(CancellationToken cancellationToken);");
+            return $"""
+            {returnTypeString} {methodDetails.MethodName}();
+            {returnTypeString} {methodDetails.MethodName}(CancellationToken cancellationToken);
+            """;
         }
+
+        
     }
 
     // TODO global usings?
-    private void AddUsings(IEnumerable<string> additionalUsings = null)
+    // TODO doesnt work yet, what do I need to do so I have the right assembly?
+    private string AddUsings(IEnumerable<string> additionalUsings = null)
     {
-        // TODO doesnt work yet, what do I need to do so I have the right assembly?
-        this.CodeStringBuilder.AppendLine("using System;");
-        this.CodeStringBuilder.AppendLine("using System.Threading;"); // for cancellation token
-        this.CodeStringBuilder.AppendLine("using System.Threading.Tasks;");
-        this.CodeStringBuilder.AppendLine("using System.Net.Http;"); // http client
+        var stringBuilder = new StringBuilder();
+
+        stringBuilder.AppendLine("""
+            using System;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using System.Net.Http;
+            """);
 
         if (additionalUsings is not null)
         {
             foreach (var singleUsing in additionalUsings)
             {
-                this.CodeStringBuilder.AppendLine($"using {singleUsing};");
+                stringBuilder.AppendLine($"using {singleUsing};");
             }
         }
+
+        return stringBuilder.ToString();
     }
 
 

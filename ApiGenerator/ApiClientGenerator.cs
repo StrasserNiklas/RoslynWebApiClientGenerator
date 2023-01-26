@@ -38,15 +38,17 @@ public class ApiClientGenerator : ISourceGenerator
         var assemblyReferences = context.Compilation.GetUsedAssemblyReferences().ToList();
         //.OfType<AssemblyMetadata>();
         #endregion
+        
 
-        var keke = new CSharpClientGenerator("bla");
-        keke.AddHttpClientConstructor("BettingClient");
-        var res = keke.CodeStringBuilder.ToString();
-
-        // in the future this could be done via config, e.g. whether to add a typescript client as well
+        
         // TODO get project name
         var projectName = "TODO";
-        this.clientGenerators.Add(new CSharpClientGenerator(projectName));
+        
+        //(config in appsettings ?)
+        var configuration = new Configuration();
+
+        // in the future this could be done via config, e.g. whether to add a typescript client as well
+        this.clientGenerators.Add(new CSharpClientGenerator(configuration, projectName));
 
         var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
@@ -63,19 +65,19 @@ public class ApiClientGenerator : ISourceGenerator
             var ref4 = semanticModel.Compilation.ReferencedAssemblyNames.ToList();
             var ref5 = semanticModel.Compilation.GetMetadataReference(semanticModel.Compilation.Assembly);
 
-            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
-            // Use the syntax tree to find "using System;"
-            UsingDirectiveSyntax usingSystem = root.Usings[0];
-            NameSyntax systemName = usingSystem.Name;
+            //CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            //// Use the syntax tree to find "using System;"
+            //UsingDirectiveSyntax usingSystem = root.Usings[0];
+            //NameSyntax systemName = usingSystem.Name;
 
-            // Use the semantic model for symbol information:
-            SymbolInfo nameInfo = semanticModel.GetSymbolInfo(systemName);
+            //// Use the semantic model for symbol information:
+            //SymbolInfo nameInfo = semanticModel.GetSymbolInfo(systemName);
 
-            var systemSymbol = (INamespaceSymbol)nameInfo.Symbol;
-            foreach (INamespaceSymbol ns in systemSymbol.GetNamespaceMembers())
-            {
-                //Console.WriteLine(ns);
-            }
+            //var systemSymbol = (INamespaceSymbol)nameInfo.Symbol;
+            //foreach (INamespaceSymbol ns in systemSymbol.GetNamespaceMembers())
+            //{
+            //    //Console.WriteLine(ns);
+            //}
 
             //INamespaceSymbol x;
             //x.ContainingAssembly;
@@ -100,12 +102,9 @@ public class ApiClientGenerator : ISourceGenerator
 
         // TODO error when there are no clients (possible diagnostic warning)
 
-        // TODO config if each client in respective file (config in appsettings?)
-        var useIndependendFiles = false;
-
         foreach (var clientGenerator in this.clientGenerators)
         {
-            if (useIndependendFiles)
+            if (configuration.SeparateClientFiles)
             {
                 foreach (var controllerDetail in completeControllerDetailList)
                 {

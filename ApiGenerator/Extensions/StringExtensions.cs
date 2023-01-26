@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using System;
 
 namespace ApiGenerator.Extensions;
 
@@ -12,6 +14,11 @@ public static class StringExtensions
         }
 
         return stringWithPotentialSuffix;
+    }
+
+    public static string PrettifyCode(this string uglyCode)
+    {
+        return CSharpSyntaxTree.ParseText(uglyCode).GetRoot().NormalizeWhitespace().SyntaxTree.GetText().ToString();
     }
 }
 
