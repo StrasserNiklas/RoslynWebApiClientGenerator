@@ -13,6 +13,8 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
+app.MapPost("/whatever", (Todo todo) => { });
+
 app.MapGet("/weatherforecast", () =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -26,7 +28,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/whatever", () => { });
+
+
 
 app.Run();
 
@@ -34,3 +37,5 @@ internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+public record Todo(string what);

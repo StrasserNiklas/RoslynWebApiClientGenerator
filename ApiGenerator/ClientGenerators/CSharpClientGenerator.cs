@@ -139,7 +139,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         return $$"""
             private HttpClient httpClient;
-            private JsonSerializerOptions jsonSerializerOptions
+            private JsonSerializerOptions jsonSerializerOptions;
 
             public {{clientName}}(HttpClient httpClient)
             {
@@ -147,7 +147,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 this.jsonSerializerOptions = new JsonSerializerOptions();
             }
 
-            public JsonSerializerOptions JsonSerializerOptions => jsonSerializerOptions.Value;
+            public JsonSerializerOptions JsonSerializerOptions => this.jsonSerializerOptions;
             """;
     }
 

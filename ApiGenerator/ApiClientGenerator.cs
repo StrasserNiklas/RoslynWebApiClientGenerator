@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using ApiGenerator.Models;
-using System.Text.RegularExpressions;
+using System.IO;
 
 namespace ApiGenerator;
 
@@ -16,6 +16,10 @@ namespace ApiGenerator;
 public class ApiClientGenerator : ISourceGenerator
 {
     private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
+    private IDictionary<string, HttpMethod> minimalApiMethods = new Dictionary<string, HttpMethod>()
+    { 
+        { "MapGet", HttpMethod.Get} , { "MapPost" , HttpMethod.Post }, { "MapPut" , HttpMethod.Put }, { "MapDelete" , HttpMethod.Delete } 
+    };//, "Map", "MapWhen" }; MapMethods
 
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -29,6 +33,7 @@ public class ApiClientGenerator : ISourceGenerator
         
     }
 
+
     public void Execute(GeneratorExecutionContext context)
     {
         #region OngoingReferenceSearch
@@ -39,13 +44,10 @@ public class ApiClientGenerator : ISourceGenerator
         var assemblyReferences = context.Compilation.GetUsedAssemblyReferences().ToList();
         //.OfType<AssemblyMetadata>();
         #endregion
-        
+        var projectName = this.GetProjectName(context.Compilation);
 
-        
-        // TODO get project name
-        var projectName = "TODO";
-        
-        //(config in appsettings ?)
+        // TODO config in appsettings?
+        // or not use this and place in editor config -> context.AnalyzerConfigOptions.GetOptions
         var configuration = new Configuration();
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
@@ -59,52 +61,47 @@ public class ApiClientGenerator : ISourceGenerator
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 
-
-            var root = tree.GetRoot();
-
-            var minimalApiMethods = new[] { "MapGet", "MapPost", "MapPut", "MapDelete" };//, "Map", "MapWhen" }; MapMethods
-
-            var methodInvocations = root
-                .DescendantNodes()
-                .OfType<InvocationExpressionSyntax>()
-                .Where(x => x.Expression is MemberAccessExpressionSyntax expression && minimalApiMethods.Contains(expression.Name.Identifier.Value));
-
-            //var teeee = ;
-
-            if (methodInvocations.First().ArgumentList.Arguments.First().Expression is LiteralExpressionSyntax literal)
+            // check for minimal APIs
+            if (tree.FilePath.Contains("Program.cs") || tree.FilePath.Contains("Startup.cs"))
             {
-                var route = literal.Token.ValueText;
-            }
+                var controllerClientDetails = new ControllerClientDetails("Simple", null, true);
 
-            var test = semanticModel.GetSymbolInfo(methodInvocations.First());
+                var root = tree.GetRoot();
+                var methodInvocations = root
+                    .DescendantNodes()
+                    .OfType<InvocationExpressionSyntax>()
+                    .Where(x => x.Expression is MemberAccessExpressionSyntax expression && this.minimalApiMethods.Keys.Contains(expression.Name.Identifier.Value));
 
-            if (test.Symbol is not null && test.Symbol is IMethodSymbol methodSymbol)
-            {
-                var parameters = methodSymbol.Parameters;
-
-                if (parameters.Count() != 2)
+                foreach (var invocation in methodInvocations)
                 {
-                    continue;
+                    var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+
+                    // TODO if you really want to, you can try to find the first parameter/s (id and a object) of the second delegate parameter
+                    if (symbolInfo.Symbol is not null && symbolInfo.Symbol is IMethodSymbol methodSymbol)
+                    {
+                        var parameters = methodSymbol.Parameters;
+
+                        if (parameters.Count() != 2)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (invocation.ArgumentList.Arguments.First().Expression is LiteralExpressionSyntax literal)
+                    {
+                        var route = literal.Token.ValueText;
+                        this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
+                        var methodDetails = new ControllerMethodDetails(httpMethod, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
+                        controllerClientDetails.HttpMethods.Add(methodDetails);
+                    }
                 }
 
-                var methodSyntax = methodSymbol.DeclaringSyntaxReferences;// (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxReferences[0].GetSyntax();
-                //var parameterValue = methodSyntax.ParameterList.Parameters.First().Identifier.ValueText;
+                // TODO before minimal APIs can be handled in the generation, you have to enable the option to declare the intended request and response type
+                // probably a combination too or can we find this out from
+                //  Task<TOut> GET_weatherforecastAsync<TIn, TOut>(TIn inn, CancellationToken cancellationToken)
 
-                // TODO get the string value WTFF
-                var route = parameters.First() .GetAttributes();//.ExplicitDefaultValue;
-                // assign a controller (make one up)
-                // place route and give option to suggest the type you think will come, else it will be object
-            }
-
-            foreach (var invocation in methodInvocations)
-            {
-                var argument = invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression;
-                var argumentValue = argument.ToString();
-
-                if (!string.IsNullOrEmpty(argumentValue))
-                {
-                    
-                }
+                // TODO if it works, uncomment this line
+                //completeControllerDetailList.Add(controllerClientDetails);
             }
 
             //var semanticModel = context.Compilation.GetSemanticModel(tree);
@@ -168,6 +165,16 @@ public class ApiClientGenerator : ISourceGenerator
                 clientGenerator.GenerateClient(completeControllerDetailList);
             }
         }
+    }
+
+    private string GetProjectName(Compilation compilation)
+    {
+        if (compilation.SyntaxTrees.Count() != 0)
+        {
+            return Path.GetFileName(Path.GetDirectoryName(compilation.SyntaxTrees.First().FilePath));
+        }
+
+        return string.Empty;
     }
 }
 
