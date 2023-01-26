@@ -70,6 +70,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
 
                 {{methodsBuilder}}
+
+                {{this.AddPostJsonHelperMethod()}}
             }
             """;
 
@@ -98,6 +100,9 @@ public class CSharpClientGenerator : ClientGeneratorBase
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken)
             {
                 {{parameterCheck}}
+
+                var urlBuilder = new System.Text.StringBuilder();
+                urlBuilder.Append("{{methodDetails.Route}}");
             }
             """;
     }
@@ -134,11 +139,15 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         return $$"""
             private HttpClient httpClient;
+            private JsonSerializerOptions jsonSerializerOptions
 
             public {{clientName}}(HttpClient httpClient)
             {
                 this.httpClient = httpClient;
+                this.jsonSerializerOptions = new JsonSerializerOptions();
             }
+
+            public JsonSerializerOptions JsonSerializerOptions => jsonSerializerOptions.Value;
             """;
     }
 
@@ -201,7 +210,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
             using System;
             using System.Threading;
             using System.Threading.Tasks;
+            using System.Net;
             using System.Net.Http;
+            using System.Net.Http.Json;
+            using System.Text;
+            using System.Text.Json;
             """);
 
         if (additionalUsings is not null)
@@ -213,6 +226,29 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
 
         return stringBuilder.ToString();
+    }
+
+    private string AddPostJsonHelperMethod()
+    {
+        return """
+            private async Task<TResponse> PostJsonAsync<TRequest, TResponse>(string endpoint, TRequest request, CancellationToken cancellationToken)
+            {
+                using var timeout = new CancellationTokenSource(this.httpClient.Timeout);
+
+                try
+                {
+                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+                    using var response = await this.httpClient.PostAsJsonAsync(endpoint, request, linked.Token).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+
+                    return await response.Content.ReadFromJsonAsync<TResponse>(this.jsonSerializerOptions, linked.Token).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException) when (timeout.IsCancellationRequested)
+                {
+                    throw new TimeoutException($"Did not receive an answer from the betslip service within a timespan of {this.timeoutDuration}.");
+                }
+            }
+            """;
     }
 
 
