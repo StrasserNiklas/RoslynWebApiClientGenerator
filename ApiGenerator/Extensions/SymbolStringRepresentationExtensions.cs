@@ -8,9 +8,17 @@ namespace ApiGenerator.Extensions;
 
 public static class SymbolStringRepresentationExtensions
 {
-    // TODO use literal string instead of code builder!
+    // TODO must unravel if necessary!
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
+        var nameTyped = symbol as INamedTypeSymbol;
+        //nameTyped.TypeArguments;
+
+        // TODO I LEFT OFF HERE YESTERDAY
+
+        //nameTyped.AllInterfaces;
+        //symbol.AllInterfaces.First().MetadataName;
+
         string className = symbol.Name;
         string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
         string classModifiers = string.Empty;
@@ -44,21 +52,31 @@ public static class SymbolStringRepresentationExtensions
             }
             else if (member is IPropertySymbol property)
             {
-                if (property.Type is INamedTypeSymbol propertyTypeSymbol && propertyTypeSymbol.TypeKind == TypeKind.Class)
+                if (property.Type is INamedTypeSymbol propertyTypeSymbol)
                 {
-                    if (!propertyTypeSymbol.IsPrimitive())
+                    if (propertyTypeSymbol.TypeKind == TypeKind.Class)
                     {
-                        // TODO rename this
-                        var propertyClassTypeString = GenerateClassString(propertyTypeSymbol);
-
-                        foreach (var classStringRepresentation in propertyClassTypeString)
+                        if (!propertyTypeSymbol.IsPrimitive())
                         {
-                            if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
+                            // TODO rename this
+                            var propertyClassTypeString = GenerateClassString(propertyTypeSymbol);
+
+                            foreach (var classStringRepresentation in propertyClassTypeString)
                             {
-                                stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                                if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
+                                {
+                                    stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                                }
                             }
                         }
                     }
+                    // TODO have fun with dictionaries
+                    else if (propertyTypeSymbol.TypeKind == TypeKind.Interface)
+                    {
+                        var iii = propertyTypeSymbol.AllInterfaces;
+                    }
+
+                    
                 }
 
                 // TODO check if set is available?

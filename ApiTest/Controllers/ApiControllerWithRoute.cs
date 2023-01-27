@@ -3,6 +3,32 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
+
+    [ApiController]
+    [Route("[controller]")]
+    //[Route("hmm")]
+    public class ApiControllerWithRoute// : ControllerBase
+    {
+        // lool oder wenn bei lol route(some)
+        // contRoute
+        [HttpGet]
+        public ActionResult<IEnumerable<Response>> GetThisLol()
+        {
+            return new ActionResult<IEnumerable<Response>>(new List< Response>());
+            //return Ok(new Response());
+        }
+
+        [HttpGet]
+        public ActionResult<Response> GetThisLol2()
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+
+
+
+    }
+
     [Route("[controller]")]
     public class ControllerWithNoRouteButWithMethodRoutes : Controller
     {
@@ -16,7 +42,7 @@ namespace ApiTest.Controllers
 
         [Route("ok/{id}")]
         [HttpGet]
-        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit([FromServices] ITestService testservice, int id)
+        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit([FromServices] ITestService testservice, int id, [FromQuery] Request request)
         {
             return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
             //return Ok();
@@ -31,30 +57,6 @@ namespace ApiTest.Controllers
     }
 
 
-    [ApiController]
-    [Route("[controller]")]
-    //[Route("hmm")]
-    public class ApiControllerWithRoute// : ControllerBase
-    {
-        // lool oder wenn bei lol route(some)
-        // contRoute
-        [HttpGet]
-        public ActionResult<Response> GetThisLol()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-
-        [HttpGet]
-        public ActionResult<Response> GetThisLol2()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-
-
-
-    }
 
    
     
@@ -133,6 +135,9 @@ namespace ApiTest.Controllers
         public int Id { get; set; }
 
         public ResponseClass WellWellWell { get; set; }
+
+        public ICollection<Request> Parameters { get; set; } = new System.Collections.ObjectModel.Collection<Request>();
+
         public string ReturnText { get; set; }
         public string? NullableReturnText { get; set; }
     }

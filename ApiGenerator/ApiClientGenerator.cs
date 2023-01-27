@@ -224,17 +224,7 @@ public class ControllerClientBuilder
                     IsAbstract: false
                 } methodSymbol)
             {
-                //var atts = methodSymbol.GetAttributes(); //atrobite , metadataname
-                // TODO wait this doesnt work anymore? Never was kek
-                var httpMethodAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute");
-
-                // TODO check if this is even there (public methods that do nothing maybe)
-
-                var httpMethod = method.GetHttpMethod();
-
-                // yeah, if we even want this, see above
-                // else continue here...
-
+                (var httpMethod, var httpMethodAttribute) = methodSymbol.GetHttpMethodWithAtrributeData();
                 var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
                 var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
                 var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, clientInformation.BaseRoute, methodRoute);
@@ -244,9 +234,21 @@ public class ControllerClientBuilder
 
                 foreach (var methodParameter in methodParameters)
                 {
-                    // filter out from services attribute
-                    // Microsoft.AspNetCore.Mvc.FromServicesAttribute
-                    var parameterAttributes = methodParameter.GetAttributes();
+                    // filter out from services attribute as its value is not needed for the api call
+                    if (methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromServicesAttribute") is not null)
+                    {
+                        continue;
+                    }
+
+                    // check if its a primitive
+
+                    // if not, generate it 
+                    // TODO in future use assembly reference (sleep)
+
+                    var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
+                    var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
+
+                    // TODO can this also be a list? Surely, so this needs to be unraveled aswell
                 }
 
                 var returnType = methodSymbol.ReturnType;

@@ -12,7 +12,7 @@ public static class SymbolExtensions
         return symbol.GetAttribute("Microsoft.AspNetCore.Mvc.RouteAttribute");
     }
 
-    public static HttpMethod GetHttpMethod(this ISymbol symbol)
+    public static (HttpMethod, AttributeData) GetHttpMethodWithAtrributeData(this ISymbol symbol)
     {
         var httpMethods = new Dictionary<string, HttpMethod>()
         {
@@ -29,10 +29,10 @@ public static class SymbolExtensions
         if (httpAttribute is not null)
         {
             httpMethods.TryGetValue(httpAttribute.AttributeClass.Name, out var httpMethod);
-            return httpMethod;
+            return (httpMethod, httpAttribute);
         }
         
-        return null;
+        return (null, null);
     }
 
     public static AttributeData GetAttribute(this ISymbol symbol, string identifier)
@@ -67,13 +67,13 @@ public static class SymbolExtensions
         return inheritsFromController || hasApiControllerAttribute;
     }
 
-    private static bool InheritsFromController(INamedTypeSymbol classSymbol, List<INamedTypeSymbol> controllerBaseTypes)
+    private static bool InheritsFromController(INamedTypeSymbol classSymbol, List<INamedTypeSymbol> baseTypes)
     {
         var currentClassSymbol = classSymbol;
 
         while (currentClassSymbol.BaseType != null)
         {
-            if (controllerBaseTypes.Any(type => currentClassSymbol.BaseType.Equals(type, SymbolEqualityComparer.Default)))
+            if (baseTypes.Any(type => currentClassSymbol.BaseType.Equals(type, SymbolEqualityComparer.Default)))
             {
                 return true;
             }
