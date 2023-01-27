@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace ApiGenerator.Extensions;
 
@@ -26,9 +28,7 @@ public static class SymbolStringRepresentationExtensions
 
         var stringClassRepresentations = new Dictionary<string, string>();
 
-        var codeBuilder = new CodeStringBuilder();
-        codeBuilder.AppendFormat("{0} {1} {2} {3}", accessibility, classModifiers, classType, className);
-        codeBuilder.OpenCurlyBracketLine();
+        var classMemberBuilder = new StringBuilder();
 
         foreach (var member in symbol.GetMembers())
         {
@@ -39,8 +39,8 @@ public static class SymbolStringRepresentationExtensions
                     continue;
                 }
 
-                codeBuilder.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
-                codeBuilder.AppendNewLine();
+                classMemberBuilder.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
+                classMemberBuilder.AppendLine(Environment.NewLine);
             }
             else if (member is IPropertySymbol property)
             {
@@ -62,16 +62,20 @@ public static class SymbolStringRepresentationExtensions
                 }
 
                 // TODO check if set is available?
-                codeBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, property.Type.ToString().Split('.').LastOrDefault() ?? string.Empty, property.Name);
-                codeBuilder.AppendNewLine();
+                classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, property.Type.ToString().Split('.').LastOrDefault() ?? string.Empty, property.Name);
+                classMemberBuilder.AppendLine(Environment.NewLine);
             }
         }
 
-        codeBuilder.CloseCurlyBracketLine();
-        codeBuilder.AppendNewLine();
+        var classCode = $$"""
+            {{accessibility}} {{classModifiers}} {{classType}} {{className}}
+            {
+                {{classMemberBuilder}}
+            }
+            """;
 
         // TODO instead of class name, might use full name with namespace?
-        stringClassRepresentations.Add(className, codeBuilder.ToString());
+        stringClassRepresentations.Add(className, classCode);
         return stringClassRepresentations;
     }
 }
