@@ -224,18 +224,13 @@ public class ControllerClientBuilder
                     IsAbstract: false
                 } methodSymbol)
             {
+                //var atts = methodSymbol.GetAttributes(); //atrobite , metadataname
+                // TODO wait this doesnt work anymore? Never was kek
                 var httpMethodAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute");
 
                 // TODO check if this is even there (public methods that do nothing maybe)
 
-                var httpMethod = httpMethodAttribute?.AttributeClass?.Name switch
-                {
-                    "HttpGetAttribute" => HttpMethod.Get,
-                    "HttpPutAttribute" => HttpMethod.Put,
-                    "HttpPostAttribute" => HttpMethod.Post,
-                    "HttpDeleteAttribute" => HttpMethod.Delete,
-                    _ => HttpMethod.Get // TODO does this work / do we even want it
-                };
+                var httpMethod = method.GetHttpMethod();
 
                 // yeah, if we even want this, see above
                 // else continue here...
@@ -272,6 +267,8 @@ public class ControllerClientBuilder
                     returnType = null;
                 }
 
+                // check if its a collection
+                // TODO what if its a dict
                 var test = returnType.GenerateClassString();
 
                 foreach (var item in test)

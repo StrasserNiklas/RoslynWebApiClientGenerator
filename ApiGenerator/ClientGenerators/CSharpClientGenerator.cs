@@ -18,7 +18,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         var mergedCodeClasses = controllerClientDetails
             .Select(client => client.GeneratedCodeClasses)
-            .Merge();
+            .Merge()
+            .ConcatValues();
 
         // beginning of file
         // name of the .cs file is the first controller (if single file) and before that the project name
@@ -43,6 +44,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             namespace {{this.ProjectName}}.CSharp;
 
             {{clientCodeStringBuilder}}
+
+            {{mergedCodeClasses}}
 
             """.PrettifyCode();
 
@@ -245,7 +248,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 }
                 catch (TaskCanceledException) when (timeout.IsCancellationRequested)
                 {
-                    throw new TimeoutException($"Did not receive an answer from the betslip service within a timespan of {this.timeoutDuration}.");
+                    throw new TimeoutException($"Did not receive an answer from the server within a timespan of {this.httpClient.Timeout}.");
                 }
             }
             """;

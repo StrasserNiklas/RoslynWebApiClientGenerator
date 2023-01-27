@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 
 namespace ApiGenerator.Extensions;
 
@@ -11,6 +12,29 @@ public static class SymbolExtensions
         return symbol.GetAttribute("Microsoft.AspNetCore.Mvc.RouteAttribute");
     }
 
+    public static HttpMethod GetHttpMethod(this ISymbol symbol)
+    {
+        var httpMethods = new Dictionary<string, HttpMethod>()
+        {
+            { "HttpGetAttribute",  HttpMethod.Get },
+            { "HttpPutAttribute",  HttpMethod.Put },
+            { "HttpPostAttribute",  HttpMethod.Post },
+            { "HttpDeleteAttribute",  HttpMethod.Delete }
+        };
+
+        var attributes = symbol.GetAttributes();
+
+        var httpAttribute = attributes.SingleOrDefault(x => httpMethods.Keys.Contains(x.AttributeClass.Name));
+
+        if (httpAttribute is not null)
+        {
+            httpMethods.TryGetValue(httpAttribute.AttributeClass.Name, out var httpMethod);
+            return httpMethod;
+        }
+        
+        return null;
+    }
+
     public static AttributeData GetAttribute(this ISymbol symbol, string identifier)
     {
         var occurences = symbol
@@ -19,6 +43,7 @@ public static class SymbolExtensions
 
         if (occurences.Count() > 1)
         {
+            // TODO maybe diagnostic here
             // warning to use attribute only once
             // maybe only needed for certain attribute e.g. routes
         }

@@ -3,31 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    //[Route("hmm")]
-    public class ApiControllerWithRoute// : ControllerBase
-    {
-        // lool oder wenn bei lol route(some)
-        // contRoute
-        [HttpGet]
-        public ActionResult<Response> GetThisLol()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-
-        [HttpGet]
-        public ActionResult<Response> GetThisLol2()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-
-
-
-    }
-
     [Route("[controller]")]
     public class ControllerWithNoRouteButWithMethodRoutes : Controller
     {
@@ -55,6 +30,33 @@ namespace ApiTest.Controllers
         //}
     }
 
+
+    [ApiController]
+    [Route("[controller]")]
+    //[Route("hmm")]
+    public class ApiControllerWithRoute// : ControllerBase
+    {
+        // lool oder wenn bei lol route(some)
+        // contRoute
+        [HttpGet]
+        public ActionResult<Response> GetThisLol()
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+
+        [HttpGet]
+        public ActionResult<Response> GetThisLol2()
+        {
+            return new ActionResult<Response>(new Response());
+            //return Ok(new Response());
+        }
+
+
+
+    }
+
+   
     
 
 
