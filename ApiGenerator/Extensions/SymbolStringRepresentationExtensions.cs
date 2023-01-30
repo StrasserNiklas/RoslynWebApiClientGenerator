@@ -8,17 +8,8 @@ namespace ApiGenerator.Extensions;
 
 public static class SymbolStringRepresentationExtensions
 {
-    // TODO must unravel if necessary!
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
-        var nameTyped = symbol as INamedTypeSymbol;
-        //nameTyped.TypeArguments;
-
-        // TODO I LEFT OFF HERE YESTERDAY
-
-        //nameTyped.AllInterfaces;
-        //symbol.AllInterfaces.First().MetadataName;
-
         string className = symbol.Name;
         string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
         string classModifiers = string.Empty;
@@ -35,6 +26,13 @@ public static class SymbolStringRepresentationExtensions
         string classType = symbol.TypeKind.ToString().ToLowerInvariant();
 
         var stringClassRepresentations = new Dictionary<string, string>();
+
+        if (symbol.TypeKind == TypeKind.Enum)
+        {
+            var enumString = symbol.GenerateEnumClassString();
+            stringClassRepresentations.Add(className, enumString);
+            return stringClassRepresentations;
+        }
 
         var classMemberBuilder = new StringBuilder();
 
@@ -54,12 +52,12 @@ public static class SymbolStringRepresentationExtensions
             {
                 if (property.Type is INamedTypeSymbol propertyTypeSymbol)
                 {
-                    if (propertyTypeSymbol.TypeKind == TypeKind.Class)
+                    if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum)
                     {
-                        if (!propertyTypeSymbol.IsPrimitive())
+                        // string class is also a class for example
+                        if (!propertyTypeSymbol.IsPrimitive() || propertyTypeSymbol.TypeKind == TypeKind.Enum)
                         {
-                            // TODO rename this
-                            var propertyClassTypeString = GenerateClassString(propertyTypeSymbol);
+                            var propertyClassTypeString = propertyTypeSymbol.GenerateClassString();
 
                             foreach (var classStringRepresentation in propertyClassTypeString)
                             {
@@ -70,19 +68,39 @@ public static class SymbolStringRepresentationExtensions
                             }
                         }
                     }
-                    // TODO have fun with dictionaries
-                    else if (propertyTypeSymbol.TypeKind == TypeKind.Interface)
-                    {
-                        var iii = propertyTypeSymbol.AllInterfaces;
-                    }
 
-                    
+                    if (propertyTypeSymbol.TypeArguments.Count() != 0)
+                    {
+                        foreach (var argument in propertyTypeSymbol.TypeArguments)
+                        {
+                            if (!argument.IsPrimitive() || argument.TypeKind == TypeKind.Enum)
+                            {
+                                var propertyClassTypeString = propertyTypeSymbol.GenerateClassString();
+
+                                foreach (var classStringRepresentation in propertyClassTypeString)
+                                {
+                                    if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
+                                    {
+                                        stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
+                var outputString = property.Type.ToString().SanitizeClassTypeString();
+                
                 // TODO check if set is available?
-                classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, property.Type.ToString().Split('.').LastOrDefault() ?? string.Empty, property.Name);
+                classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
                 classMemberBuilder.AppendLine(Environment.NewLine);
             }
+        }
+
+        // TODO this is for e.g. IEnumerable, improve
+        if (symbol.TypeKind == TypeKind.Interface)
+        {
+            return stringClassRepresentations;
         }
 
         var classCode = $$"""
@@ -92,8 +110,29 @@ public static class SymbolStringRepresentationExtensions
             }
             """;
 
-        // TODO instead of class name, might use full name with namespace?
+        // TODO instead of class name, might use full name with namespace? in the future for assemblies
         stringClassRepresentations.Add(className, classCode);
         return stringClassRepresentations;
+    }
+
+    public static string GenerateEnumClassString(this ITypeSymbol symbol)
+    {
+        string className = symbol.Name;
+        var classMemberBuilder = new StringBuilder();
+
+        foreach (var member in symbol.GetMembers())
+        {
+            if (member is IFieldSymbol)
+            {
+                classMemberBuilder.AppendLine($"{member.Name},");
+            }
+        }
+
+        return $$"""
+            public enum {{className}}
+            {
+                {{classMemberBuilder}}
+            }
+            """;
     }
 }

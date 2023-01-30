@@ -19,9 +19,16 @@ namespace ApiTest.Controllers
         }
 
         [HttpGet]
-        public ActionResult<Response> GetThisLol2()
+        public ActionResult<IDictionary<string, Response>> GetThisDict()
         {
-            return new ActionResult<Response>(new Response());
+            return new ActionResult<IDictionary<string, Response>>(new Dictionary<string, Response>());
+            //return Ok(new Response());
+        }
+
+        [HttpGet]
+        public ActionResult<Request> GetThisLol2()
+        {
+            return new ActionResult<Request>(new Request());
             //return Ok(new Response());
         }
 
@@ -29,32 +36,32 @@ namespace ApiTest.Controllers
 
     }
 
-    [Route("[controller]")]
-    public class ControllerWithNoRouteButWithMethodRoutes : Controller
-    {
-        //[Route("ok")]
-        //[HttpGet]
-        //public ActionResult<Response> Get([FromBody] Request request)
-        //{
-        //    return new ActionResult<Response>(new Response());
-        //    //return Ok(new Response());
-        //}
+    //[Route("[controller]")]
+    //public class ControllerWithNoRouteButWithMethodRoutes : Controller
+    //{
+    //    //[Route("ok")]
+    //    //[HttpGet]
+    //    //public ActionResult<Response> Get([FromBody] Request request)
+    //    //{
+    //    //    return new ActionResult<Response>(new Response());
+    //    //    //return Ok(new Response());
+    //    //}
 
-        [Route("ok/{id}")]
-        [HttpGet]
-        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit([FromServices] ITestService testservice, int id, [FromQuery] Request request)
-        {
-            return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
-            //return Ok();
-        }
+    //    [Route("ok/{id}")]
+    //    [HttpGet]
+    //    public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit([FromServices] ITestService testservice, int id, [FromQuery] Request request)
+    //    {
+    //        return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
+    //        //return Ok();
+    //    }
 
-        //[Route("TestNoHttp")]
-        //public static ActionResult<Response> NoHttp()
-        //{
-        //    return new ActionResult<Response>(new Response());
-        //    //return Ok(new Response());
-        //}
-    }
+    //    //[Route("TestNoHttp")]
+    //    //public static ActionResult<Response> NoHttp()
+    //    //{
+    //    //    return new ActionResult<Response>(new Response());
+    //    //    //return Ok(new Response());
+    //    //}
+    //}
 
 
 
@@ -63,45 +70,47 @@ namespace ApiTest.Controllers
 
 
 
-    [Route("[controller]")]
-    [Route("kak")]
-    public class ControllerBaseWithRoute : ControllerBase
-    {
-        [Route("ok")]
-        [HttpGet]
-        public ActionResult<Response> Get()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-    }
+    //[Route("[controller]")]
+    //[Route("kak")]
+    //public class ControllerBaseWithRoute : ControllerBase
+    //{
+    //    [Route("ok")]
+    //    [HttpGet]
+    //    public ActionResult<Response> Get()
+    //    {
+    //        return new ActionResult<Response>(new Response());
+    //        //return Ok(new Response());
+    //    }
+    //}
 
 
-    public class InheritControllerBaseWithRoute : ControllerBaseWithRoute
-    {
-        // /ok
-        [Route("ok")]
-        [HttpGet]
-        public ActionResult<Response> Get()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
-        }
-    }
+    //public class InheritControllerBaseWithRoute : ControllerBaseWithRoute
+    //{
+    //    // /ok
+    //    [Route("ok")]
+    //    [HttpGet]
+    //    public ActionResult<Response> Get()
+    //    {
+    //        return new ActionResult<Response>(new Response());
+    //        //return Ok(new Response());
+    //    }
+    //}
 
     //[Route("some")]
-    public class InheritFromApiControllerWithRoute : ApiControllerWithRoute
-    {
-        // some/ok
-        //[Route("ok")]
-        [HttpGet]
-        public new ActionResult<Response> GetMe()
-        {
-            return new ActionResult<Response>(new Response());
-            //return Ok(new Response());
+    //public class InheritFromApiControllerWithRoute : ApiControllerWithRoute
+    //{
+    //    // some/ok
+    //    //[Route("ok")]
+    //    [HttpGet]
+    //    public new ActionResult<Response> GetMe()
+    //    {
+    //        return new ActionResult<Response>(new Response());
+    //        //return Ok(new Response());
             
-        }
-    }
+    //    }
+    //}
+
+
     //[ApiController]
     //[Route("api/betslip/[action]")]
     //public class NormalControllerActionRoute : ControllerBase
@@ -144,11 +153,17 @@ namespace ApiTest.Controllers
 
     public class Request
     {
-
+        public ResponseEnum ResponseEnumResponse { get; set; }
     }
 
     public class ResponseClass
     {
         public int IndoorInteger { get; set; }
+    }
+
+    public enum ResponseEnum
+    {
+        IsEnum,
+        IsNotEnum
     }
 }
