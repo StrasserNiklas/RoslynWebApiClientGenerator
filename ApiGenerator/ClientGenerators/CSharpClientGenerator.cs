@@ -3,6 +3,8 @@ using ApiGenerator.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ApiGenerator.ClientGenerators;
@@ -101,6 +103,14 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
             """ : string.Empty;
 
+        var methodCallString = (methodDetails.HasParameters, methodDetails.HasReturnType) switch
+        {
+            (true, true) => "return await this.SendJsonAsync<string, string>(uri, string.Empty, cancellationToken);",
+            (true, false) => "return await this.SendJsonAsync<string>(uri, null, cancellationToken);",
+            (false, true) => "return await this.SendJsonAsync<string, string>(uri, null, cancellationToken);",
+            (false, false) => "return await this.SendJsonAsync(uri, cancellationToken);"
+        };
+
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO check if is is working
         return $$"""
@@ -108,8 +118,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 {{parameterCheck}}
 
-                var uri = new Uri({{methodDetails.Route}});
-
+                var uri = new Uri("{{methodDetails.Route}}");
+                {{methodCallString}}
             }
             """;
     }
@@ -319,7 +329,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string AddPostJsonHelperMethods() => """
         private async Task<ApiResponse<TResponse>> SendJsonAsync<TRequest, TResponse>(Uri endpoint, TRequest? requestObject, CancellationToken cancellationToken)
         {
-            using var timeout = new CancellationTokenSource(this.timeoutDuration);
+            using var timeout = new CancellationTokenSource(this.httpClient.Timeout);
 
             try
             {
@@ -341,7 +351,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
             catch (TaskCanceledException) when (timeout.IsCancellationRequested)
             {
-                throw new TimeoutException($"Did not receive an answer from the service within a timespan of {this.timeoutDuration}.");
+                throw new TimeoutException($"Did not receive an answer from the service within a timespan of {this.httpClient.Timeout}.");
             }
         }
 
