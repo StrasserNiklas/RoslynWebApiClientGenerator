@@ -74,7 +74,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
                 {{methodsBuilder}}
 
-                {{this.AddPostJsonHelperMethod()}}
+                {{this.AddPostJsonHelperMethods()}}    
+                {{this.AddHandleResponseMethod()}}
+                {{this.AddDeserializeMethod()}}
+                {{this.AddApiResponseClass()}}
+
             }
             """;
 
@@ -83,7 +87,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnTypeString}>" : "Task";
 
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO add the paramter to method details, we should have it, think about auth too
@@ -104,8 +108,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 {{parameterCheck}}
 
-                var urlBuilder = new System.Text.StringBuilder();
-                urlBuilder.Append("{{methodDetails.Route}}");
+                var uri = new Uri({{methodDetails.Route}});
+
             }
             """;
     }
@@ -121,7 +125,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var methodNameString = methodDetails.HasParameters ? ", " : string.Empty;
 
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnTypeString}>" : "Task";
 
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO add the paramter to method details, we should have it, think about auth too
@@ -176,7 +180,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnTypeString}>" : "Task";
         // TODO add the paramter to method details, we should have it
         var parameter = "TODO";
 
@@ -231,28 +235,128 @@ public class CSharpClientGenerator : ClientGeneratorBase
         return stringBuilder.ToString();
     }
 
-    private string AddPostJsonHelperMethod()
-    {
-        return """
-            private async Task<TResponse> PostJsonAsync<TRequest, TResponse>(string endpoint, TRequest request, CancellationToken cancellationToken)
-            {
-                using var timeout = new CancellationTokenSource(this.httpClient.Timeout);
+    private string AddHandleResponseMethod() => """
+        public async Task<ApiResponse<TResponse>> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+        {
+            return await this.DeserializeResponse<TResponse>(response, false, cancellationToken);
+        }
+        """;
 
+    private string AddDeserializeMethod() => """
+        public virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
+        {
+            if (response == null)
+            {
+                return new ApiResponse<T>(default, 0, "The response was null.");
+            }
+
+            if (response.Content == null)
+            {
+                return new ApiResponse<T>(default, (int)response.StatusCode, "There was no content.");
+            }
+
+            if (isStream)
+            {
                 try
                 {
-                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-                    using var response = await this.httpClient.PostAsJsonAsync(endpoint, request, linked.Token).ConfigureAwait(false);
-                    response.EnsureSuccessStatusCode();
-
-                    return await response.Content.ReadFromJsonAsync<TResponse>(this.jsonSerializerOptions, linked.Token).ConfigureAwait(false);
+                    using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    {
+                        var result = await JsonSerializer.DeserializeAsync<T>(responseStream, this.jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+                        return new ApiResponse<T>(result, (int)response.StatusCode, string.Empty);
+                    }
                 }
-                catch (TaskCanceledException) when (timeout.IsCancellationRequested)
+                catch (JsonException exception)
                 {
-                    throw new TimeoutException($"Did not receive an answer from the server within a timespan of {this.httpClient.Timeout}.");
+                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.", exception);
+
                 }
             }
-            """;
-    }
+            else
+            {
+                var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    var result = JsonSerializer.Deserialize<T>(responseText, this.jsonSerializerOptions);
+                    return new ApiResponse<T>(result, (int)response.StatusCode,string.Empty);
+                }
+                catch (JsonException exception)
+                {
+                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze response of type {typeof(T).FullName}.", exception);
+                }
+            }
+        }
+        """;
+
+    private string AddApiResponseClass() => """
+        public class ApiResponse
+        {
+            public ApiResponse(int statusCode, string errorMessage = "", Exception? exception = null)
+            {
+                StatusCode = statusCode;
+                IsError = statusCode >= 200 && statusCode < 300;
+                ErrorMessage = errorMessage;
+                Exception = exception;
+            }
+
+            public int StatusCode { get; }
+            public bool IsError { get; }
+            public string ErrorMessage { get; }
+            public Exception? Exception { get; }
+        }
+
+        public class ApiResponse<TResponse> : ApiResponse
+        {
+            public ApiResponse(TResponse response, int statusCode, string errorMessage = "", Exception? exception = null)
+                : base(statusCode, errorMessage, exception)
+            {
+                Response = response;
+            }
+
+            public TResponse Response { get; }
+        }
+        """;
+
+    private string AddPostJsonHelperMethods() => """
+        private async Task<ApiResponse<TResponse>> SendJsonAsync<TRequest, TResponse>(Uri endpoint, TRequest? requestObject, CancellationToken cancellationToken)
+        {
+            using var timeout = new CancellationTokenSource(this.timeoutDuration);
+
+            try
+            {
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+
+                using var request = new HttpRequestMessage();
+                request.RequestUri = endpoint;
+                request.Method = HttpMethod.Post; // this is set via code!
+
+                if (requestObject is not null)
+                {
+                    var requestJson = JsonSerializer.Serialize(request, this.jsonSerializerOptions);
+                    request.Content = new StringContent(requestJson);
+                }
+
+                using var response = await this.httpClient.SendAsync(request, linked.Token);
+                return await this.HandleResponse<TResponse>(response, linked.Token);
+
+            }
+            catch (TaskCanceledException) when (timeout.IsCancellationRequested)
+            {
+                throw new TimeoutException($"Did not receive an answer from the service within a timespan of {this.timeoutDuration}.");
+            }
+        }
+
+        private async Task<ApiResponse> SendJsonAsync<TRequest>(Uri endpoint, TRequest? requestObject, CancellationToken cancellationToken)
+        {
+            var res = await this.SendJsonAsync<TRequest, object>(endpoint, requestObject, cancellationToken);
+            return new ApiResponse(res.StatusCode, res.ErrorMessage, res.Exception);
+        }
+
+        private Task<ApiResponse> SendJsonAsync(Uri endpoint, CancellationToken cancellationToken)
+        {
+            return this.SendJsonAsync<object>(endpoint, null, cancellationToken);
+        }
+        """;
+    
 
 
 }

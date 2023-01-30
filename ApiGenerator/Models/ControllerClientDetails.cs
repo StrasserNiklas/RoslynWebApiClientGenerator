@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ApiGenerator.Extensions;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +36,7 @@ public class ControllerClientDetails
 
 public class ControllerMethodDetails
 {
-    public ControllerMethodDetails(HttpMethod httpMethod, string methodName, string finalRoute)
+    public ControllerMethodDetails(HttpMethod httpMethod, ITypeSymbol returnType, string methodName, string finalRoute)
     {
         this.HttpMethod = httpMethod;
         this.MethodName = methodName + "Async";
@@ -44,8 +45,10 @@ public class ControllerMethodDetails
         // TODO this is obviously based on what is there
         this.HasParameters = false;
 
-        // TODO same here
-        this.HasReturnType = false;
+        this.ReturnType = returnType;
+
+        // TODO check if we can just hand it over in the ctor
+        this.ReturnTypeString = (returnType as INamedTypeSymbol).ToString().SanitizeClassTypeString();
     }
 
     public string Route { get; }
@@ -59,8 +62,11 @@ public class ControllerMethodDetails
     public bool HasParameters { get;  }
 
     // TODO might just check null on the return type?
-    public bool HasReturnType { get; }
+    public bool HasReturnType => this.ReturnType != null;
 
-    public INamedTypeSymbol ReturnType { get; set; }
+    public string ReturnTypeString { get; }
+
+    public ITypeSymbol ReturnType { get; }
+
     // SettleBet, Response, Request
 }

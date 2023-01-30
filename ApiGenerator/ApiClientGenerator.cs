@@ -91,7 +91,7 @@ public class ApiClientGenerator : ISourceGenerator
                     {
                         var route = literal.Token.ValueText;
                         this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
-                        var methodDetails = new ControllerMethodDetails(httpMethod, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
+                        var methodDetails = new ControllerMethodDetails(httpMethod, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
                         controllerClientDetails.HttpMethods.Add(methodDetails);
                     }
                 }
@@ -273,6 +273,8 @@ public class ControllerClientBuilder
                 // TODO what if its a dict
                 var test = returnType.GenerateClassString();
 
+
+
                 foreach (var item in test)
                 {
                     if (!generatedClasses.ContainsKey(item.Key))
@@ -281,7 +283,7 @@ public class ControllerClientBuilder
                     }
                 }
 
-                var httpMethodInformation = new ControllerMethodDetails(httpMethod, methodNameWithoutAsnyc, finalRoute);
+                var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, methodNameWithoutAsnyc, finalRoute);
                 clientInformation.HttpMethods.Add(httpMethodInformation);
             }
         }
