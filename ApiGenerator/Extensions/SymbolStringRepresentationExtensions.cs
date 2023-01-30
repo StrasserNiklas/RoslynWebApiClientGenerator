@@ -34,6 +34,8 @@ public static class SymbolStringRepresentationExtensions
             return stringClassRepresentations;
         }
 
+        
+
         var classMemberBuilder = new StringBuilder();
 
         foreach (var member in symbol.GetMembers())
@@ -54,37 +56,14 @@ public static class SymbolStringRepresentationExtensions
                 {
                     if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum)
                     {
-                        // string class is also a class for example
-                        if (!propertyTypeSymbol.IsPrimitive() || propertyTypeSymbol.TypeKind == TypeKind.Enum)
-                        {
-                            var propertyClassTypeString = propertyTypeSymbol.GenerateClassString();
-
-                            foreach (var classStringRepresentation in propertyClassTypeString)
-                            {
-                                if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
-                                {
-                                    stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
-                                }
-                            }
-                        }
+                        CheckAndAddToDictionary(propertyTypeSymbol, stringClassRepresentations);
                     }
 
                     if (propertyTypeSymbol.TypeArguments.Count() != 0)
                     {
                         foreach (var argument in propertyTypeSymbol.TypeArguments)
                         {
-                            if (!argument.IsPrimitive() || argument.TypeKind == TypeKind.Enum)
-                            {
-                                var propertyClassTypeString = propertyTypeSymbol.GenerateClassString();
-
-                                foreach (var classStringRepresentation in propertyClassTypeString)
-                                {
-                                    if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
-                                    {
-                                        stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
-                                    }
-                                }
-                            }
+                            CheckAndAddToDictionary(argument, stringClassRepresentations);
                         }
                     }
                 }
@@ -100,6 +79,14 @@ public static class SymbolStringRepresentationExtensions
         // TODO this is for e.g. IEnumerable, improve
         if (symbol.TypeKind == TypeKind.Interface)
         {
+            if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeArguments.Count() != 0)
+            {
+                foreach (var argument in typeSymbol.TypeArguments)
+                {
+                    CheckAndAddToDictionary(argument, stringClassRepresentations);
+                }
+            }
+
             return stringClassRepresentations;
         }
 
@@ -113,6 +100,22 @@ public static class SymbolStringRepresentationExtensions
         // TODO instead of class name, might use full name with namespace? in the future for assemblies
         stringClassRepresentations.Add(className, classCode);
         return stringClassRepresentations;
+    }
+
+    private static void CheckAndAddToDictionary(ITypeSymbol argument, IDictionary<string, string> stringClassRepresentations)
+    {
+        if (!argument.IsPrimitive() || argument.TypeKind == TypeKind.Enum)
+        {
+            var propertyClassTypeString = argument.GenerateClassString();
+
+            foreach (var classStringRepresentation in propertyClassTypeString)
+            {
+                if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
+                {
+                    stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                }
+            }
+        }
     }
 
     public static string GenerateEnumClassString(this ITypeSymbol symbol)

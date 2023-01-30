@@ -229,7 +229,6 @@ public class ControllerClientBuilder
                 var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
                 var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, clientInformation.BaseRoute, methodRoute);
 
-
                 var methodParameters = methodSymbol.Parameters;
 
                 foreach (var methodParameter in methodParameters)
@@ -269,13 +268,9 @@ public class ControllerClientBuilder
                     returnType = null;
                 }
 
-                // check if its a collection
-                // TODO what if its a dict
-                var test = returnType.GenerateClassString();
+                var generatedReturnClass = returnType.GenerateClassString();
 
-
-
-                foreach (var item in test)
+                foreach (var item in generatedReturnClass)
                 {
                     if (!generatedClasses.ContainsKey(item.Key))
                     {

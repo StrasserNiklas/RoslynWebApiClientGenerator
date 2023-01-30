@@ -61,6 +61,11 @@ public class ControllerMethodDetails
 
     public bool HasParameters { get;  }
 
+
+
+    // TODO obviously change that, WIP
+    public string ParameterTypeString { get; }
+
     // TODO might just check null on the return type?
     public bool HasReturnType => this.ReturnType != null;
 

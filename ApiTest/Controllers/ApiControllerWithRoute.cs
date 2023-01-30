@@ -14,7 +14,7 @@ namespace ApiTest.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Response>> GetThisLol()
         {
-            return new ActionResult<IEnumerable<Response>>(new List< Response>());
+            return new ActionResult<IEnumerable<Response>>(new List<Response>());
             //return Ok(new Response());
         }
 
@@ -141,9 +141,9 @@ namespace ApiTest.Controllers
 
     public class Response
     {
-        public int Id { get; set; }
+        //public int Id { get; set; }
 
-        public ResponseClass WellWellWell { get; set; }
+        //public ResponseClass WellWellWell { get; set; }
 
         public ICollection<Request> Parameters { get; set; } = new System.Collections.ObjectModel.Collection<Request>();
 
