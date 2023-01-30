@@ -48,6 +48,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {{clientCodeStringBuilder}}
 
             {{mergedCodeClasses}}
+            {{this.AddApiResponseClass()}}
 
             """.PrettifyCode();
 
@@ -79,7 +80,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{this.AddPostJsonHelperMethods()}}    
                 {{this.AddHandleResponseMethod()}}
                 {{this.AddDeserializeMethod()}}
-                {{this.AddApiResponseClass()}}
 
             }
             """;
@@ -89,7 +89,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnTypeString}>" : "Task";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
 
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO add the paramter to method details, we should have it, think about auth too
@@ -105,10 +105,10 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         var methodCallString = (methodDetails.HasParameters, methodDetails.HasReturnType) switch
         {
-            (true, true) => "return await this.SendJsonAsync<string, string>(uri, string.Empty, cancellationToken);",
-            (true, false) => "return await this.SendJsonAsync<string>(uri, null, cancellationToken);",
-            (false, true) => "return await this.SendJsonAsync<string, string>(uri, null, cancellationToken);",
-            (false, false) => "return await this.SendJsonAsync(uri, cancellationToken);"
+            (true, true) => $"return await this.SendJsonAsync<{methodDetails.ParameterTypeString}, {methodDetails.ReturnTypeString}>(uri, string.Empty, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
+            (true, false) => $"return await this.SendJsonAsync<{methodDetails.ParameterTypeString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
+            (false, true) => $"return await this.SendJsonAsync<object, {methodDetails.ReturnTypeString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
+            (false, false) => "return await this.SendJsonAsync(uri, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);"
         };
 
         // TODO parameter might not be neccessary for GET and DELETE
@@ -118,7 +118,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 {{parameterCheck}}
 
-                var uri = new Uri("{{methodDetails.Route}}");
+                var uri = new Uri("{{methodDetails.Route}}", UriKind.RelativeOrAbsolute); 
                 {{methodCallString}}
             }
             """;
@@ -135,7 +135,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var methodNameString = methodDetails.HasParameters ? ", " : string.Empty;
 
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnTypeString}>" : "Task";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
 
         // TODO parameter might not be neccessary for GET and DELETE
         // TODO add the paramter to method details, we should have it, think about auth too
@@ -190,7 +190,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
     {
         // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnTypeString}>" : "Task";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
         // TODO add the paramter to method details, we should have it
         var parameter = "TODO";
 
@@ -246,14 +246,14 @@ public class CSharpClientGenerator : ClientGeneratorBase
     }
 
     private string AddHandleResponseMethod() => """
-        public async Task<ApiResponse<TResponse>> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+        private async Task<ApiResponse<TResponse>> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
         {
             return await this.DeserializeResponse<TResponse>(response, false, cancellationToken);
         }
         """;
 
     private string AddDeserializeMethod() => """
-        public virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
+        protected virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
         {
             if (response == null)
             {
@@ -303,7 +303,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             public ApiResponse(int statusCode, string errorMessage = "", Exception? exception = null)
             {
                 StatusCode = statusCode;
-                IsError = statusCode >= 200 && statusCode < 300;
+                IsError = statusCode < 200 && statusCode >= 300;
                 ErrorMessage = errorMessage;
                 Exception = exception;
             }
@@ -326,8 +326,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
         """;
 
-    private string AddPostJsonHelperMethods() => """
-        private async Task<ApiResponse<TResponse>> SendJsonAsync<TRequest, TResponse>(Uri endpoint, TRequest? requestObject, CancellationToken cancellationToken)
+    private string AddPostJsonHelperMethods() => $$"""
+        private async Task<ApiResponse<TResponse>> SendJsonAsync<TRequest, TResponse>(Uri endpoint, TRequest? requestObject, HttpMethod httpMethod, CancellationToken cancellationToken)
         {
             using var timeout = new CancellationTokenSource(this.httpClient.Timeout);
 
@@ -337,7 +337,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
                 using var request = new HttpRequestMessage();
                 request.RequestUri = endpoint;
-                request.Method = HttpMethod.Post; // this is set via code!
+                request.Method = httpMethod;
 
                 if (requestObject is not null)
                 {
@@ -355,15 +355,15 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
         }
 
-        private async Task<ApiResponse> SendJsonAsync<TRequest>(Uri endpoint, TRequest? requestObject, CancellationToken cancellationToken)
+        private async Task<ApiResponse> SendJsonAsync<TRequest>(Uri endpoint, TRequest? requestObject, HttpMethod httpMethod, CancellationToken cancellationToken)
         {
-            var res = await this.SendJsonAsync<TRequest, object>(endpoint, requestObject, cancellationToken);
+            var res = await this.SendJsonAsync<TRequest, object>(endpoint, requestObject, httpMethod, cancellationToken);
             return new ApiResponse(res.StatusCode, res.ErrorMessage, res.Exception);
         }
 
-        private Task<ApiResponse> SendJsonAsync(Uri endpoint, CancellationToken cancellationToken)
+        private Task<ApiResponse> SendJsonAsync(Uri endpoint, HttpMethod httpMethod, CancellationToken cancellationToken)
         {
-            return this.SendJsonAsync<object>(endpoint, null, cancellationToken);
+            return this.SendJsonAsync<object>(endpoint, null, httpMethod, cancellationToken);
         }
         """;
     
