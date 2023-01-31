@@ -263,16 +263,17 @@ public class CSharpClientGenerator : ClientGeneratorBase
     }
 
     // TODO broken right now
-    private string AddHandleResponseMethod(ControllerMethodDetails controllerMethodDetails)
+    private string AddHandleResponseMethod()//ControllerMethodDetails controllerMethodDetails)
     {
         var switchSb = new StringBuilder();
 
-        foreach (var pair in controllerMethodDetails.ReturnTypes)
-        {
-            switchSb.AppendLine($"""
-                {pair.Key} => await this.DeserializeResponse<{(pair.Value as INamedTypeSymbol).ToString().SanitizeClassTypeString()},
-                """);
-        }
+        // TODO uncomment
+        //foreach (var pair in controllerMethodDetails.ReturnTypes)
+        //{
+        //    switchSb.AppendLine($"""
+        //        {pair.Key} => await this.DeserializeResponse<{(pair.Value as INamedTypeSymbol).ToString().SanitizeClassTypeString()},
+        //        """);
+        //}
 
         return $$"""
             private async Task<ApiResponse> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)

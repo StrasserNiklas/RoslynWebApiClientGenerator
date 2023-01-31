@@ -356,6 +356,7 @@ public class ControllerClientBuilder
 
         foreach (var responseTypeAttribute in responseTypeAttributes)
         {
+            // in this case the type is desireable, else the response status can be used anyway
             if (responseTypeAttribute.ConstructorArguments.Count() > 1)
             {
                 var responseType = responseTypeAttribute.ConstructorArguments[0].Value as ITypeSymbol;
@@ -363,9 +364,9 @@ public class ControllerClientBuilder
                 var code = int.Parse(responseTypeAttribute.ConstructorArguments[1].Value.ToString());
                 var exists = additionalReturnTypes.SingleOrDefault(x => x.Key == code);
 
-                if (exists.Value != null)
+                if (exists.Value == null)
                 {
-                    additionalReturnTypes.Insert(0, new KeyValuePair<int, ITypeSymbol>(code, responseType));
+                    additionalReturnTypes.Add(new KeyValuePair<int, ITypeSymbol>(code, responseType));
                 }
             }
         }
@@ -392,7 +393,6 @@ public class ControllerClientBuilder
 
                 additionalReturnTypes.Insert(0, new KeyValuePair<int, ITypeSymbol>(200, returnType));
             }
-
         }
 
         return additionalReturnTypes;
