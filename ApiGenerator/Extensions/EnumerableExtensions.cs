@@ -12,6 +12,17 @@ public static class EnumerableExtensions
                      .GroupBy(d => d.Key)
                      .ToDictionary(x => x.Key, y => y.First().Value);
 
+    public static void AddMany<S, T>(this IDictionary<S, T> first, IDictionary<S, T> second)
+    {
+        foreach (var item in second)
+        {
+            if (!first.ContainsKey(item.Key))
+            {
+                first.Add(item.Key, item.Value);
+            }
+        }
+    }
+
     public static string ConcatValues<S>(this IDictionary<S, string> keyValuePairs)
     {
         var stringBuilder = new StringBuilder();

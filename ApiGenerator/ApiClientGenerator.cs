@@ -91,7 +91,7 @@ public class ApiClientGenerator : ISourceGenerator
                     {
                         var route = literal.Token.ValueText;
                         this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
-                        var methodDetails = new ControllerMethodDetails(httpMethod, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
+                        var methodDetails = new ControllerMethodDetails(httpMethod, null, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
                         controllerClientDetails.HttpMethods.Add(methodDetails);
                     }
                 }
@@ -230,6 +230,7 @@ public class ControllerClientBuilder
                 var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, clientInformation.BaseRoute, methodRoute);
 
                 var methodParameters = methodSymbol.Parameters;
+                var parameterMapping = new Dictionary<string, ParameterDetails>();
 
                 foreach (var methodParameter in methodParameters)
                 {
@@ -239,15 +240,20 @@ public class ControllerClientBuilder
                         continue;
                     }
 
-                    // check if its a primitive
-
-                    // if not, generate it 
-                    // TODO in future use assembly reference (sleep)
-
+                    var lame = methodParameter.GetAttributes();
                     var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
                     var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
+                    //var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
+                    //var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+                    //var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
 
-                    // TODO can this also be a list? Surely, so this needs to be unraveled aswell
+                    if (!methodParameter.Type.IsPrimitive())
+                    {
+                        generatedClasses.AddMany(methodParameter.Type.GenerateClassString());
+                    }
+
+                    // TODO solve this in a more elegant way (fromBody etc.)
+                    parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsPrimitive(), fromQuery is not null, fromBody is not null));
                 }
 
                 var returnType = methodSymbol.ReturnType;
@@ -268,17 +274,8 @@ public class ControllerClientBuilder
                     returnType = null;
                 }
 
-                var generatedReturnClass = returnType.GenerateClassString();
-
-                foreach (var item in generatedReturnClass)
-                {
-                    if (!generatedClasses.ContainsKey(item.Key))
-                    {
-                        generatedClasses.Add(item.Key, item.Value);
-                    }
-                }
-
-                var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, methodNameWithoutAsnyc, finalRoute);
+                generatedClasses.AddMany(returnType.GenerateClassString());
+                var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, parameterMapping, methodNameWithoutAsnyc, finalRoute);
                 clientInformation.HttpMethods.Add(httpMethodInformation);
             }
         }

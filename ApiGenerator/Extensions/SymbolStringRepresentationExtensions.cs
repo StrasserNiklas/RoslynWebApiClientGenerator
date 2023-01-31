@@ -56,14 +56,14 @@ public static class SymbolStringRepresentationExtensions
                 {
                     if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum)
                     {
-                        CheckAndAddToDictionary(propertyTypeSymbol, stringClassRepresentations);
+                        CheckAndGenerateClassString(propertyTypeSymbol, stringClassRepresentations);
                     }
 
                     if (propertyTypeSymbol.TypeArguments.Count() != 0)
                     {
                         foreach (var argument in propertyTypeSymbol.TypeArguments)
                         {
-                            CheckAndAddToDictionary(argument, stringClassRepresentations);
+                            CheckAndGenerateClassString(argument, stringClassRepresentations);
                         }
                     }
                 }
@@ -76,14 +76,14 @@ public static class SymbolStringRepresentationExtensions
             }
         }
 
-        // TODO this is for e.g. IEnumerable, improve
+        // this is for e.g. IEnumerable<T>
         if (symbol.TypeKind == TypeKind.Interface)
         {
             if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeArguments.Count() != 0)
             {
                 foreach (var argument in typeSymbol.TypeArguments)
                 {
-                    CheckAndAddToDictionary(argument, stringClassRepresentations);
+                    CheckAndGenerateClassString(argument, stringClassRepresentations);
                 }
             }
 
@@ -102,9 +102,9 @@ public static class SymbolStringRepresentationExtensions
         return stringClassRepresentations;
     }
 
-    private static void CheckAndAddToDictionary(ITypeSymbol argument, IDictionary<string, string> stringClassRepresentations)
+    private static void CheckAndGenerateClassString(ITypeSymbol argument, IDictionary<string, string> stringClassRepresentations)
     {
-        if (!argument.IsPrimitive() || argument.TypeKind == TypeKind.Enum)
+        if (!argument.IsPrimitive())
         {
             var propertyClassTypeString = argument.GenerateClassString();
 

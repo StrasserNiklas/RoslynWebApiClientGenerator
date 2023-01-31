@@ -3,8 +3,6 @@ using ApiGenerator.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ApiGenerator.ClientGenerators;
@@ -88,37 +86,69 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
-        // TODO add the correct return type... or whatever how you get it I dont care
+        // TODO auth
+
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
+        var parameterCheckSb = new StringBuilder();
 
-        // TODO parameter might not be neccessary for GET and DELETE
-        // TODO add the paramter to method details, we should have it, think about auth too
-        // TODO option for several parameters (auth as above e.g.)
-        var parameterString = methodDetails.HasParameters ? $"{methodDetails.HasParameters} request, " : string.Empty;
-
-        var parameterCheck = methodDetails.HasParameters ? """
-            if(request is null)
-            {
-                throw new ArgumentNullException(nameof(request), "The request object can´t ben null");
-            }
-            """ : string.Empty;
-
-        var methodCallString = (methodDetails.HasParameters, methodDetails.HasReturnType) switch
+        foreach (var parameter in methodDetails.Parameters)
         {
-            (true, true) => $"return await this.SendJsonAsync<{methodDetails.ParameterTypeString}, {methodDetails.ReturnTypeString}>(uri, string.Empty, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
-            (true, false) => $"return await this.SendJsonAsync<{methodDetails.ParameterTypeString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
+            parameterCheckSb.Append($$"""
+                if({{parameter.Key}} == null)
+                {
+                    throw new ArgumentNullException(nameof({{parameter.Key}}), "The object can´t be null");
+                }
+                """);
+        }
+
+        var nonPrimitive = methodDetails.Parameters.FirstOrDefault(x => !x.Value.IsPrimitive); //.Value.ParameterTypeString ?? string.Empty;
+        var nonPrimitiveString = nonPrimitive.Value is not null ? nonPrimitive.Value.ParameterTypeString : string.Empty;
+        var nonPrimitiveArgument = nonPrimitive.Value is not null ? nonPrimitive.Key : "null";
+
+        var routeStringWithQueryParams = string.Empty;
+        var routeQueryParamSb = new StringBuilder();
+
+        if (methodDetails.HasRouteQueryParameters)
+        {
+            foreach (var parameter in methodDetails.Parameters)
+            {
+                if (parameter.Value.IsRouteQueryParameter)
+                {
+                    routeQueryParamSb.AppendLine($$"""
+                        routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
+                        """);
+                }
+            }
+        }
+
+        if (methodDetails.Parameters.SingleOrDefault(x => x.Value.IsQueryParameter) is var keyValuePair && keyValuePair.Value is not null)
+        {
+            routeQueryParamSb.AppendLine($"""
+                routeBuilder.Append($"{keyValuePair.Value.QueryString}");
+                """);
+        }
+
+        // (for now) only use a request class for an actual body
+        var methodCallString = (nonPrimitive.Value.HasBody, methodDetails.HasReturnType) switch
+        {
+            (true, true) => $"return await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}, {methodDetails.ReturnTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
+            (true, false) => $"return await this.SendJsonAsync<{methodDetails.ParameterString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
             (false, true) => $"return await this.SendJsonAsync<object, {methodDetails.ReturnTypeString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
             (false, false) => "return await this.SendJsonAsync(uri, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);"
         };
 
-        // TODO parameter might not be neccessary for GET and DELETE
-        // TODO check if is is working
         return $$"""
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken)
             {
-                {{parameterCheck}}
+                {{parameterCheckSb}}
 
-                var uri = new Uri("{{methodDetails.Route}}", UriKind.RelativeOrAbsolute); 
+                var routeBuilder = new StringBuilder();
+                routeBuilder.Append("{{methodDetails.Route}}");
+
+                {{routeQueryParamSb}}
+
+                var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
                 {{methodCallString}}
             }
             """;
@@ -126,22 +156,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateSingleMethodWithoutCancellationToken(ControllerMethodDetails methodDetails)
     {
-        //// TODO add the correct return type... or whatever how you get it I dont care
-        //var returnTypeString = methodDetails.HasReturnType ? $"Task<{methodDetails.ReturnType.Name}>" : "Task";
-
-        //// TODO add the paramter to method details, we should have it, think about auth too
-        //var parameter = "TODO";
+        //TODO auth parameter
 
         var methodNameString = methodDetails.HasParameters ? ", " : string.Empty;
-
-        // TODO add the correct return type... or whatever how you get it I dont care
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-
-        // TODO parameter might not be neccessary for GET and DELETE
-        // TODO add the paramter to method details, we should have it, think about auth too
-        // TODO option for several parameters (auth as above e.g.)
-        var parameterString = methodDetails.HasParameters ? $"{methodDetails.HasParameters} request, " : string.Empty;
-        var existingParameter = methodDetails.HasParameters ? "request, " : string.Empty;
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}" : string.Empty;
+        var existingParameter = methodDetails.HasParameters ? string.Join(", ", methodDetails.Parameters.Select(x => x.Key)) + ", " : string.Empty;
 
         return $$"""
             public virtual {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}})
@@ -151,7 +171,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """;
     }
 
-    // TODO maybe we will ned serializer settings here as well
     public string AddHttpClientConstructorWithField(string clientName)
     {
         return $$"""
@@ -189,25 +208,20 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
     {
-        // TODO add the correct return type... or whatever how you get it I dont care
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-        // TODO add the paramter to method details, we should have it
-        var parameter = "TODO";
+        // TODO auth
 
-        // TODO be aware that authentication might be added here as a first parameter
-        // TODO multiple parameters possible? (except authentication)
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}" : string.Empty;
 
         if (methodDetails.HasParameters)
         {
-            // TODO dont forget authentication
             return $"""
-            {returnTypeString} {methodDetails.MethodName}({parameter});
-            {returnTypeString} {methodDetails.MethodName}({parameter}, CancellationToken cancellationToken);
+            {returnTypeString} {methodDetails.MethodName}({parameterString});
+            {returnTypeString} {methodDetails.MethodName}({parameterString}, CancellationToken cancellationToken);
             """;
         }
         else
         {
-            // TODO dont forget authentication
             return $"""
             {returnTypeString} {methodDetails.MethodName}();
             {returnTypeString} {methodDetails.MethodName}(CancellationToken cancellationToken);
@@ -230,6 +244,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             using System.Net;
             using System.Net.Http;
             using System.Net.Http.Json;
+            using System.Net.Http.Headers;
             using System.Text;
             using System.Text.Json;
             """);
@@ -303,7 +318,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             public ApiResponse(int statusCode, string errorMessage = "", Exception? exception = null)
             {
                 StatusCode = statusCode;
-                IsError = statusCode < 200 && statusCode >= 300;
+                IsError = statusCode < 200 || statusCode >= 300;
                 ErrorMessage = errorMessage;
                 Exception = exception;
             }
@@ -343,6 +358,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {
                     var requestJson = JsonSerializer.Serialize(request, this.jsonSerializerOptions);
                     request.Content = new StringContent(requestJson);
+                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 }
 
                 using var response = await this.httpClient.SendAsync(request, linked.Token);

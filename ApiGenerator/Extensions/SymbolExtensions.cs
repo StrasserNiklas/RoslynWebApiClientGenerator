@@ -105,12 +105,6 @@ public static class SymbolExtensions
                 return true;
         }
 
-        switch (typeSymbol.TypeKind)
-        {
-            case TypeKind.Enum:
-                return true;
-        }
-
         return false;
     }
 }

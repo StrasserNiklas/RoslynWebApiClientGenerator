@@ -3,65 +3,87 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
-
-    [ApiController]
-    [Route("[controller]")]
-    //[Route("hmm")]
-    public class ApiControllerWithRoute// : ControllerBase
+    public class BoundRequest
     {
-        // lool oder wenn bei lol route(some)
-        // contRoute
-        [HttpGet]
-        public ActionResult<IEnumerable<Response>> GetThisLol()
-        {
-            return new ActionResult<IEnumerable<Response>>(new List<Response>());
-            //return Ok(new Response());
-        }
-
-        [HttpGet]
-        public ActionResult<IDictionary<string, Response>> GetThisDict()
-        {
-            return new ActionResult<IDictionary<string, Response>>(new Dictionary<string, Response>());
-            //return Ok(new Response());
-        }
-
-        [HttpGet]
-        public ActionResult<Request> GetThisLol2()
-        {
-            return new ActionResult<Request>(new Request());
-            //return Ok(new Response());
-        }
-
-
-
+        [FromBody]
+        public Request Request { get; set; }
     }
 
-    //[Route("[controller]")]
-    //public class ControllerWithNoRouteButWithMethodRoutes : Controller
-    //{
-    //    //[Route("ok")]
-    //    //[HttpGet]
-    //    //public ActionResult<Response> Get([FromBody] Request request)
-    //    //{
-    //    //    return new ActionResult<Response>(new Response());
-    //    //    //return Ok(new Response());
-    //    //}
+    public class FromRouteClass
+    {
+        public int Id { get; set; }
+    }
 
-    //    [Route("ok/{id}")]
+    public class FromQueryRequest
+    {
+        public int Id { get; set; }
+
+        public string Body { get; set; }
+    }
+
+    [Route("[controller]")]
+    public class ControllerWithNoRouteButWithMethodRoutes : Controller
+    {
+        [Route("ok")]
+        [HttpPost]
+        public ActionResult<Response> PostIt([FromBody] Request request)
+        {
+            return new ActionResult<Response>(new Response()
+            {
+                NullableReturnText = "Das sollte nullable sein",
+                Parameters = new List<Request>() { new Request()},
+                ReturnText = "Hier mein return"
+            });
+            //return Ok(new Response());
+        }
+
+        [Route("/{tryme}/ok/{id}")]
+        [HttpGet]
+        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit(int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
+        {
+            return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
+            //return Ok();
+        }
+
+        //[Route("TestNoHttp")]
+        //public static ActionResult<Response> NoHttp()
+        //{
+        //    return new ActionResult<Response>(new Response());
+        //    //return Ok(new Response());
+        //}
+    }
+
+
+    //[ApiController]
+    //[Route("[controller]")]
+    ////[Route("hmm")]
+    //public class ApiControllerWithRoute// : ControllerBase
+    //{
+    //    // lool oder wenn bei lol route(some)
+    //    // contRoute
     //    [HttpGet]
-    //    public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit([FromServices] ITestService testservice, int id, [FromQuery] Request request)
+    //    public ActionResult<IEnumerable<Response>> GetThisLol()
     //    {
-    //        return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
-    //        //return Ok();
+    //        return new ActionResult<IEnumerable<Response>>(new List<Response>());
+    //        //return Ok(new Response());
     //    }
 
-    //    //[Route("TestNoHttp")]
-    //    //public static ActionResult<Response> NoHttp()
-    //    //{
-    //    //    return new ActionResult<Response>(new Response());
-    //    //    //return Ok(new Response());
-    //    //}
+    //    [HttpGet]
+    //    public ActionResult<IDictionary<string, Response>> GetThisDict()
+    //    {
+    //        return new ActionResult<IDictionary<string, Response>>(new Dictionary<string, Response>());
+    //        //return Ok(new Response());
+    //    }
+
+    //    [HttpGet]
+    //    public ActionResult<Request> GetThisLol2()
+    //    {
+    //        return new ActionResult<Request>(new Request());
+    //        //return Ok(new Response());
+    //    }
     //}
+
+
 
 
 
