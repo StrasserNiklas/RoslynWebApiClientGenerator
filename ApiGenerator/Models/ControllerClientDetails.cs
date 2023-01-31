@@ -59,13 +59,21 @@ public class ControllerMethodDetails
         }
 
         this.Parameters = parameters;
-        this.ParameterString = string.Join(", ",parameters.Select(x => $"{ x.Value.ParameterTypeString}  {x.Key}")).TrimEnd(',');
 
+        if (parameters != null)
+        {
+            this.ParameterString = string.Join(", ", parameters.Select(x => $"{x.Value.ParameterTypeString}  {x.Key}")).TrimEnd(',');
+        }
 
         this.ReturnType = returnType;
 
         // TODO check if we can just hand it over in the ctor
-        this.ReturnTypeString = (returnType as INamedTypeSymbol).ToString().SanitizeClassTypeString();
+        if (returnType != null)
+        {
+            this.ReturnTypeString = (returnType as INamedTypeSymbol).ToString().SanitizeClassTypeString();
+        }
+
+        
     }
 
     public bool HasRouteQueryParameters { get; }

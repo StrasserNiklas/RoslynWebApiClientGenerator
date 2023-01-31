@@ -41,13 +41,14 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var finalClientCodeString = $$"""
             {{this.AddUsings()}}
 
-            namespace {{this.ProjectName}}.CSharp;
+            namespace {{this.ProjectName}}.CSharp
+            {
 
             {{clientCodeStringBuilder}}
 
             {{mergedCodeClasses}}
             {{this.AddApiResponseClass()}}
-
+            }
             """.PrettifyCode();
 
 
@@ -89,7 +90,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         // TODO auth
 
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-        var parameterString = methodDetails.ParameterString != string.Empty ? $"{methodDetails.ParameterString}, " : string.Empty;
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
         var parameterCheckSb = new StringBuilder();
 
         foreach (var parameter in methodDetails.Parameters)
@@ -133,7 +134,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var methodCallString = (nonPrimitive.Key == null ? false : nonPrimitive.Value.HasBody, methodDetails.HasReturnType) switch
         {
             (true, true) => $"return await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}, {methodDetails.ReturnTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
-            (true, false) => $"return await this.SendJsonAsync<{methodDetails.ParameterString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
+            (true, false) => $"return await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
             (false, true) => $"return await this.SendJsonAsync<object, {methodDetails.ReturnTypeString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
             (false, false) => "return await this.SendJsonAsync(uri, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);"
         };
@@ -144,7 +145,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{parameterCheckSb}}
 
                 var routeBuilder = new StringBuilder();
-                routeBuilder.Append("{{methodDetails.Route}}");
+                routeBuilder.Append(Uri.EscapeDataString("{{methodDetails.Route}}"));
 
                 {{routeQueryParamSb}}
 

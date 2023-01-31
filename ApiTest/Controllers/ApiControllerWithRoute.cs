@@ -24,18 +24,18 @@ namespace ApiTest.Controllers
     [Route("[controller]")]
     public class ControllerWithNoRouteButWithMethodRoutes : Controller
     {
-        //[Route("ok")]
-        //[HttpPost]
-        //public ActionResult<Response> PostIt([FromBody] Request request)
-        //{
-        //    return new ActionResult<Response>(new Response()
-        //    {
-        //        NullableReturnText = "Das sollte nullable sein",
-        //        Parameters = new List<Request>() { new Request()},
-        //        ReturnText = "Hier mein return"
-        //    });
-        //    //return Ok(new Response());
-        //}
+        [Route("ok")]
+        [HttpPost]
+        public ActionResult<Response> PostIt([FromBody] Request request)
+        {
+            return new ActionResult<Response>(new Response()
+            {
+                NullableReturnText = "Testing",
+                Parameters = new List<Request>() { new Request() },
+                ReturnText = "Hier mein return"
+            });
+            //return Ok(new Response());
+        }
 
         [Route("/{tryme}/ok/{id}")]
         [HttpGet]

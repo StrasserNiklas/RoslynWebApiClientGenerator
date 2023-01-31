@@ -102,6 +102,7 @@ public static class SymbolExtensions
             case SpecialType.System_Double:
             case SpecialType.System_Char:
             case SpecialType.System_String:
+            case SpecialType.System_Decimal:
                 return true;
         }
 

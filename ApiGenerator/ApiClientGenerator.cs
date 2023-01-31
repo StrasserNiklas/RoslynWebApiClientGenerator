@@ -36,6 +36,63 @@ public class ApiClientGenerator : ISourceGenerator
 
     public void Execute(GeneratorExecutionContext context)
     {
+        //var compilation = context.Compilation;
+        //var attributeType = compilation.GetTypeByMetadataName("System.Web.Http.Headers.HeaderAttribute");
+
+        
+
+        //var semanticModel1 = compilation.GetSemanticModel(attributeType.DeclaringSyntaxReferences.First().SyntaxTree);
+        //var attributeSymbol = semanticModel1.GetDeclaredSymbol(attributeType.node);
+        //var headerSymbols = attributeSymbol.ContainingAssembly.GetAttributes(attributeType);
+
+        //foreach (var headerSymbol in headerSymbols)
+        //{
+        //    var headerAttribute = headerSymbol.ApplicationSyntaxReference.GetSyntax();
+
+        //    if (!(headerAttribute is AttributeSyntax attributeNode))
+        //    {
+        //        continue;
+        //    }
+
+        //    var headerValue = headerSymbol.ConstructorArguments.First().Value.ToString();
+        //    var methodSymbol = headerSymbol.AttributeClass.ContainingType.GetMembers().FirstOrDefault(x => x.Name == headerAttribute.Name.ToString());
+
+        //    if (!(methodSymbol is IMethodSymbol method))
+        //    {
+        //        continue;
+        //    }
+
+            //var headerDictionary = SyntaxFactory.ParallelEnumerableDeclaration(
+            //    SyntaxFactory.IdentifierName("System.Collections.Generic"),
+            //    SyntaxFactory.IdentifierName("Dictionary"),
+            //    SyntaxFactory.TypeArgumentList(
+            //        SyntaxFactory.SeparatedList<TypeSyntax>(
+            //            new SyntaxNodeOrToken[]
+            //            {
+            //                    SyntaxFactory.PredefinedType(
+            //                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+            //                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+            //                    SyntaxFactory.PredefinedType(
+            //                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
+            //            })),
+            //    SyntaxFactory.Identifier("headers"),
+            //    SyntaxFactory.EqualsValueClause(
+            //        SyntaxFactory.ObjectCreationExpression(
+            //            SyntaxFactory.GenericName(
+            //                SyntaxFactory.Identifier("Dictionary"))
+            //            .WithTypeArgumentList(
+            //                SyntaxFactory.TypeArgumentList(
+            //                    SyntaxFactory.SeparatedList<TypeSyntax>(
+            //                        new SyntaxNodeOrToken[]
+            //                        {
+            //                                SyntaxFactory.PredefinedType(
+            //                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+            //                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+            //                                SyntaxFactory.Pred
+        //}
+        //
+
+
         #region OngoingReferenceSearch
         var x1 = context.Compilation.GetMetadataReference(context.Compilation.Assembly);
         var x2 = context.Compilation.GetUsedAssemblyReferences();
@@ -193,6 +250,7 @@ public class ControllerClientBuilder
 
             if (classSymbol.IsApiController(semanticModel))
             {
+                var authorizeAttribute = classSymbol.GetAttribute("Microsoft.AspNetCore.Authorization.AuthorizeAttribute");
                 var routeAttribute = classSymbol.GetRouteAttribute();
                 var clientInformation = new ControllerClientDetails(classSymbol.Name, routeAttribute);
 
@@ -224,6 +282,9 @@ public class ControllerClientBuilder
                     IsAbstract: false
                 } methodSymbol)
             {
+                var authorizeAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Authorization.AuthorizeAttribute");
+
+
                 (var httpMethod, var httpMethodAttribute) = methodSymbol.GetHttpMethodWithAtrributeData();
                 var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
                 var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
@@ -235,7 +296,7 @@ public class ControllerClientBuilder
                 foreach (var methodParameter in methodParameters)
                 {
                     // filter out from services attribute as its value is not needed for the api call
-                    if (methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromServicesAttribute") is not null)
+                    if (methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromServicesAttribute") is not null || methodParameter.ToString() == "System.Threading.CancellationToken")
                     {
                         continue;
                     }
@@ -274,7 +335,11 @@ public class ControllerClientBuilder
                     returnType = null;
                 }
 
-                generatedClasses.AddMany(returnType.GenerateClassString());
+                if (returnType != null)
+                {
+                    generatedClasses.AddMany(returnType.GenerateClassString());
+                }
+
                 var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, parameterMapping, methodNameWithoutAsnyc, finalRoute);
                 clientInformation.HttpMethods.Add(httpMethodInformation);
             }
@@ -287,7 +352,7 @@ public class ControllerClientBuilder
     {
         if (baseRoute.Contains("[action]"))
         {
-            return baseRoute.Replace("[action]", methodName);
+            baseRoute = baseRoute.Replace("[action]", methodName);
         }
 
         return string.IsNullOrWhiteSpace(methodRoute) ? baseRoute : $"{baseRoute}/{methodRoute}";

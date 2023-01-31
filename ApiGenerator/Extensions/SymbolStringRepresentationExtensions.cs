@@ -10,6 +10,7 @@ public static class SymbolStringRepresentationExtensions
 {
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
+        var stringClassRepresentations = new Dictionary<string, string>();
         string className = symbol.Name;
         string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
         string classModifiers = string.Empty;
@@ -18,14 +19,21 @@ public static class SymbolStringRepresentationExtensions
         {
             classModifiers += "abstract ";
         }
-        if (symbol.IsSealed)
+        if (symbol.IsSealed) // be aware of outside DLLs
         {
-            classModifiers += "sealed ";
+            //classModifiers += "sealed ";
+            //return stringClassRepresentations;
         }
 
         string classType = symbol.TypeKind.ToString().ToLowerInvariant();
 
-        var stringClassRepresentations = new Dictionary<string, string>();
+        // TODO keep an eye on this
+        if (symbol.TypeKind == TypeKind.Struct)
+        {
+            return stringClassRepresentations;
+        }
+
+
 
         if (symbol.TypeKind == TypeKind.Enum)
         {
@@ -34,12 +42,17 @@ public static class SymbolStringRepresentationExtensions
             return stringClassRepresentations;
         }
 
-        
-
         var classMemberBuilder = new StringBuilder();
 
         foreach (var member in symbol.GetMembers())
         {
+            var wat = member.ContainingType;
+            var yey = member as ITypeSymbol;
+            //if (member.)
+            //{
+
+            //}
+
             if (member is IFieldSymbol field)
             {
                 if (field.DeclaredAccessibility != Accessibility.Public)// || field.Name.StartsWith("get_") || field.Name.StartsWith("set_"))
@@ -69,11 +82,21 @@ public static class SymbolStringRepresentationExtensions
                 }
 
                 var outputString = property.Type.ToString().SanitizeClassTypeString();
-                
+
                 // TODO check if set is available?
                 classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
                 classMemberBuilder.AppendLine(Environment.NewLine);
             }
+            else if (member is IMethodSymbol methodSymbol)
+            {
+                // TODO arrays...
+                if (methodSymbol.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
+                {
+                    CheckAndGenerateClassString(arrayTypeSymbol.ElementType, stringClassRepresentations);
+                }
+            }
+
+            //((Microsoft.CodeAnalysis.IArrayTypeSymbol)((Microsoft.CodeAnalysis.IMethodSymbol)member).ReturnType).ElementType
         }
 
         // this is for e.g. IEnumerable<T>
