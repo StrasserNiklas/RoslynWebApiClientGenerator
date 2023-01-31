@@ -15,7 +15,7 @@ public static class SymbolStringRepresentationExtensions
         string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
         string classModifiers = string.Empty;
 
-        if (symbol.IsAbstract)
+        if (symbol.IsAbstract && symbol.TypeKind != TypeKind.Interface)
         {
             classModifiers += "abstract ";
         }
@@ -28,7 +28,7 @@ public static class SymbolStringRepresentationExtensions
         string classType = symbol.TypeKind.ToString().ToLowerInvariant();
 
         // TODO keep an eye on this
-        if (symbol.TypeKind == TypeKind.Struct)
+        if (symbol.TypeKind == TypeKind.Struct || symbol.IsPrimitive())
         {
             return stringClassRepresentations;
         }
@@ -40,20 +40,38 @@ public static class SymbolStringRepresentationExtensions
             return stringClassRepresentations;
         }
 
+        // this is for e.g. IEnumerable<T>
+        //if (symbol.TypeKind == TypeKind.Interface)
+        //{
+        //    if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeArguments.Count() != 0)
+        //    {
+        //        foreach (var argument in typeSymbol.TypeArguments)
+        //        {
+        //            CheckAndGenerateClassString(argument, stringClassRepresentations);
+        //        }
+        //    }
+
+        //    return stringClassRepresentations;
+        //}
+
+        // TODO what about classes that inherit from it shrug
+        if (symbol.ContainingNamespace.ToString().Contains("System.Collections") && symbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            foreach (var argument in namedTypeSymbol.TypeArguments)
+            {
+                CheckAndGenerateClassString(argument, stringClassRepresentations);
+            }
+
+            return stringClassRepresentations;
+        }
+
         var classMemberBuilder = new StringBuilder();
 
         foreach (var member in symbol.GetMembers())
         {
-            var wat = member.ContainingType;
-            var yey = member as ITypeSymbol;
-            //if (member.)
-            //{
-
-            //}
-
             if (member is IFieldSymbol field)
             {
-                if (field.DeclaredAccessibility != Accessibility.Public)// || field.Name.StartsWith("get_") || field.Name.StartsWith("set_"))
+                if (field.DeclaredAccessibility != Accessibility.Public)
                 {
                     continue;
                 }
@@ -65,7 +83,12 @@ public static class SymbolStringRepresentationExtensions
             {
                 if (property.Type is INamedTypeSymbol propertyTypeSymbol)
                 {
-                    if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum)
+                    if (propertyTypeSymbol.ToString().Contains("claim"))
+                    {
+
+                    }
+
+                    if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum || propertyTypeSymbol.TypeKind == TypeKind.Interface)
                     {
                         CheckAndGenerateClassString(propertyTypeSymbol, stringClassRepresentations);
                     }
@@ -93,23 +116,21 @@ public static class SymbolStringRepresentationExtensions
                     CheckAndGenerateClassString(arrayTypeSymbol.ElementType, stringClassRepresentations);
                 }
             }
+            else
+            {
+                if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeArguments.Count() != 0)
+                {
+                    foreach (var argument in typeSymbol.TypeArguments)
+                    {
+                        CheckAndGenerateClassString(argument, stringClassRepresentations);
+                    }
+                }
+            }
 
             //((Microsoft.CodeAnalysis.IArrayTypeSymbol)((Microsoft.CodeAnalysis.IMethodSymbol)member).ReturnType).ElementType
         }
 
-        // this is for e.g. IEnumerable<T>
-        if (symbol.TypeKind == TypeKind.Interface)
-        {
-            if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeArguments.Count() != 0)
-            {
-                foreach (var argument in typeSymbol.TypeArguments)
-                {
-                    CheckAndGenerateClassString(argument, stringClassRepresentations);
-                }
-            }
-
-            return stringClassRepresentations;
-        }
+        
 
         var classCode = $$"""
             {{accessibility}} {{classModifiers}} {{classType}} {{className}}

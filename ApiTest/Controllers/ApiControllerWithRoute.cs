@@ -26,16 +26,18 @@ namespace ApiTest.Controllers
     {
         [Route("ok")]
         [HttpPost]
-        [ProducesResponseType(typeof(FromQueryRequest), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(FromQueryRequest), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public ActionResult<Response> PostARequest([FromBody] Request request)
         {
-            return new ActionResult<Response>(new Response()
-            {
-                NullableReturnText = "Testing",
-                Parameters = new List<Request>() { new Request() },
-                ReturnText = "Hier mein return"
-            });
+            //return new ActionResult<Response>(new Response()
+            //{
+            //    NullableReturnText = "Testing",
+            //    Parameters = new List<Request>() { new Request() },
+            //    ReturnText = "Hier mein return"
+            //});
+
+            return this.NotFound(new FromQueryRequest());
             //return Ok(new Response());
         }
 
