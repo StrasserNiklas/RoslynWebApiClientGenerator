@@ -89,7 +89,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         // TODO auth
 
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
+        var parameterString = methodDetails.ParameterString != string.Empty ? $"{methodDetails.ParameterString}, " : string.Empty;
         var parameterCheckSb = new StringBuilder();
 
         foreach (var parameter in methodDetails.Parameters)
@@ -130,7 +130,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
 
         // (for now) only use a request class for an actual body
-        var methodCallString = (nonPrimitive.Value.HasBody, methodDetails.HasReturnType) switch
+        var methodCallString = (nonPrimitive.Key == null ? false : nonPrimitive.Value.HasBody, methodDetails.HasReturnType) switch
         {
             (true, true) => $"return await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}, {methodDetails.ReturnTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",
             (true, false) => $"return await this.SendJsonAsync<{methodDetails.ParameterString}>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken);",

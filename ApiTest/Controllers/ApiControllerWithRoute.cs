@@ -24,22 +24,22 @@ namespace ApiTest.Controllers
     [Route("[controller]")]
     public class ControllerWithNoRouteButWithMethodRoutes : Controller
     {
-        [Route("ok")]
-        [HttpPost]
-        public ActionResult<Response> PostIt([FromBody] Request request)
-        {
-            return new ActionResult<Response>(new Response()
-            {
-                NullableReturnText = "Das sollte nullable sein",
-                Parameters = new List<Request>() { new Request()},
-                ReturnText = "Hier mein return"
-            });
-            //return Ok(new Response());
-        }
+        //[Route("ok")]
+        //[HttpPost]
+        //public ActionResult<Response> PostIt([FromBody] Request request)
+        //{
+        //    return new ActionResult<Response>(new Response()
+        //    {
+        //        NullableReturnText = "Das sollte nullable sein",
+        //        Parameters = new List<Request>() { new Request()},
+        //        ReturnText = "Hier mein return"
+        //    });
+        //    //return Ok(new Response());
+        //}
 
         [Route("/{tryme}/ok/{id}")]
         [HttpGet]
-        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit(int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
+        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit()//int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
         {
             return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
             //return Ok();

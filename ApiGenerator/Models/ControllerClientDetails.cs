@@ -49,7 +49,10 @@ public class ControllerMethodDetails
         {
             foreach (Match match in matches)
             {
-                parameters[match.Groups[1].Value].IsRouteQueryParameter = true;
+                if (parameters.TryGetValue(match.Groups[1].Value, out var parameterDetails))
+                {
+                    parameterDetails.IsRouteQueryParameter = true;
+                }
             }
 
             this.HasRouteQueryParameters = true;
@@ -73,7 +76,7 @@ public class ControllerMethodDetails
 
     public HttpMethod HttpMethod { get; }
 
-    public bool HasParameters => this.Parameters != null;
+    public bool HasParameters => this.Parameters != null && this.Parameters.Count > 0;
 
     public Dictionary<string, ParameterDetails> Parameters { get; } 
 
