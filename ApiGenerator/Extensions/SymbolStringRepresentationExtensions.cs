@@ -33,8 +33,6 @@ public static class SymbolStringRepresentationExtensions
             return stringClassRepresentations;
         }
 
-
-
         if (symbol.TypeKind == TypeKind.Enum)
         {
             var enumString = symbol.GenerateEnumClassString();
@@ -83,7 +81,7 @@ public static class SymbolStringRepresentationExtensions
 
                 var outputString = property.Type.ToString().SanitizeClassTypeString();
 
-                // TODO check if set is available?
+                // TODO check if set is available? <- what does he mean?
                 classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
                 classMemberBuilder.AppendLine(Environment.NewLine);
             }

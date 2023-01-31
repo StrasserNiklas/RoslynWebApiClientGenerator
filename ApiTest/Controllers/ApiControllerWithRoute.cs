@@ -22,11 +22,11 @@ namespace ApiTest.Controllers
     }
 
     [Route("[controller]")]
-    public class ControllerWithNoRouteButWithMethodRoutes : Controller
+    public class CarController : Controller
     {
         [Route("ok")]
         [HttpPost]
-        public ActionResult<Response> PostIt([FromBody] Request request)
+        public ActionResult<Response> PostARequest([FromBody] Request request)
         {
             return new ActionResult<Response>(new Response()
             {
@@ -39,7 +39,7 @@ namespace ApiTest.Controllers
 
         [Route("/{tryme}/ok/{id}")]
         [HttpGet]
-        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> Getit()//int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
+        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> GetAList()//int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
         {
             return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
             //return Ok();
