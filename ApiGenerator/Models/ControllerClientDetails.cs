@@ -33,13 +33,16 @@ public class ControllerClientDetails
 
     public IDictionary<string, string> GeneratedCodeClasses { get; set; }
     public bool IsMinimalApiClient { get; }
+
+    // minimalClient. //Route<T
 }
 
 public class ControllerMethodDetails
 {
-    public ControllerMethodDetails(HttpMethod httpMethod, ITypeSymbol returnType, Dictionary<string, ParameterDetails> parameters, string methodName, string finalRoute)
+    public ControllerMethodDetails(HttpMethod httpMethod, List<KeyValuePair<int, ITypeSymbol>> returnTypes, Dictionary<string, ParameterDetails> parameters, string methodName, string finalRoute)
     {
         this.HttpMethod = httpMethod;
+        ReturnTypes = returnTypes;
         this.MethodName = methodName + "Async";
         this.Route = finalRoute;
 
@@ -65,15 +68,13 @@ public class ControllerMethodDetails
             this.ParameterString = string.Join(", ", parameters.Select(x => $"{x.Value.ParameterTypeString}  {x.Key}")).TrimEnd(',');
         }
 
-        this.ReturnType = returnType;
+        this.ReturnType = returnTypes?.FirstOrDefault().Value;
 
         // TODO check if we can just hand it over in the ctor
-        if (returnType != null)
+        if (this.ReturnType != null)
         {
-            this.ReturnTypeString = (returnType as INamedTypeSymbol).ToString().SanitizeClassTypeString();
+            this.ReturnTypeString = (this.ReturnType as INamedTypeSymbol).ToString().SanitizeClassTypeString();
         }
-
-        
     }
 
     public bool HasRouteQueryParameters { get; }
@@ -83,6 +84,7 @@ public class ControllerMethodDetails
     public string MethodName { get; }
 
     public HttpMethod HttpMethod { get; }
+    public List<KeyValuePair<int, ITypeSymbol>> ReturnTypes { get; }
 
     public bool HasParameters => this.Parameters != null && this.Parameters.Count > 0;
 

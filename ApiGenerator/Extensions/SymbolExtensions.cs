@@ -51,6 +51,13 @@ public static class SymbolExtensions
         return occurences.FirstOrDefault();
     }
 
+    public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, string identifier)
+    {
+        return symbol
+            .GetAttributes()
+            .Where(attr => attr.AttributeClass?.ToString() == identifier);
+    }
+
     public static bool IsApiController(this INamedTypeSymbol classDeclaration, SemanticModel semantic)
     {
         var controllerBase = semantic.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.ControllerBase");

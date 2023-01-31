@@ -101,7 +101,7 @@ public class ApiClientGenerator : ISourceGenerator
         var assemblyReferences = context.Compilation.GetUsedAssemblyReferences().ToList();
         //.OfType<AssemblyMetadata>();
         #endregion
-        var projectName = this.GetProjectName(context.Compilation);
+        var projectName = context.Compilation.AssemblyName;// this.GetProjectName(context.Compilation);
 
         // TODO config in appsettings?
         // or not use this and place in editor config -> context.AnalyzerConfigOptions.GetOptions
@@ -117,6 +117,8 @@ public class ApiClientGenerator : ISourceGenerator
         foreach (var tree in context.Compilation.SyntaxTrees)
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
+
+            semanticModel.Compilation.ExternalReferences.SingleOrDefault(x => x.Display == "");
 
             // check for minimal APIs
             if (tree.FilePath.Contains("Program.cs") || tree.FilePath.Contains("Startup.cs"))
@@ -283,7 +285,7 @@ public class ControllerClientBuilder
                 } methodSymbol)
             {
                 var authorizeAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Authorization.AuthorizeAttribute");
-
+                
 
                 (var httpMethod, var httpMethodAttribute) = methodSymbol.GetHttpMethodWithAtrributeData();
                 var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
@@ -317,35 +319,83 @@ public class ControllerClientBuilder
                     parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsPrimitive(), fromQuery is not null, fromBody is not null));
                 }
 
-                var returnType = methodSymbol.ReturnType;
-
-                // Unwrap Task<T>
-                if (returnType is INamedTypeSymbol taskType && taskType.OriginalDefinition.ToString() == "System.Threading.Tasks.Task<TResult>")
-                {
-                    returnType = taskType.TypeArguments.First();
-                }
-
-                if (returnType is INamedTypeSymbol actionResultType && actionResultType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.ActionResult<TValue>")
-                {
-                    returnType = actionResultType.TypeArguments.First();
-                }
-
-                if (returnType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.IActionResult" || returnType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.ActionResult")
-                {
-                    returnType = null;
-                }
-
-                if (returnType != null)
-                {
-                    generatedClasses.AddMany(returnType.GenerateClassString());
-                }
-
-                var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, parameterMapping, methodNameWithoutAsnyc, finalRoute);
+                var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
+                var additionalReturnTypes = this.AddMethodResponseTypes(methodSymbol, returnType, generatedClasses);
+                var httpMethodInformation = new ControllerMethodDetails(httpMethod, additionalReturnTypes, parameterMapping, methodNameWithoutAsnyc, finalRoute);
                 clientInformation.HttpMethods.Add(httpMethodInformation);
             }
         }
 
         clientInformation.GeneratedCodeClasses = generatedClasses;
+    }
+
+    private ITypeSymbol UnwrapReturnType(ITypeSymbol returnType)
+    {
+        if (returnType is INamedTypeSymbol taskType && taskType.OriginalDefinition.ToString() == "System.Threading.Tasks.Task<TResult>")
+        {
+            returnType = taskType.TypeArguments.First();
+        }
+
+        if (returnType is INamedTypeSymbol actionResultType && actionResultType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.ActionResult<TValue>")
+        {
+            returnType = actionResultType.TypeArguments.First();
+        }
+
+        if (returnType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.IActionResult" || returnType.OriginalDefinition.ToString() == "Microsoft.AspNetCore.Mvc.ActionResult")
+        {
+            returnType = null;
+        }
+
+        return returnType;
+    }
+
+    private List<KeyValuePair<int, ITypeSymbol>> AddMethodResponseTypes(IMethodSymbol methodSymbol, ITypeSymbol returnType, IDictionary<string, string> generatedClasses)
+    {
+        var responseTypeAttributes = methodSymbol.GetAttributes("Microsoft.AspNetCore.Mvc.ProducesResponseTypeAttribute");
+        var additionalReturnTypes = new List<KeyValuePair<int, ITypeSymbol>>();
+
+        foreach (var responseTypeAttribute in responseTypeAttributes)
+        {
+            if (responseTypeAttribute.ConstructorArguments.Count() > 1)
+            {
+                var responseType = responseTypeAttribute.ConstructorArguments[0].Value as ITypeSymbol;
+                generatedClasses.AddMany(responseType.GenerateClassString());
+                var code = int.Parse(responseTypeAttribute.ConstructorArguments[1].Value.ToString());
+                var exists = additionalReturnTypes.SingleOrDefault(x => x.Key == code);
+
+                if (exists.Value != null)
+                {
+                    additionalReturnTypes.Insert(0, new KeyValuePair<int, ITypeSymbol>(code, responseType));
+                }
+            }
+        }
+
+        if (returnType != null)
+        {
+            generatedClasses.AddMany(returnType.GenerateClassString());
+
+            var exists = additionalReturnTypes.SingleOrDefault(x => x.Value.Name == returnType.Name);
+
+            if (exists.Value != null)
+            {
+                additionalReturnTypes.Remove(exists);
+                additionalReturnTypes.Insert(0, exists);
+            }
+            else
+            {
+                var keyExists = additionalReturnTypes.SingleOrDefault(x => x.Key == 200);
+
+                if (keyExists.Key != 0)
+                {
+                    additionalReturnTypes.Remove(keyExists);
+                }
+
+                additionalReturnTypes.Insert(0, new KeyValuePair<int, ITypeSymbol>(200, returnType));
+            }
+
+        }
+
+        return additionalReturnTypes;
     }
 
     private string BuildFinalMethodRoute(string methodName, string baseRoute, string methodRoute)

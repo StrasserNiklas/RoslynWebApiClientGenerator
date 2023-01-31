@@ -1,5 +1,6 @@
 ﻿using ApiGenerator.Extensions;
 using ApiGenerator.Models;
+using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -261,12 +262,30 @@ public class CSharpClientGenerator : ClientGeneratorBase
         return stringBuilder.ToString();
     }
 
-    private string AddHandleResponseMethod() => """
-        private async Task<ApiResponse<TResponse>> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+    // TODO broken right now
+    private string AddHandleResponseMethod(ControllerMethodDetails controllerMethodDetails)
+    {
+        var switchSb = new StringBuilder();
+
+        foreach (var pair in controllerMethodDetails.ReturnTypes)
         {
-            return await this.DeserializeResponse<TResponse>(response, false, cancellationToken);
+            switchSb.AppendLine($"""
+                {pair.Key} => await this.DeserializeResponse<{(pair.Value as INamedTypeSymbol).ToString().SanitizeClassTypeString()},
+                """);
         }
-        """;
+
+        return $$"""
+            private async Task<ApiResponse> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+            {
+                ApiResponse result = (int)response.StatusCode switch
+                {
+                    {{switchSb}}
+                };
+            
+                return result;
+            }
+            """;
+    }
 
     private string AddDeserializeMethod() => """
         protected virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
@@ -383,7 +402,4 @@ public class CSharpClientGenerator : ClientGeneratorBase
             return this.SendJsonAsync<object>(endpoint, null, httpMethod, cancellationToken);
         }
         """;
-    
-
-
 }

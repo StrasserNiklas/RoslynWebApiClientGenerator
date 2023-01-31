@@ -26,6 +26,8 @@ namespace ApiTest.Controllers
     {
         [Route("ok")]
         [HttpPost]
+        [ProducesResponseType(typeof(FromQueryRequest), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public ActionResult<Response> PostARequest([FromBody] Request request)
         {
             return new ActionResult<Response>(new Response()
@@ -37,13 +39,13 @@ namespace ApiTest.Controllers
             //return Ok(new Response());
         }
 
-        [Route("/{tryme}/ok/{id}")]
-        [HttpGet]
-        public static Task<ActionResult<IEnumerable<BasicClassToUse>>> GetAList()//int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
-        {
-            return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
-            //return Ok();
-        }
+        //[Route("/{tryme}/ok/{id}")]
+        //[HttpGet]
+        //public static Task<ActionResult<IEnumerable<BasicClassToUse>>> GetAList()//int id, int tryme, [FromQuery] FromQueryRequest boundRequest)
+        //{
+        //    return Task.FromResult(new ActionResult<IEnumerable<BasicClassToUse>>(new List<BasicClassToUse>()));
+        //    //return Ok();
+        //}
 
         //[Route("TestNoHttp")]
         //public static ActionResult<Response> NoHttp()
