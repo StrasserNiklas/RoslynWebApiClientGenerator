@@ -275,15 +275,23 @@ public class CSharpClientGenerator : ClientGeneratorBase
         //        """);
         //}
 
+        //return $$"""
+        //    private async Task<ApiResponse> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+        //    {
+        //        ApiResponse result = (int)response.StatusCode switch
+        //        {
+        //            {{switchSb}}
+        //        };
+
+        //        return result;
+        //    }
+        //    """;
+
+        // old without several return types
         return $$"""
-            private async Task<ApiResponse> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+            private async Task<ApiResponse<TResponse>> HandleResponse<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
             {
-                ApiResponse result = (int)response.StatusCode switch
-                {
-                    {{switchSb}}
-                };
-            
-                return result;
+                return await this.DeserializeResponse<TResponse>(response, false, cancellationToken);
             }
             """;
     }
