@@ -1,3 +1,5 @@
+using Admiral.BetslipService.Contracts.Entities;
+using Asw.Horseracing.Svc.Platformbridge.Client;
 using ClassLibrary;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,6 +32,9 @@ namespace ApiTest.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public ActionResult<Response> PostARequest([FromBody] Request request)
         {
+            var client = new PlatformClient(new HttpClient());
+            //client.
+
             //return new ActionResult<Response>(new Response()
             //{
             //    NullableReturnText = "Testing",

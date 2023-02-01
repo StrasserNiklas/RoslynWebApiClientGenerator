@@ -310,7 +310,10 @@ public class CSharpClientGenerator : ClientGeneratorBase
         return stringBuilder.ToString();
     }
 
-    
+    public string AddPartialMethods() => """
+        partial void PrepareRequest(HttpClient client, HttpRequestMessage request);
+        partial void ProcessResponse(HttpClient client, HttpResponseMessage response);
+        """;
 
     private string AddDeserializeMethod() => """
         protected virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)

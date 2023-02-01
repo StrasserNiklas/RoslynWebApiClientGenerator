@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using ApiGenerator.Models;
 using System.IO;
+using System;
 
 namespace ApiGenerator;
 
@@ -33,17 +34,33 @@ public class ApiClientGenerator : ISourceGenerator
         
     }
 
+    public void TestDotNetPack()
+    {
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = "pack MyClientLibrary.csproj",
+                //WorkingDirectory = context.OutputDirectory,
+                RedirectStandardOutput = true,
+                UseShellExecute = false
+            }
+        };
+
+        process.Start();
+        var output = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+
+        if (process.ExitCode != 0)
+        {
+            throw new Exception($"Failed to create NuGet package: {output}");
+        }
+    }
 
     public void Execute(GeneratorExecutionContext context)
     {
-        //var compilation = context.Compilation;
-        //var attributeType = compilation.GetTypeByMetadataName("System.Web.Http.Headers.HeaderAttribute");
-
-        
-
-    public void Execute(GeneratorExecutionContext context)
-    {
-        context.Compilation.ExternalReferences[0].Display
+        var filePath = context.Compilation.ExternalReferences[0].Display;
 
         #region OngoingReferenceSearch
         var x1 = context.Compilation.GetMetadataReference(context.Compilation.Assembly);

@@ -4,6 +4,13 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 	<LangVersion>latest</LangVersion>
 	<IsRoslynComponent>true</IsRoslynComponent>
+	<Title>C# API Client Generator</Title>
+	<Authors>Niklas Strasser</Authors>
+	<Description>ASP .Net Core API  C# client Generator using Roslyn Source Code Analysis</Description>
+	<PackageProjectUrl>https://github.com/StrasserNiklas/GenC</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/StrasserNiklas/GenC</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageTags>api client generator; roslyn</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

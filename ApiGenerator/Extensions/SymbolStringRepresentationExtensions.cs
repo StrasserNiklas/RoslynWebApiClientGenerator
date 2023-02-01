@@ -10,6 +10,9 @@ public static class SymbolStringRepresentationExtensions
 {
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
+        //MetadataReference.
+        var assembly = symbol.ContainingAssembly;
+
         var stringClassRepresentations = new Dictionary<string, string>();
         string className = symbol.Name;
         string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
