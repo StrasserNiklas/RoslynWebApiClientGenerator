@@ -25,12 +25,12 @@ public class ApiClientGenerator : ISourceGenerator
     public void Initialize(GeneratorInitializationContext context)
     {
 #if DEBUG
-        if (!Debugger.IsAttached)
-        {
-            Debugger.Launch();
-        }
+        //if (!Debugger.IsAttached)
+        //{
+        //    Debugger.Launch();
+        //}
 #endif
-
+        
         
     }
 
@@ -60,6 +60,8 @@ public class ApiClientGenerator : ISourceGenerator
 
     public void Execute(GeneratorExecutionContext context)
     {
+        //context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("12345", "title", "messageformat", "category", DiagnosticSeverity.Error, true), Location.None, DiagnosticSeverity.Error));
+
         var filePath = context.Compilation.ExternalReferences[0].Display;
 
         #region OngoingReferenceSearch
