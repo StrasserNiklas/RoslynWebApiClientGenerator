@@ -41,57 +41,9 @@ public class ApiClientGenerator : ISourceGenerator
 
         
 
-        //var semanticModel1 = compilation.GetSemanticModel(attributeType.DeclaringSyntaxReferences.First().SyntaxTree);
-        //var attributeSymbol = semanticModel1.GetDeclaredSymbol(attributeType.node);
-        //var headerSymbols = attributeSymbol.ContainingAssembly.GetAttributes(attributeType);
-
-        //foreach (var headerSymbol in headerSymbols)
-        //{
-        //    var headerAttribute = headerSymbol.ApplicationSyntaxReference.GetSyntax();
-
-        //    if (!(headerAttribute is AttributeSyntax attributeNode))
-        //    {
-        //        continue;
-        //    }
-
-        //    var headerValue = headerSymbol.ConstructorArguments.First().Value.ToString();
-        //    var methodSymbol = headerSymbol.AttributeClass.ContainingType.GetMembers().FirstOrDefault(x => x.Name == headerAttribute.Name.ToString());
-
-        //    if (!(methodSymbol is IMethodSymbol method))
-        //    {
-        //        continue;
-        //    }
-
-            //var headerDictionary = SyntaxFactory.ParallelEnumerableDeclaration(
-            //    SyntaxFactory.IdentifierName("System.Collections.Generic"),
-            //    SyntaxFactory.IdentifierName("Dictionary"),
-            //    SyntaxFactory.TypeArgumentList(
-            //        SyntaxFactory.SeparatedList<TypeSyntax>(
-            //            new SyntaxNodeOrToken[]
-            //            {
-            //                    SyntaxFactory.PredefinedType(
-            //                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-            //                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-            //                    SyntaxFactory.PredefinedType(
-            //                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
-            //            })),
-            //    SyntaxFactory.Identifier("headers"),
-            //    SyntaxFactory.EqualsValueClause(
-            //        SyntaxFactory.ObjectCreationExpression(
-            //            SyntaxFactory.GenericName(
-            //                SyntaxFactory.Identifier("Dictionary"))
-            //            .WithTypeArgumentList(
-            //                SyntaxFactory.TypeArgumentList(
-            //                    SyntaxFactory.SeparatedList<TypeSyntax>(
-            //                        new SyntaxNodeOrToken[]
-            //                        {
-            //                                SyntaxFactory.PredefinedType(
-            //                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-            //                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-            //                                SyntaxFactory.Pred
-        //}
-        //
-
+    public void Execute(GeneratorExecutionContext context)
+    {
+        context.Compilation.ExternalReferences[0].Display
 
         #region OngoingReferenceSearch
         var x1 = context.Compilation.GetMetadataReference(context.Compilation.Assembly);
