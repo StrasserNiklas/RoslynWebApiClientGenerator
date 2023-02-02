@@ -1,10 +1,8 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.CodeAnalysis;
 using System;
-using System.Xml;
-using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
 namespace ApiGenerator.Packaging;
 
 public static class PackageUtilities
@@ -61,5 +59,57 @@ public static class PackageUtilities
         }
 
         return FindProjectFilePath(parentPath);
+    }
+
+    public static string GetProjectVersionInformation(string directoryPath)
+    {
+        var gitBranchName = string.Empty;
+
+        try
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo("git.exe");
+            startInfo.UseShellExecute = false;
+            startInfo.WorkingDirectory = directoryPath;
+            startInfo.RedirectStandardInput = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.Arguments = "rev-parse --abbrev-ref HEAD";
+
+            var branchNameProcess = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            branchNameProcess.Start();
+
+            string branchname = branchNameProcess.StandardOutput.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(branchname))
+            {
+                return gitBranchName;
+            }
+
+            gitBranchName = branchname;
+
+            startInfo.Arguments = "log -1 --format='%ct'";
+            var branchTimestampProcess = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            branchTimestampProcess.Start();
+
+            // simply using Trim only trims the beginning ' and also adds \n for whatever reason
+            string commitTimestampString = branchTimestampProcess.StandardOutput.ReadToEnd().Trim('\'').Trim().TrimEnd('\'');
+
+            if (!string.IsNullOrWhiteSpace(commitTimestampString))
+            {
+                gitBranchName = $"1.0.{commitTimestampString}-{gitBranchName}";
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return gitBranchName;
     }
 }

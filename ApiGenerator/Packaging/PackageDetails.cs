@@ -1,8 +1,8 @@
 ﻿namespace ApiGenerator.Packaging;
 
-public class PackageInformation
+public class PackageDetails
 {
-    public PackageInformation(string packageName, string versionInfo)
+    public PackageDetails(string packageName, string versionInfo)
     {
         PackageName = packageName;
         VersionInfo = versionInfo;
