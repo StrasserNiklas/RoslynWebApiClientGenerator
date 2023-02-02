@@ -5,11 +5,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 using ApiGenerator.Models;
+using System.Net.Http;
 
 namespace ApiGenerator;
 
 public class ControllerClientBuilder
 {
+    private IDictionary<string, HttpMethod> minimalApiMethods = new Dictionary<string, HttpMethod>()
+    {
+        { "MapGet", HttpMethod.Get} , { "MapPost" , HttpMethod.Post }, { "MapPut" , HttpMethod.Put }, { "MapDelete" , HttpMethod.Delete }
+    };//, "Map", "MapWhen" }; MapMethods
+
     public IEnumerable<ControllerClientDetails> GetControllerClientDetails(IEnumerable<ClassDeclarationSyntax> classNodes, SemanticModel semanticModel)
     {
         foreach (var classNode in classNodes)
@@ -190,5 +196,47 @@ public class ControllerClientBuilder
 
         // TODO think about if route name has any meaning 
         return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
+    }
+
+    public void AddMinimalApis(SyntaxTree tree, SemanticModel semanticModel, List<ControllerClientDetails> completeControllerDetailList)
+    {
+        var controllerClientDetails = new ControllerClientDetails("Simple", null, true);
+
+        var root = tree.GetRoot();
+        var methodInvocations = root
+            .DescendantNodes()
+            .OfType<InvocationExpressionSyntax>()
+            .Where(x => x.Expression is MemberAccessExpressionSyntax expression && this.minimalApiMethods.Keys.Contains(expression.Name.Identifier.Value));
+
+        foreach (var invocation in methodInvocations)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+
+            // TODO if you really want to, you can try to find the first parameter/s (id and a object) of the second delegate parameter
+            if (symbolInfo.Symbol is not null && symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                var parameters = methodSymbol.Parameters;
+
+                if (parameters.Count() != 2)
+                {
+                    continue;
+                }
+            }
+
+            if (invocation.ArgumentList.Arguments.First().Expression is LiteralExpressionSyntax literal)
+            {
+                var route = literal.Token.ValueText;
+                this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
+                var methodDetails = new ControllerMethodDetails(httpMethod, null, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
+                controllerClientDetails.HttpMethods.Add(methodDetails);
+            }
+        }
+
+        // TODO before minimal APIs can be handled in the generation, you have to enable the option to declare the intended request and response type
+        // probably a combination too or can we find this out from
+        //  Task<TOut> GET_weatherforecastAsync<TIn, TOut>(TIn inn, CancellationToken cancellationToken)
+
+        // TODO if it works, uncomment this line
+        //completeControllerDetailList.Add(controllerClientDetails);
     }
 }
