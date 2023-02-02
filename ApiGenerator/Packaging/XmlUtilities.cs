@@ -1,17 +1,45 @@
 ﻿using System.Xml;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace ApiGenerator.Packaging;
 
 public static class XmlUtilities
 {
+    /*
+    TODO Until this is fixed, we will use a string literal of it
+    Could not find a part of the path 'C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\Roslyn\Packaging\baseProjectFile.csproj'.'
+     */
     private static readonly string BaseProjectFilePath = "Packaging/baseProjectFile.csproj";
+    private static readonly string ProjectString = """
+        <Project Sdk="Microsoft.NET.Sdk">
+        	<PropertyGroup>
+        		<TargetFramework>netstandard2.0</TargetFramework>
+        		<ImplicitUsings>enable</ImplicitUsings>
+        		<Nullable>enable</Nullable>
+        		<LangVersion>latest</LangVersion>
+        		<IsPackable>true</IsPackable>
+        	</PropertyGroup>
+        </Project>
+        """;
 
-    public static string CreateProjectFile(List<PackageInformation> packageReferences, string filePath)
+    // TODO add version to project file <PackageVersion>1.0.6</PackageVersion>
+    public static string CreateProjectFile(List<PackageDetails> packageReferences, string fileDirectory, string fileName, string version = "1.0.0")
     {
         XmlDocument doc = new XmlDocument();
-        doc.Load(BaseProjectFilePath);
 
+        doc.Load(new MemoryStream(Encoding.UTF8.GetBytes(ProjectString)));
+        //doc.Load(BaseProjectFilePath);
+
+        // add package version
+        XmlNode propertyGroupNode = doc.CreateElement("PropertyGroup");
+        doc.DocumentElement.AppendChild(propertyGroupNode);
+        XmlNode packageVersionNode = doc.CreateElement("PackageVersion");
+        packageVersionNode.InnerText = version;
+        propertyGroupNode.AppendChild(packageVersionNode);
+
+        // add package references
         XmlNode itemGroupNode = doc.CreateElement("ItemGroup");
         doc.DocumentElement.AppendChild(itemGroupNode);
 
@@ -27,17 +55,20 @@ public static class XmlUtilities
             itemGroupNode.AppendChild(packageReferenceNode);
         }
 
+        var filePath = $"{fileDirectory}\\{fileName}";
         doc.Save(filePath);
         return filePath;
     }
 
-    public static List<PackageInformation> ParseClientProjectFilePackageReferences(string projectFilePath)
+    public static ProjectDetails ParseClientProjectFilePackageReferences(string projectFilePath)
     {
         XmlDocument doc = new XmlDocument();
         doc.Load(projectFilePath);
         XmlNodeList packageReferenceNodes = doc.GetElementsByTagName("PackageReference");
 
-        var packageList = new List<PackageInformation>();
+        var version = GetProjectVersionInformation(doc);
+
+        var packageList = new List<PackageDetails>();
 
         foreach (XmlNode packageReferenceNode in packageReferenceNodes)
         {
@@ -58,14 +89,44 @@ public static class XmlUtilities
             }
 
             var packageName = packageReferenceNode.Attributes?["Include"]?.Value;
-            var version = packageReferenceNode.Attributes?["Version"]?.Value;
+            var packageVersion = packageReferenceNode.Attributes?["Version"]?.Value;
 
-            if (!string.IsNullOrEmpty(packageName) && !string.IsNullOrEmpty(version))
+            if (!string.IsNullOrEmpty(packageName) && !string.IsNullOrEmpty(packageVersion))
             {
-                packageList.Add(new PackageInformation(packageName, version));
+                packageList.Add(new PackageDetails(packageName, packageVersion));
             }
         }
 
-        return packageList;
+        return new ProjectDetails(version, packageList);
+    }
+
+    private static string GetProjectVersionInformation(XmlDocument xmlDocument)
+    {
+        var version = string.Empty;
+
+        XmlNodeList versionNodes = xmlDocument.GetElementsByTagName("Version");
+
+        if (versionNodes.Count == 0)
+        {
+            XmlNodeList versionPrefixNodes = xmlDocument.GetElementsByTagName("VersionPrefix");
+
+            if (versionPrefixNodes.Count != 0)
+            {
+                version += versionPrefixNodes[0].InnerText;
+            }
+
+            XmlNodeList versionSuffixNodes = xmlDocument.GetElementsByTagName("VersionSuffix");
+
+            if (versionSuffixNodes.Count != 0 && !string.IsNullOrWhiteSpace(version))
+            {
+                version += "-" + versionPrefixNodes[0].InnerText;
+            }
+        }
+        else
+        {
+            version = versionNodes[0].InnerText;
+        }
+
+        return version;
     }
 }
