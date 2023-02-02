@@ -315,11 +315,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
     }
 
     private string AddPrepareRequestDelegate => """
-        public Action<HttpClient, HttpRequestMessage> PrepareRequest { get; set; } = (HttpClient client, HttpRequestMessage httpRequestMessage) =>{};
+        public Action<HttpClient, HttpRequestMessage> PrepareRequest { get; set; } = (HttpClient client, HttpRequestMessage httpRequestMessage) => {};
         """;
 
     private string AddProcessResponseDelegate => """
-        public Action<HttpClient, HttpRequestMessage> ProcessResponse { get; set; } = (HttpClient client, HttpRequestMessage httpResponseMessage) =>{};
+        public Action<HttpClient, HttpResponseMessage> ProcessResponse { get; set; } = (HttpClient client, HttpResponseMessage httpResponseMessage) => {};
         """;
 
     private string AddDeserializeMethod() => """
