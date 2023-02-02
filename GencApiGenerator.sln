@@ -13,9 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebApi", "SimpleWebAp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebApiWindowsAuth", "SimpleWebApiWindowsAuth\SimpleWebApiWindowsAuth.csproj", "{EBD41B15-EEA3-4F08-BC70-84DA03F51C62}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComplexWebApi", "ComplexWebApi\ComplexWebApi.csproj", "{381DE120-9858-407A-9DDE-6C3FDFD0A779}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinimalWebApi", "MinimalWebApi\MinimalWebApi.csproj", "{282AA12B-5269-4DA5-B3BC-948EB3443102}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalWebApi", "MinimalWebApi\MinimalWebApi.csproj", "{282AA12B-5269-4DA5-B3BC-948EB3443102}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,10 +41,6 @@ Global
 		{EBD41B15-EEA3-4F08-BC70-84DA03F51C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBD41B15-EEA3-4F08-BC70-84DA03F51C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBD41B15-EEA3-4F08-BC70-84DA03F51C62}.Release|Any CPU.Build.0 = Release|Any CPU
-		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{381DE120-9858-407A-9DDE-6C3FDFD0A779}.Release|Any CPU.Build.0 = Release|Any CPU
 		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{282AA12B-5269-4DA5-B3BC-948EB3443102}.Release|Any CPU.ActiveCfg = Release|Any CPU
