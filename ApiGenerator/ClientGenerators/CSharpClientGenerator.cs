@@ -78,7 +78,9 @@ public class CSharpClientGenerator : ClientGeneratorBase
             public{{partialString}} class {{controllerClientDetails.Name}} : I{{controllerClientDetails.Name}}
             {
                 {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
-
+                {{this.AddPrepareRequestDelegate}}
+                {{this.AddProcessResponseDelegate}}
+            
                 {{methodsBuilder}}
 
                 {{this.AddPostJsonHelperMethod()}}
@@ -154,6 +156,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
                 
                 {{methodCallString}}
+
+                this.ProcessResponse(this.httpClient, response);
 
                 {{this.AddHandleResponseMethod(methodDetails)}}
             }
@@ -309,6 +313,14 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         return stringBuilder.ToString();
     }
+
+    private string AddPrepareRequestDelegate => """
+        public Action<HttpClient, HttpRequestMessage> PrepareRequest { get; set; } = (HttpClient client, HttpRequestMessage httpRequestMessage) =>{};
+        """;
+
+    private string AddProcessResponseDelegate => """
+        public Action<HttpClient, HttpRequestMessage> ProcessResponse { get; set; } = (HttpClient client, HttpRequestMessage httpResponseMessage) =>{};
+        """;
 
     private string AddDeserializeMethod() => """
         protected virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
