@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
-namespace ApiGenerator;
+namespace ApiGenerator.Packaging;
 
 public static class PackageUtilities
 {
-    public static string  CreateClientProjectFile(string projectFilePath)
+    public static string CreateClientProjectFile(string projectFilePath)
     {
         XmlDocument doc = new XmlDocument();
         doc.Load(projectFilePath);
