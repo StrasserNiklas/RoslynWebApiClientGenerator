@@ -8,7 +8,7 @@
 ## Table of contents
 
 - [Api Client Generator](#Api-Client-Generator)
-  - [Table of contents](#table-of-contents)
+  - [Table of contents](#Table-of-contents)
   - [Description](#Description)
   - [Installation](#Installation)
     - [Requirements](#Requirements)
@@ -32,14 +32,22 @@
 
 **Example*
 
-```csharp
+`
 <PropertyGroup>
-		<ClientGenerator_UsePartialClasses>true</ClientGenerator_UsePartialClasses>
+	<ClientGenerator_UsePartialClasses>true</ClientGenerator_UsePartialClasses>
 </PropertyGroup>
-```
+`
 
 ### List of configuration values 
 Below you can find a list of the currently available configuration values. You can find more information about each configuration value in the [configuration document](docs/configuration.md).
+
+| Configuration Value|      Description
+|:----------|:-------------
+| `ApiClientGenerator_UsePartialClientClasses` |  Description 
+| `ApiClientGenerator_UseInterfacesForClients` |  Description 
+| `ApiClientGenerator_UseSeparateClientFiles` |  Description 
+| `ApiClientGenerator_CreateNugetPackageOnBuild` |  Description 
+| `ApiClientGenerator_UseGitVersionInformation` |  Description 
 
 ## Known problems
 
