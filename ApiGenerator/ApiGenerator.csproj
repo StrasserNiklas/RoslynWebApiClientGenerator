@@ -6,14 +6,14 @@
 		<Title>C# API Client Generator</Title>
 		<Authors>Niklas Strasser</Authors>
 		<Description>ASP .Net Core API  C# client Generator using Roslyn Source Code Analysis</Description>
-		<PackageProjectUrl>https://github.com/StrasserNiklas/GenC</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/StrasserNiklas/GenC</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/StrasserNiklas/RoslynWebApiClientGenerator</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/StrasserNiklas/RoslynWebApiClientGenerator</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>api client generator; roslyn</PackageTags>
 	  
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<IsPackable>true</IsPackable>
-		<PackageVersion>1.0.6</PackageVersion>
+		<PackageVersion>1.0.7</PackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

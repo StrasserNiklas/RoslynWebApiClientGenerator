@@ -1,27 +1,34 @@
 # GenC
 
-## Summary
+## Description
 
 > **Note**: note
 > Note note.
 
-
-**This document expands on the details in the [full design document](source-generators.md), please ensure you have read that first.**
-
 ## Table of content
 
-- [Source Generators Cookbook](#source-generators-cookbook)
+- [GenC](#GenC)
   - [Table of content](#table-of-content)
-  - [Summary](#summary)
-  - [Proposal](#proposal)
-    - [Language features](#language-features)
-  - [Conventions](#conventions)
-  - [Designs](#designs)
-    - [Generated class](#generated-class)
-        - [Generated](#generated)
+  - [Description](#Description)
+  - [Installation](#Installation)
+    - [Requirements](#Requirements)
+    - [NuGet Package](#NuGet-Package)
+    - [Cloning the repo](#Cloning-the-repo)
+  - [Configuration](#Configuration)
+  - [Known problems](#Known-problems)
+  - [Contributions](#Contributions)
 
-## Proposal
 
-### Language features
+## Installation
 
-#### Generated
+### Requirements
+
+### NuGet Package
+
+### Cloning the repo
+
+## Configuration
+
+## Known problems
+
+## Contributions
