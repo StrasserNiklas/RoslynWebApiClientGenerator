@@ -3,5 +3,7 @@
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UsePartialClientClasses" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UseInterfacesForClients" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_SeparateClientFiles" />
+	   <CompilerVisibleProperty Include="ApiClientGenerator_CreateNugetPackageOnBuild" />
+	   <CompilerVisibleProperty Include="ApiClientGenerator_UseGitVersionInformation" />
 	</ItemGroup>
 </Project>
