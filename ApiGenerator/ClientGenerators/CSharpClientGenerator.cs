@@ -24,7 +24,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         // beginning of file
         // name of the .cs file is the first controller (if single file) and before that the project name
-        var fileName = $"{this.ProjectName}.{controllerClientDetails.First().Name}.cs";
+        var fileName = $"{this.ProjectName}.{controllerClientDetails.FirstOrDefault()?.Name}.cs";
 
         var clientCodeStringBuilder = new StringBuilder();
 
