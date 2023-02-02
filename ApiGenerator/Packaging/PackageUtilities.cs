@@ -46,15 +46,13 @@ public static class PackageUtilities
 
     private static string FindProjectFilePath(string filePath)
     {
-        string[] files = Directory.GetFiles(filePath);
+        string[] files = Directory.GetFiles(Path.GetDirectoryName(filePath), "*.csproj");
 
-        foreach (string file in files)
+        if (files.Count() != 0)
         {
-            if (Path.GetExtension(file) == ".csproj")
-            {
-                return file;
-            }
+            return files.First();
         }
+
         string parentPath = Directory.GetParent(filePath)?.FullName;
 
         if (parentPath == null)
