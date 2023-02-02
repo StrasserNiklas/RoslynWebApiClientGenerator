@@ -4,25 +4,33 @@ using ApiGenerator.Models;
 using ApiGenerator.Packaging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
 namespace ApiGenerator;
 
-[Generator]
-public class ApiClientGenerator : ISourceGenerator
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class ApiClientGenerator : DiagnosticAnalyzer
 {
     private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
 
-    public void Execute(GeneratorExecutionContext context)
+    private static readonly DiagnosticDescriptor FailureDescriptor = new DiagnosticDescriptor("META001", "CMS Meta Failure", "{0}",
+            "Failure",
+            DiagnosticSeverity.Warning, isEnabledByDefault: true, description: "The CMS Meta Generation failed.");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(FailureDescriptor);
+
+    public void Execute(CompilationAnalysisContext context)
     {
         //context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("12345", "title", "messageformat", "category", DiagnosticSeverity.Error, true), Location.None, DiagnosticSeverity.Error));
         var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
         var projectName = context.Compilation.AssemblyName;
-        var configuration = Configuration.ParseConfiguration(context.AnalyzerConfigOptions.GlobalOptions);
+        var configuration = Configuration.ParseConfiguration(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
         this.clientGenerators.Add(new CSharpClientGenerator(configuration, projectName));
@@ -95,13 +103,17 @@ public class ApiClientGenerator : ISourceGenerator
         }
     }
 
-    public void Initialize(GeneratorInitializationContext context)
+
+    public override void Initialize(AnalysisContext context)
     {
-#if DEBUG
+        // enable this to allow for local debugging
         if (!Debugger.IsAttached)
         {
             Debugger.Launch();
         }
-#endif
+
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+        context.RegisterCompilationAction(Execute);
     }
 }
