@@ -12,7 +12,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 {
     public CSharpClientGenerator(Configuration configuration, string projectName) : base(configuration, projectName) { }
 
-    public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails)
+    public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
         // TODO for now place all clients into single file
         // if all clients are in one file, merge its generated (possible duplicates) classes 
@@ -59,7 +59,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         // TODO decide where to write to (out folder or via config?)
         // write to file
-        File.WriteAllText("C:\\Workspace\\TestingApp\\TestingApp\\Test\\GeneratedClient.cs", finalClientCodeString);
+        File.WriteAllText($"{directoryPath}\\{fileName}", finalClientCodeString);
     }
 
     private string AddClientImplementation(ControllerClientDetails controllerClientDetails)
@@ -152,6 +152,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{routeQueryParamSb}}
 
                 var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
+                
                 {{methodCallString}}
 
                 {{this.AddHandleResponseMethod(methodDetails)}}
@@ -293,7 +294,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
             using System.Threading.Tasks;
             using System.Net;
             using System.Net.Http;
-            using System.Net.Http.Json;
             using System.Net.Http.Headers;
             using System.Text;
             using System.Text.Json;
@@ -309,11 +309,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         return stringBuilder.ToString();
     }
-
-    public string AddPartialMethods() => """
-        partial void PrepareRequest(HttpClient client, HttpRequestMessage request);
-        partial void ProcessResponse(HttpClient client, HttpResponseMessage response);
-        """;
 
     private string AddDeserializeMethod() => """
         protected virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
@@ -411,6 +406,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
                 using var request = new HttpRequestMessage();
+                this.PrepareRequest(this.httpClient, request);
                 request.RequestUri = endpoint;
                 request.Method = httpMethod;
 

@@ -14,10 +14,10 @@ public abstract class ClientGeneratorBase
     public Configuration Configuration { get; }
     public string ProjectName { get; }
 
-    public abstract void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails);
+    public abstract void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath);
 
-    public virtual void GenerateClient(ControllerClientDetails controllerClientDetails)
+    public virtual void GenerateClient(ControllerClientDetails controllerClientDetails, string directoryPath)
     {
-        this.GenerateClient(new List<ControllerClientDetails> { controllerClientDetails });
+        this.GenerateClient(new List<ControllerClientDetails> { controllerClientDetails }, directoryPath);
     }
 }
