@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace ApiGenerator.Packaging;
 
-public static class ProjectXmlParser
+public static class XmlUtilities
 {
     private static readonly string BaseProjectFilePath = "Packaging/baseProjectFile.csproj";
 
-    public static void CreateProjectFile(List<PackageInformation> packageReferences, string filePath)
+    public static string CreateProjectFile(List<PackageInformation> packageReferences, string filePath)
     {
         XmlDocument doc = new XmlDocument();
         doc.Load(BaseProjectFilePath);
@@ -28,6 +28,7 @@ public static class ProjectXmlParser
         }
 
         doc.Save(filePath);
+        return filePath;
     }
 
     public static List<PackageInformation> ParseClientProjectFilePackageReferences(string projectFilePath)
