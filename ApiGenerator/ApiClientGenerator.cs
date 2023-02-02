@@ -10,6 +10,7 @@ using System.Net.Http;
 using ApiGenerator.Models;
 using System.IO;
 using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ApiGenerator;
 
@@ -25,13 +26,13 @@ public class ApiClientGenerator : ISourceGenerator
     public void Initialize(GeneratorInitializationContext context)
     {
 #if DEBUG
-        //if (!Debugger.IsAttached)
-        //{
-        //    Debugger.Launch();
-        //}
+        if (!Debugger.IsAttached)
+        {
+            Debugger.Launch();
+        }
 #endif
-        
-        
+
+
     }
 
     public void TestDotNetPack()
@@ -74,9 +75,9 @@ public class ApiClientGenerator : ISourceGenerator
         #endregion
         var projectName = context.Compilation.AssemblyName;// this.GetProjectName(context.Compilation);
 
-        // TODO config in appsettings?
-        // or not use this and place in editor config -> context.AnalyzerConfigOptions.GetOptions
-        var configuration = new Configuration();
+        var proj = this.GetProjectName(context.Compilation);
+
+        var configuration = Configuration.ParseConfiguration(context.AnalyzerConfigOptions.GlobalOptions);
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
         this.clientGenerators.Add(new CSharpClientGenerator(configuration, projectName));
@@ -84,7 +85,6 @@ public class ApiClientGenerator : ISourceGenerator
         var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
 
-        // TODO what about partial controller classes, must work!
         foreach (var tree in context.Compilation.SyntaxTrees)
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
@@ -92,6 +92,7 @@ public class ApiClientGenerator : ISourceGenerator
             semanticModel.Compilation.ExternalReferences.SingleOrDefault(x => x.Display == "");
 
             // check for minimal APIs
+            // TODO remove this and make it everywhere
             if (tree.FilePath.Contains("Program.cs") || tree.FilePath.Contains("Startup.cs"))
             {
                 var controllerClientDetails = new ControllerClientDetails("Simple", null, true);
@@ -197,6 +198,7 @@ public class ApiClientGenerator : ISourceGenerator
         }
     }
 
+    // TODO use this to get the project file and thus the project references... use an xml parser maybe so it is prettier
     private string GetProjectName(Compilation compilation)
     {
         if (compilation.SyntaxTrees.Count() != 0)
