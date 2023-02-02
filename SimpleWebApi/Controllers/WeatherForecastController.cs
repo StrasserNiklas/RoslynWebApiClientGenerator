@@ -16,6 +16,12 @@ namespace SimpleWebApi.Controllers
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
+
+
+
+
+
+            var v = "";
         }
 
         [HttpGet(Name = "GetWeatherForecast")]

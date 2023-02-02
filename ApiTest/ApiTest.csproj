@@ -7,6 +7,14 @@
 	<LangVersion>preview</LangVersion>
   </PropertyGroup>
 
+	<ItemGroup>
+		<CompilerVisibleProperty Include="ClientGenerator_UsePartialClasses" />
+	</ItemGroup>
+		
+	<PropertyGroup>
+		<ClientGenerator_UsePartialClasses>true</ClientGenerator_UsePartialClasses>
+	</PropertyGroup>
+		
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
