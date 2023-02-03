@@ -57,7 +57,16 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
             // usually there should only one single controller be present in a file (possible diagnostic warning)
             var controllerClients = controllerClientBuilder.GetControllerClientDetails(classNodes, semanticModel);
-            completeControllerDetailList.AddRange(controllerClients);
+
+            foreach (var controllerClient in controllerClients)
+            {
+                // TODO quick fix for partial controllers
+                if (completeControllerDetailList.SingleOrDefault(x => x.Name == controllerClient.Name) is null)
+                {
+                    completeControllerDetailList.Add(controllerClient);
+                }
+            }
+
         }
 
         // TODO error when there are no clients (possible diagnostic warning)
