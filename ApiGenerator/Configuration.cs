@@ -8,17 +8,17 @@ public class Configuration
 {
     private static readonly Dictionary<string, bool> buildPropertiesWithBooleanDefaultValue = new Dictionary<string, bool>()
     {
+        { "build_property.ApiClientGenerator_GenerateClientOnBuild", true },
         { "build_property.ApiClientGenerator_UsePartialClientClasses", true },
         { "build_property.ApiClientGenerator_UseInterfacesForClients", true },
-        { "build_property.ApiClientGenerator_SeparateClientFiles", false },
-        { "build_property.ApiClientGenerator_CreateNugetPackageOnBuild", true },
+        { "build_property.ApiClientGenerator_UseSeparateClientFiles", false },
+        { "build_property.ApiClientGenerator_CreateNugetPackageOnBuild", false },
         { "build_property.ApiClientGenerator_UseGitVersionInformation", true },
     };
 
-    public bool SeparateClientFiles { get; set; } = false;
-
+    public bool GenerateClientOnBuild { get; set; } = true;
+    public bool UseSeparateClientFiles { get; set; } = false;
     public bool UseInterfacesForClients { get; set; } = true;
-
     public bool UsePartialClientClasses { get; set; } = true;
     public bool CreateNugetPackageOnBuild { get; set; } = true;
     public bool UseGitVersionInformation { get; set; } = true;
@@ -35,7 +35,8 @@ public class Configuration
 
         return new Configuration()
         {
-            SeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_SeparateClientFiles"],
+            GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateClientOnBuild"],
+            UseSeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseSeparateClientFiles"],
             UseInterfacesForClients = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseInterfacesForClients"],
             UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UsePartialClientClasses"],
             UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseGitVersionInformation"],

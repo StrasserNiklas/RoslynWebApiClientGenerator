@@ -26,6 +26,13 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
     public void Execute(CompilationAnalysisContext context)
     {
+        var configuration = Configuration.ParseConfiguration(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
+
+        if (!configuration.GenerateClientOnBuild)
+        {
+            return;
+        }
+
         //context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("12345", "title", "messageformat", "category", DiagnosticSeverity.Error, true), Location.None, DiagnosticSeverity.Error));
         var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
@@ -76,7 +83,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         foreach (var clientGenerator in this.clientGenerators)
         {
-            if (configuration.SeparateClientFiles)
+            if (configuration.UseSeparateClientFiles)
             {
                 foreach (var controllerDetail in completeControllerDetailList)
                 {

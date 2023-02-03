@@ -3,7 +3,6 @@
 ## Description
 
 > **Note**: note
-> Note note.
 
 ## Table of contents
 
@@ -39,7 +38,7 @@ There are several ways to configure the generation of API clients. This is done 
 
 ```csharp
 <PropertyGroup>
-	<ClientGenerator_UsePartialClasses>true</ClientGenerator_UsePartialClasses>
+	<CApiClientGenerator_GenerateClientOnBuild>false</ApiClientGenerator_GenerateClientOnBuild>
 </PropertyGroup>
 ```
 
@@ -48,6 +47,7 @@ Below you can find a list of the currently available configuration values. You c
 
 | Configuration Value | Default Value |      Description
 |:----------|:-------------|:-
+| `ApiClientGenerator_GenerateClientOnBuild` | true | Description 
 | `ApiClientGenerator_UsePartialClientClasses` | true | Description 
 | `ApiClientGenerator_UseInterfacesForClients` | true | Description 
 | `ApiClientGenerator_UseSeparateClientFiles` | false | Description 

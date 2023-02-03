@@ -1,5 +1,6 @@
 <Project>
    <ItemGroup>
+	   <CompilerVisibleProperty Include="ApiClientGenerator_GenerateClientOnBuild" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UsePartialClientClasses" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UseInterfacesForClients" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UseSeparateClientFiles" />

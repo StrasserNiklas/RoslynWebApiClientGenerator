@@ -69,9 +69,10 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
 
         var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+        var interfaceString = this.Configuration.UseInterfacesForClients ? $": I{controllerClientDetails.Name}" : string.Empty;
 
         return $$"""
-            public{{partialString}} class {{controllerClientDetails.Name}} : I{{controllerClientDetails.Name}}
+            public{{partialString}} class {{controllerClientDetails.Name}} {{interfaceString}}
             {
                 {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
                 {{this.AddPrepareRequestDelegate}}
