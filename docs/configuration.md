@@ -11,13 +11,13 @@
 
 ## Overview
 
-| Configuration Value|      Description |  Quicklink
-|:----------|:-------------|:--|
-| `ApiClientGenerator_UsePartialClientClasses` |  Description | [More](#Config1)
-| `ApiClientGenerator_UseInterfacesForClients` |  Description |
-| `ApiClientGenerator_UseSeparateClientFiles` |  Description |
-| `ApiClientGenerator_CreateNugetPackageOnBuild` |  Description |
-| `ApiClientGenerator_UseGitVersionInformation` |  Description |
+| Configuration Value | Default Value |      Description |  Quicklink
+|:----------|:-------------|:- :--|
+| `ApiClientGenerator_UsePartialClientClasses` | true | Description | [More](#Config1)
+| `ApiClientGenerator_UseInterfacesForClients` | true | Description |
+| `ApiClientGenerator_UseSeparateClientFiles` | false | Description  |
+| `ApiClientGenerator_CreateNugetPackageOnBuild` | false | Description  |
+| `ApiClientGenerator_UseGitVersionInformation` |true | Description |
 
 ### Config1
 ### Config2

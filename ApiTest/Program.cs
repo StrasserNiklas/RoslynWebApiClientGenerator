@@ -53,7 +53,7 @@ app.UseSwaggerUI(x =>
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 
