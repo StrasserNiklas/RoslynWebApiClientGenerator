@@ -6,7 +6,7 @@ namespace SimpleWebApi.Controllers
     {
         [HttpGet]
         [Route("getting")]
-        public async Task<IActionResult> Getting()
+        public async Task<IActionResult> Getting(Response response)
         {
             return Ok("hallo");
         }

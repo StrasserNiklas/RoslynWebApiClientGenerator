@@ -24,7 +24,6 @@ public static class XmlUtilities
         </Project>
         """;
 
-    // TODO add version to project file <PackageVersion>1.0.6</PackageVersion>
     public static string CreateProjectFile(List<PackageDetails> packageReferences, string fileDirectory, string fileName, string version = "1.0.0")
     {
         XmlDocument doc = new XmlDocument();

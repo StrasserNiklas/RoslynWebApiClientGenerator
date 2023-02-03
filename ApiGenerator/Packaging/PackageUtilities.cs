@@ -7,7 +7,6 @@ namespace ApiGenerator.Packaging;
 
 public static class PackageUtilities
 {
-    // TODO put in readme that the dotnet exe has to be in environment variables
     public static void CreateNugetPackage(string projectFilePath)
     {
         var process = new Process

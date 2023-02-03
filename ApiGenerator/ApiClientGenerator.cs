@@ -77,8 +77,8 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         // TODO error when there are no clients (possible diagnostic warning)
 
-        
-        var fileDirectory = "C:\\Masterarbeit\\testProjFolder\\NugetTest";
+        var fileDirectory = "C:\\Workspace\\TestingApp\\TestingApp\\Test\\";
+        //var fileDirectory = "C:\\Masterarbeit\\testProjFolder\\NugetTest";
 
         foreach (var clientGenerator in this.clientGenerators)
         {
