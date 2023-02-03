@@ -12,8 +12,8 @@
 ## Overview
 
 | Configuration Value | Default Value |      Description |  Quicklink
-|:----------|:-------------|:- :--|
-| `ApiClientGenerator_UsePartialClientClasses` | true | Description | [More](#Config1)
+|:----------|:-------------|:- |:--|
+| `ApiClientGenerator_UsePartialClientClasses` | true | Description | [More](###Config1)
 | `ApiClientGenerator_UseInterfacesForClients` | true | Description |
 | `ApiClientGenerator_UseSeparateClientFiles` | false | Description  |
 | `ApiClientGenerator_CreateNugetPackageOnBuild` | false | Description  |
