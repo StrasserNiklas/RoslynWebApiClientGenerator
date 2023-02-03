@@ -5,18 +5,15 @@
 > **Note**: note
 
 ## Table of contents
-
-- [Api Client Generator](#Api-Client-Generator)
-  - [Table of contents](#Table-of-contents)
-  - [Description](#Description)
-  - [Installation](#Installation)
-    - [Prerequisites](#Prerequisites)
-    - [NuGet Package](#NuGet-Package)
-    - [Cloning the repo](#Cloning-the-repo)
-  - [Configuration](#Configuration)
-    - [List of configuration values](#List-of-configuration-values)
-  - [Known problems](#Known-problems)
-  - [Contributions](#Contributions)
+- [Description](#Description)
+- [Installation](#Installation)
+  - [Prerequisites](#Prerequisites)
+  - [NuGet Package](#NuGet-Package)
+  - [Cloning the repo](#Cloning-the-repo)
+- [Configuration](#Configuration)
+  - [List of configuration values](#List-of-configuration-values)
+- [Known problems](#Known-problems)
+- [Contributions](#Contributions)
 
 
 ## Installation
@@ -38,7 +35,7 @@ There are several ways to configure the generation of API clients. This is done 
 
 ```csharp
 <PropertyGroup>
-	<CApiClientGenerator_GenerateClientOnBuild>false</ApiClientGenerator_GenerateClientOnBuild>
+	<ApiClientGenerator_GenerateClientOnBuild>false</ApiClientGenerator_GenerateClientOnBuild>
 </PropertyGroup>
 ```
 
@@ -57,3 +54,4 @@ Below you can find a list of the currently available configuration values. You c
 ## Known problems
 
 ## Contributions
+Any contributions are welcome. If you want to contribute to the project, please open an issue or pull request. The discussion tab can also be used for anything related to the project.

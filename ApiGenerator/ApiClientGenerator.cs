@@ -37,7 +37,6 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
         var projectName = context.Compilation.AssemblyName;
-        var configuration = Configuration.ParseConfiguration(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
         this.clientGenerators.Add(new CSharpClientGenerator(configuration, projectName));

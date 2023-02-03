@@ -5,6 +5,7 @@ This document will give additional insight and information about each configurat
 
 - [Overview](#Overview)
 - [Configuration values](#Configuration-values)
+  - [GenerateClientOnBuild](#GenerateClientOnBuild)
   - [UsePartialClientClasses](#UsePartialClientClasses)
   - [UseInterfacesForClients](#UseInterfacesForClients)
   - [UseSeparateClientFiles](#UseSeparateClientFiles)
@@ -15,12 +16,12 @@ This document will give additional insight and information about each configurat
 
 | Configuration Value | Default Value |      Description |  Quicklink
 |:----------|:-------------|:- |:--|
-| `ApiClientGenerator_GenerateClientOnBuild` | true | Description | [More](###GenerateClientOnBuild)
-| `ApiClientGenerator_UsePartialClientClasses` | true | Description | [More](###UsePartialClientClasses)
-| `ApiClientGenerator_UseInterfacesForClients` | true | Description |[More](###UseInterfacesForClients)
-| `ApiClientGenerator_UseSeparateClientFiles` | false | Description  |[More](###UseSeparateClientFiles)
-| `ApiClientGenerator_CreateNugetPackageOnBuild` | false | Description  |[More](###CreateNugetPackageOnBuild)
-| `ApiClientGenerator_UseGitVersionInformation` |true | Description |[More](###UseGitVersionInformation)
+| `ApiClientGenerator_GenerateClientOnBuild` | true | Description | [More](#GenerateClientOnBuild)
+| `ApiClientGenerator_UsePartialClientClasses` | true | Description | [More](#UsePartialClientClasses)
+| `ApiClientGenerator_UseInterfacesForClients` | true | Description |[More](#UseInterfacesForClients)
+| `ApiClientGenerator_UseSeparateClientFiles` | false | Description  |[More](#UseSeparateClientFiles)
+| `ApiClientGenerator_CreateNugetPackageOnBuild` | false | Description  |[More](#CreateNugetPackageOnBuild)
+| `ApiClientGenerator_UseGitVersionInformation` |true | Description |[More](#UseGitVersionInformation)
 
 ## Configuration values
 
