@@ -10,6 +10,10 @@ public static class SymbolStringRepresentationExtensions
 {
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
+        var string1 = symbol.ToDisplayString();
+        var string2 = symbol.ToString();
+        
+
         //MetadataReference.
         var assembly = symbol.ContainingAssembly;
 
@@ -60,6 +64,8 @@ public static class SymbolStringRepresentationExtensions
         // TODO what about classes that inherit from it shrug
         if (symbol.ContainingNamespace.ToString().Contains("System.Collections") && symbol is INamedTypeSymbol namedTypeSymbol)
         {
+            var test = namedTypeSymbol.SanitizeClassTypeString();
+
             foreach (var argument in namedTypeSymbol.TypeArguments)
             {
                 CheckAndGenerateClassString(argument, stringClassRepresentations);
@@ -105,7 +111,7 @@ public static class SymbolStringRepresentationExtensions
                     }
                 }
 
-                var outputString = property.Type.ToString().SanitizeClassTypeString();
+                var outputString = property.Type.SanitizeClassTypeString();
 
                 // TODO check if set is available? <- what does he mean?
                 classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
@@ -113,7 +119,6 @@ public static class SymbolStringRepresentationExtensions
             }
             else if (member is IMethodSymbol methodSymbol)
             {
-                // TODO arrays...
                 if (methodSymbol.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
                 {
                     CheckAndGenerateClassString(arrayTypeSymbol.ElementType, stringClassRepresentations);
@@ -129,11 +134,7 @@ public static class SymbolStringRepresentationExtensions
                     }
                 }
             }
-
-            //((Microsoft.CodeAnalysis.IArrayTypeSymbol)((Microsoft.CodeAnalysis.IMethodSymbol)member).ReturnType).ElementType
         }
-
-        
 
         var classCode = $$"""
             {{accessibility}} {{classModifiers}} {{classType}} {{className}}
@@ -142,7 +143,6 @@ public static class SymbolStringRepresentationExtensions
             }
             """;
 
-        // TODO instead of class name, might use full name with namespace? in the future for assemblies
         stringClassRepresentations.Add(className, classCode);
         return stringClassRepresentations;
     }

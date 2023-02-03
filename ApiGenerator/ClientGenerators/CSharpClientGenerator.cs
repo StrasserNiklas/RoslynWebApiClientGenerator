@@ -133,8 +133,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
         // (for now) only use a request class for an actual body
         var methodCallString = (nonPrimitive.Key == null ? false : nonPrimitive.Value.HasBody) switch
         {
-            true => $"var response = await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken, prepareSingleRequest);",
-            false => $"var response = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken, prepareSingleRequest);"
+            true => $"var httpClientResponse = await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken, prepareSingleRequest);",
+            false => $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken, prepareSingleRequest);"
         };
 
         return $$"""
@@ -151,7 +151,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 
                 {{methodCallString}}
 
-                this.ProcessResponse(this.httpClient, response);
+                this.ProcessResponse(this.httpClient, httpClientResponse);
 
                 {{this.AddHandleResponseMethod(methodDetails)}}
             }
@@ -164,7 +164,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         foreach (var pair in controllerMethodDetails.ReturnTypes)
         {
-            var cleanClassValue = pair.Value.ToString().SanitizeClassTypeString();
+            var cleanClassValue = pair.Value.SanitizeClassTypeString();
             var resultString = $$"""
                 return new ApiResponse<{{controllerMethodDetails.ReturnTypeString}}>(default, statusCode) { ErrorResponse = new ApiErrorResponse<{{cleanClassValue}}>(result{{pair.Key}}.SuccessResponse, statusCode) };
                 """; 
@@ -176,7 +176,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
             switchSb.AppendLine($$"""
                 case {{pair.Key}}:
-                    var result{{pair.Key}} = await this.DeserializeResponse<{{cleanClassValue}}>(response, false, cancellationToken);
+                    var result{{pair.Key}} = await this.DeserializeResponse<{{cleanClassValue}}>(httpClientResponse, false, cancellationToken);
                     
                     if (result{{pair.Key}}.IsError)
                     {
@@ -187,15 +187,17 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 """);
         }
 
+        var defaultReturnString = controllerMethodDetails.ReturnType is not null ? $"<{controllerMethodDetails.ReturnTypeString}>(default, " : "(";
+
         return $$"""
-            var statusCode = (int)response.StatusCode;
+            var statusCode = (int)httpClientResponse.StatusCode;
 
             switch (statusCode)
             {
                 {{switchSb}}
 
                 default:
-                    return new ApiResponse(statusCode, response.ReasonPhrase ?? string.Empty);
+                    return new ApiResponse{{defaultReturnString}}statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
             }
             """;
     }

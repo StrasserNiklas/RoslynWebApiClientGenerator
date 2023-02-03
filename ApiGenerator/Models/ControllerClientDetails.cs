@@ -73,7 +73,7 @@ public class ControllerMethodDetails
         // TODO check if we can just hand it over in the ctor
         if (this.ReturnType != null)
         {
-            this.ReturnTypeString = (this.ReturnType as INamedTypeSymbol).ToString().SanitizeClassTypeString();
+            this.ReturnTypeString = this.ReturnType.SanitizeClassTypeString();
         }
     }
 
@@ -108,7 +108,7 @@ public class ParameterDetails
         this.IsPrimitive = isPrimitive;
         this.IsQueryParameter = isQueryParameter;
         this.HasBody = hasBody;
-        this.ParameterTypeString = parameterSymbol.Type.ToString().SanitizeClassTypeString();
+        this.ParameterTypeString = parameterSymbol.Type.SanitizeClassTypeString();
 
         if (isQueryParameter)
         {

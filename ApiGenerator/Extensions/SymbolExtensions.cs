@@ -115,4 +115,45 @@ public static class SymbolExtensions
 
         return false;
     }
+
+    public static string SanitizeClassTypeString(this ISymbol symbol)
+    {
+        // IEnumerable<Something>, IDictionary<Something, Something>, IList<IDictionary<Something, Something>>
+        var typeString = symbol.Name;
+
+        if (symbol is ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol.IsPrimitive())
+            {
+                typeString = typeSymbol.ToString();
+            }
+        }
+
+        if (symbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (namedTypeSymbol.TypeArguments.Count() != 0)
+            {
+                typeString += "<";
+
+                for (int i = 0; i < namedTypeSymbol.TypeArguments.Count(); i++)
+                {
+                    typeString += namedTypeSymbol.TypeArguments[i].SanitizeClassTypeString();
+
+                    if (i != namedTypeSymbol.TypeArguments.Count() - 1)
+                    {
+                        typeString += ", ";
+                    }
+                }
+
+                typeString += ">";
+            }
+        }
+
+        if (symbol is IArrayTypeSymbol arrayTypeSymbol)
+        {
+            typeString += arrayTypeSymbol.ElementType.SanitizeClassTypeString() + "[]";
+        }
+
+        return typeString;
+    }
 }
