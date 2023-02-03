@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace SimpleWebApi
 {
     public class WeatherForecast
@@ -20,6 +22,10 @@ namespace SimpleWebApi
 
     public class Tool
     {
+        [FromHeader]
+        public string MineString { get; set; }
 
+        [FromHeader]
+        public int Second { get; set; }
     }
 }

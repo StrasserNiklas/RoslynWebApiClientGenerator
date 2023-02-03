@@ -1,21 +1,22 @@
 ﻿using ApiGenerator.Extensions;
 using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 using System.Text;
 
 namespace ApiGenerator.Models;
 
 public class ParameterDetails
 {
-    public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, bool isQueryParameter, bool hasBody)
+    public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, ParameterAttributeDetails parameterAttributeDetails, List<string> headerKeys)
     {
         this.HasExplizitDefaultValue = parameterSymbol.HasExplicitDefaultValue;
         this.ParameterSymbol = parameterSymbol;
         this.IsPrimitive = isPrimitive;
-        this.IsQueryParameter = isQueryParameter;
-        this.HasBody = hasBody;
+        this.AttributeDetails = parameterAttributeDetails;
+        this.HeaderKeys = headerKeys;
         this.ParameterTypeString = parameterSymbol.Type.SanitizeClassTypeString();
 
-        if (isQueryParameter)
+        if (parameterAttributeDetails.HasQueryAttribute)
         {
             if (isPrimitive)
             {
@@ -23,7 +24,6 @@ public class ParameterDetails
                     "?{{parameterSymbol.Name}}={Uri.EscapeDataString({{parameterSymbol.Name}}.ToString())}"
                     """;
             }
-
             // extract members
             else
             {
@@ -54,6 +54,6 @@ public class ParameterDetails
     public bool HasExplizitDefaultValue { get; }
     public IParameterSymbol ParameterSymbol { get; }
     public bool IsPrimitive { get; }
-    public bool IsQueryParameter { get; }
-    public bool HasBody { get; }
+    public ParameterAttributeDetails AttributeDetails { get; }
+    public List<string> HeaderKeys { get; }
 }

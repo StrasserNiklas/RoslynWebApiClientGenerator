@@ -75,18 +75,17 @@ public class CSharpClientGenerator : ClientGeneratorBase
             public{{partialString}} class {{controllerClientDetails.Name}} {{interfaceString}}
             {
                 {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
-                {{this.AddPrepareRequestDelegate}}
-                {{this.AddProcessResponseDelegate}}
-            
                 {{methodsBuilder}}
-
                 {{this.AddPostJsonHelperMethod()}}
                 {{this.AddDeserializeMethod()}}
-
+                {{this.AddPrepareRequestDelegate()}}
+                {{this.AddProcessResponseDelegate()}}
             }
             """;
     }
 
+
+    // TODO clean this method up as much as possible
     private string GenerateSingleMethod(ControllerMethodDetails methodDetails)
     {
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
@@ -123,18 +122,42 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
         }
 
-        if (methodDetails.Parameters.SingleOrDefault(x => x.Value.IsQueryParameter) is var keyValuePair && keyValuePair.Value is not null)
+        if (methodDetails.Parameters.SingleOrDefault(x => x.Value.AttributeDetails.HasQueryAttribute) is var keyValuePair && keyValuePair.Value is not null)
         {
             routeQueryParamSb.AppendLine($"""
                 routeBuilder.Append($"{keyValuePair.Value.QueryString}");
                 """);
         }
 
-        // (for now) only use a request class for an actual body
-        var methodCallString = (nonPrimitive.Key == null ? false : nonPrimitive.Value.HasBody) switch
+        var headerKeyValuesSb = new StringBuilder();
+
+        if (nonPrimitive.Value is not null && nonPrimitive.Value.AttributeDetails.HasHeaderAttribute)
         {
-            true => $"var httpClientResponse = await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken, prepareSingleRequest);",
-            false => $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), cancellationToken, prepareSingleRequest);"
+            foreach (var headerKey in nonPrimitive.Value.HeaderKeys)
+            {
+                headerKeyValuesSb.AppendLine($$"""
+                    { "{{headerKey}}", {{nonPrimitive.Value.ParameterSymbol.Name}}.{{headerKey}}.ToString()},
+                    """);
+            }
+        }
+
+        // TODO find a way to only add this when there ARE headers
+        var headerString = $$"""
+            var headers = new Dictionary<string, string>()
+            {
+                {{headerKeyValuesSb}}
+            };
+            """;
+
+        // TODO also this needs to work for primitives and not just types!!!!!!!!
+        // by that i mean the TRequest and if it is a primitive there is always null added still
+        // TODO DO THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        // (for now) only use a request class for an actual body
+        var methodCallString = (nonPrimitive.Key == null ? false : nonPrimitive.Value.AttributeDetails.HasBodyAttribute) switch
+        {
+            true => $"var httpClientResponse = await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);",
+            false => $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);"
         };
 
         return $$"""
@@ -149,6 +172,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
                 var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
                 
+                {{headerString}}
                 {{methodCallString}}
 
                 this.ProcessResponse(this.httpClient, httpClientResponse);
@@ -301,11 +325,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
         return stringBuilder.ToString();
     }
 
-    private string AddPrepareRequestDelegate => """
+    private string AddPrepareRequestDelegate() => """
         public Action<HttpClient, HttpRequestMessage> PrepareRequest { get; set; } = (HttpClient client, HttpRequestMessage httpRequestMessage) => {};
         """;
 
-    private string AddProcessResponseDelegate => """
+    private string AddProcessResponseDelegate() => """
         public Action<HttpClient, HttpResponseMessage> ProcessResponse { get; set; } = (HttpClient client, HttpResponseMessage httpResponseMessage) => {};
         """;
 
@@ -396,7 +420,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         """;
 
     private string AddPostJsonHelperMethod() => $$"""
-        private async Task<HttpResponseMessage> SendJsonAsync<TRequest>(Uri endpoint, TRequest? requestObject, HttpMethod httpMethod, CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
+        private async Task<HttpResponseMessage> SendJsonAsync<TRequest>(Uri endpoint, TRequest? requestObject, HttpMethod httpMethod, Dictionary<string, string> headers,  CancellationToken cancellationToken,  Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
         {
             using var timeout = new CancellationTokenSource(this.httpClient.Timeout);
 
@@ -409,6 +433,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 request.RequestUri = endpoint;
                 request.Method = httpMethod;
 
+                foreach (var header in headers)
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+
                 if (prepareSingleRequest is not null)
                 {
                     prepareSingleRequest(this.httpClient, request);
@@ -416,7 +445,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
                 if (requestObject is not null)
                 {
-                    var requestJson = JsonSerializer.Serialize(request, this.jsonSerializerOptions);
+                    var requestJson = JsonSerializer.Serialize(requestObject, this.jsonSerializerOptions);
                     request.Content = new StringContent(requestJson);
                     request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 }

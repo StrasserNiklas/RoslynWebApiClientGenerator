@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ApiGenerator.Models;
 using System.Net.Http;
+using System;
 
 namespace ApiGenerator;
 
@@ -61,9 +62,6 @@ public class ControllerClientBuilder
                     IsAbstract: false
                 } methodSymbol)
             {
-                var authorizeAttribute = methodSymbol.GetAttribute("Microsoft.AspNetCore.Authorization.AuthorizeAttribute");
-                
-
                 (var httpMethod, var httpMethodAttribute) = methodSymbol.GetHttpMethodWithAtrributeData();
                 var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
                 var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
@@ -80,20 +78,27 @@ public class ControllerClientBuilder
                         continue;
                     }
 
-                    var lame = methodParameter.GetAttributes();
                     var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
                     var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
+                    var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+
                     //var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
-                    //var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
                     //var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
+
+                    var headerKeys = new List<string>();
+
+                    if (fromHeader is not null)
+                    {
+                        headerKeys = this.GetHeaderValues(methodParameter, method.Name, clientInformation.Name.Replace("Client", "Controller"));
+                    }
 
                     if (!methodParameter.Type.IsPrimitive())
                     {
                         generatedClasses.AddMany(methodParameter.Type.GenerateClassString());
                     }
 
-                    // TODO solve this in a more elegant way (fromBody etc.)
-                    parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsPrimitive(), fromQuery is not null, fromBody is not null));
+                    var parameterAttributeDetails = new ParameterAttributeDetails(fromBody, fromQuery, fromHeader);
+                    parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsPrimitive(), parameterAttributeDetails, headerKeys));
                 }
 
                 var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
@@ -104,6 +109,43 @@ public class ControllerClientBuilder
         }
 
         clientInformation.GeneratedCodeClasses = generatedClasses;
+    }
+
+    private List<string> GetHeaderValues(IParameterSymbol methodParameter, string methodName, string controllerClassName)
+    {
+        var headerKeys = new List<string>();
+
+        if (methodParameter.Type.IsPrimitive())
+        {
+            headerKeys.Add(methodParameter.Name);
+        }
+        else
+        {
+            // check if every property has header attribute
+            var members = methodParameter.Type.GetMembers();
+
+            foreach (var member in members)
+            {
+                if (member is IPropertySymbol property)
+                {
+                    var fromHeaderAttribute = property.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+
+                    if (fromHeaderAttribute is null)
+                    {
+                        var errorMessage = $"""
+                                            Error with method {methodName} in {controllerClassName} class.
+                                            Uses a [FromHeader] attribute on a class that doesn´t annotate all its properties with the [FromHeader] attribute!
+                                            """;
+
+                        throw new ArgumentException(errorMessage, methodParameter.Name);
+                    }
+
+                    headerKeys.Add(member.Name);
+                }
+            }
+        }
+
+        return headerKeys;
     }
 
     private ITypeSymbol UnwrapReturnType(ITypeSymbol returnType)
@@ -212,7 +254,7 @@ public class ControllerClientBuilder
         {
             var symbolInfo = semanticModel.GetSymbolInfo(invocation);
 
-            // TODO if you really want to, you can try to find the first parameter/s (id and a object) of the second delegate parameter
+            // if you really want to, you can try to find the first parameter/s (id and a object) of the second delegate parameter
             if (symbolInfo.Symbol is not null && symbolInfo.Symbol is IMethodSymbol methodSymbol)
             {
                 var parameters = methodSymbol.Parameters;
