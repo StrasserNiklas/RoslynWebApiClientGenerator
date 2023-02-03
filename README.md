@@ -32,11 +32,11 @@
 
 **Example*
 
-`
+```
 <PropertyGroup>
 	<ClientGenerator_UsePartialClasses>true</ClientGenerator_UsePartialClasses>
 </PropertyGroup>
-`
+```
 
 ### List of configuration values 
 Below you can find a list of the currently available configuration values. You can find more information about each configuration value in the [configuration document](docs/configuration.md).
