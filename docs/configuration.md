@@ -1,27 +1,30 @@
 # Configuration
-This document will give additional insight and information about each configuration value.
+This document will give additional insight and information about each configuration value. For information about how the use these values in your API project see [Usage](#Usage)
 
 ## Table of contents
 
 - [Overview](#Overview)
 - [Configuration values](#Configuration-values)
   - [GenerateClientOnBuild](#GenerateClientOnBuild)
+  - [UseExternalAssemblyContracts](#UseExternalAssemblyContracts)
   - [UsePartialClientClasses](#UsePartialClientClasses)
   - [UseInterfacesForClients](#UseInterfacesForClients)
   - [UseSeparateClientFiles](#UseSeparateClientFiles)
   - [CreateNugetPackageOnBuild](#CreateNugetPackageOnBuild)
   - [UseGitVersionInformation](#UseGitVersionInformation)
+- [Usage](#Usage)
 
 ## Overview
 
 | Configuration Value | Default Value |      Description |  Quicklink
 |:----------|:-------------|:- |:--|
-| `ApiClientGenerator_GenerateClientOnBuild` | true | Description | [More](#GenerateClientOnBuild)
-| `ApiClientGenerator_UsePartialClientClasses` | true | Description | [More](#UsePartialClientClasses)
-| `ApiClientGenerator_UseInterfacesForClients` | true | Description |[More](#UseInterfacesForClients)
-| `ApiClientGenerator_UseSeparateClientFiles` | false | Description  |[More](#UseSeparateClientFiles)
-| `ApiClientGenerator_CreateNugetPackageOnBuild` | false | Description  |[More](#CreateNugetPackageOnBuild)
-| `ApiClientGenerator_UseGitVersionInformation` |true | Description |[More](#UseGitVersionInformation)
+| `ApiClientGenerator_GenerateClientOnBuild` | true | Generate client(s) on each build of the API | [More](#GenerateClientOnBuild)
+| `ApiClientGenerator_UseExternalAssemblyContracts` | true | Models used in Requests/Responses from external references will not be generated  | [More](#UseExternalAssemblyContracts)
+| `ApiClientGenerator_UsePartialClientClasses` | true | Client classes (and interfaces) will be marked partial  | [More](#UsePartialClientClasses)
+| `ApiClientGenerator_UseInterfacesForClients` | true | A interface will be generated for each client  |[More](#UseInterfacesForClients)
+| `ApiClientGenerator_UseSeparateClientFiles` | false | Each generated client (for each controller) will be placed in a separate file  |[More](#UseSeparateClientFiles)
+| `ApiClientGenerator_CreateNugetPackageOnBuild` | false | A NuGet package will be created on each build of the API  |[More](#CreateNugetPackageOnBuild)
+| `ApiClientGenerator_UseGitVersionInformation` |false | Current Git version information (if availanle) will be used for versioning the NuGet package |[More](#UseGitVersionInformation)
 
 ## Configuration values
 
@@ -29,6 +32,12 @@ This document will give additional insight and information about each configurat
 **Default value:** `true`
 
 To allow for generation of the client(s) without any configuration, this is set to `true` on default. During development, this can be set to `false` to improve performance.
+
+
+### UseExternalAssemblyContracts
+**Default value:** `true`
+
+
 ### UsePartialClientClasses
 **Default value:** `true`
 
@@ -49,3 +58,23 @@ When set to `true`, each client will be placed into a separate `.cs` source file
 
 When set to `true`, a nuget package will be created each time the API is built. When developing and starting the API a lot, it is recommended to set this value to `false` or to avoid any generation of clients at all, you can set the [GenerateClientOnBuild](###GenerateClientOnBuild) flag to `false`.
 ### UseGitVersionInformation
+**Default value:** `false`
+
+When set to `true` and the project is inside a Git repository, the version of the project (if set) will be overriden to a version in the form of the following example value (1.0.1675382285-main): 
+
+```
+long lastCommitTimeStamp;
+1.0.{lastCommitTimeStamp}-{branchName}
+```
+
+## Usage
+There are several options to configure the generation of API clients. This is done using compiler-visible properties that can be accessed by the analyzer during compilation of the project. These properties are added in the project file (`.csproj`) of the API consuming the client generator. An example can be found below.
+> **Note**: When no configuration properties are added, default values will be used, which can be found in [the list of configuration values](#List-of-configuration-values) for each respective value.
+> 
+**Example**
+
+```csharp
+<PropertyGroup>
+	<ApiClientGenerator_GenerateClientOnBuild>false</ApiClientGenerator_GenerateClientOnBuild>
+</PropertyGroup>
+```
