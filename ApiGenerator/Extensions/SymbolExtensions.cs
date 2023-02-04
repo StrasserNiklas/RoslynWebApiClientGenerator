@@ -92,16 +92,23 @@ public static class SymbolExtensions
     }
 
     // TODO change this or attribute where it is from
+    // also maybe need more like here: https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding?view=aspnetcore-7.0#simple-types
+    // TODO what about structs pepelaugh
     public static bool IsPrimitive(this ITypeSymbol typeSymbol)
     {
+        
+
         switch (typeSymbol.SpecialType)
         {
+            case SpecialType.None: 
+                return false;
+
             case SpecialType.System_Boolean:
             case SpecialType.System_SByte:
+            case SpecialType.System_Byte:
             case SpecialType.System_Int16:
             case SpecialType.System_Int32:
             case SpecialType.System_Int64:
-            case SpecialType.System_Byte:
             case SpecialType.System_UInt16:
             case SpecialType.System_UInt32:
             case SpecialType.System_UInt64:
@@ -110,6 +117,7 @@ public static class SymbolExtensions
             case SpecialType.System_Char:
             case SpecialType.System_String:
             case SpecialType.System_Decimal:
+            case SpecialType.System_DateTime:
                 return true;
         }
 
@@ -131,6 +139,13 @@ public static class SymbolExtensions
 
         if (symbol is INamedTypeSymbol namedTypeSymbol)
         {
+            if (typeString == "Nullable")
+            {
+                typeString = namedTypeSymbol.TypeArguments.First().SanitizeClassTypeString();
+                typeString += "?";
+                return typeString;
+            }
+
             if (namedTypeSymbol.TypeArguments.Count() != 0)
             {
                 typeString += "<";
@@ -155,5 +170,25 @@ public static class SymbolExtensions
         }
 
         return typeString;
+    }
+
+    public static bool IsNullable(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.Name == "Nullable")
+        {
+            return true;
+        }
+
+        if (typeSymbol.IsPrimitive())
+        {
+            return typeSymbol.IsNullableValueType();
+        }
+
+        if (typeSymbol.TypeKind == TypeKind.Struct)
+        {
+            return typeSymbol.IsNullableValueType();
+        }
+
+        return typeSymbol.IsNullableObject();
     }
 }

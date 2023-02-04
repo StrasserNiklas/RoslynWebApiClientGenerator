@@ -56,20 +56,20 @@ When set to `true`, each client will be placed into a separate `.cs` source file
 ### CreateNugetPackageOnBuild
 **Default value:** `false`
 
-When set to `true`, a nuget package will be created each time the API is built. When developing and starting the API a lot, it is recommended to set this value to `false` or to avoid any generation of clients at all, you can set the [GenerateClientOnBuild](###GenerateClientOnBuild) flag to `false`.
+When set to `true`, a nuget package will be created each time the API is built. When developing and starting the API a lot, it is recommended to set this value to `false` or to avoid any generation of clients at all, you can set the [GenerateClientOnBuild](#GenerateClientOnBuild) flag to `false`.
 ### UseGitVersionInformation
 **Default value:** `false`
 
 When set to `true` and the project is inside a Git repository, the version of the project (if set) will be overriden to a version in the form of the following example value (1.0.1675382285-main): 
 
-```
+```csharp
 long lastCommitTimeStamp;
-1.0.{lastCommitTimeStamp}-{branchName}
+string branchName;
+string Version = $"1.0.{lastCommitTimeStamp}-{branchName}"
 ```
 
 ## Usage
 There are several options to configure the generation of API clients. This is done using compiler-visible properties that can be accessed by the analyzer during compilation of the project. These properties are added in the project file (`.csproj`) of the API consuming the client generator. An example can be found below.
-> **Note**: When no configuration properties are added, default values will be used, which can be found in [the list of configuration values](#List-of-configuration-values) for each respective value.
 > 
 **Example**
 

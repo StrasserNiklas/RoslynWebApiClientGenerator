@@ -94,12 +94,15 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         foreach (var parameter in methodDetails.Parameters)
         {
-            parameterCheckSb.Append($$"""
+            if (parameter.Value.ParameterSymbol.Type.IsNullable())
+            {
+                parameterCheckSb.Append($$"""
                 if({{parameter.Key}} == null)
                 {
                     throw new ArgumentNullException(nameof({{parameter.Key}}), "The object can´t be null");
                 }
                 """);
+            }
         }
 
         var nonPrimitive = methodDetails.Parameters.FirstOrDefault(x => !x.Value.IsPrimitive); //.Value.ParameterTypeString ?? string.Empty;

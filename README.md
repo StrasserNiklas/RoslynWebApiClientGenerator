@@ -12,6 +12,8 @@
   - [Cloning the repo](#Cloning-the-repo)
 - [Configuration](#Configuration)
   - [List of configuration values](#List-of-configuration-values)
+
+- [NuGet Package Versioning](#NuGet-Package-Versioning)
 - [Known problems](#Known-problems)
 - [Contributions](#Contributions)
 
@@ -51,6 +53,8 @@ Below you can find a list of the currently available configuration values. You c
 | `ApiClientGenerator_UseSeparateClientFiles` | false | Each generated client (for each controller) will be placed in a separate file 
 | `ApiClientGenerator_CreateNugetPackageOnBuild` | false | A NuGet package will be created on each build of the API  
 | `ApiClientGenerator_UseGitVersionInformation` |false | Current Git version information (if availanle) will be used for versioning the NuGet package 
+
+## NuGet Package Versioning
 
 ## Known problems
 

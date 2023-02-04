@@ -13,19 +13,5 @@ namespace SimpleWebApi
         public string? Summary { get; set; }
     }
 
-    public class Response
-    {
-        public IEnumerable<Tool> Tools { get; set; }
-        public IDictionary<string, Tool> DicTools { get; set; }
-        public List<IDictionary<string, Tool>> ToolList { get; set; }
-    }
-
-    public class Tool
-    {
-        [FromHeader]
-        public string MineString { get; set; }
-
-        [FromHeader]
-        public int Second { get; set; }
-    }
+    
 }

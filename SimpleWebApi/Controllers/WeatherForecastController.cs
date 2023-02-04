@@ -24,9 +24,13 @@ namespace SimpleWebApi.Controllers
             var v = "";
         }
 
-        [Route("get")]
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get([FromHeader] Tool some)
+        [Route("getmore")]
+        [HttpGet]
+        public IEnumerable<WeatherForecast> GetMore(Tool tool, Guid clientId,
+            DateTime? from,
+            DateTime? to,
+            int offset = 0,
+            int limit = 100)
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
@@ -37,9 +41,9 @@ namespace SimpleWebApi.Controllers
             .ToArray();
         }
 
-        [Route("getmore")]
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> GetMore([FromHeader] string lala)
+        [Route("get")]
+        [HttpGet]
+        public IEnumerable<WeatherForecast> Get(UserDto some)
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
@@ -49,5 +53,44 @@ namespace SimpleWebApi.Controllers
             })
             .ToArray();
         }
+
+        
+    }
+
+    public class Response
+    {
+        public IEnumerable<Tool> Tools { get; set; }
+        public IDictionary<string, Tool> DicTools { get; set; }
+        public List<IDictionary<string, Tool>> ToolList { get; set; }
+    }
+
+    public class Tool
+    {
+        //[FromHeader]
+        //[FromQuery]
+
+        public string MineString { get; set; }
+
+        //[FromQuery]
+        public int Second { get; set; }
+        //[FromQuery]
+
+        [FromBody]
+
+        public int Third { get; set; }
+    }
+
+    public class UserDto
+    {
+        [FromRoute]
+        public int Id { get; set; }
+        [FromBody]
+        public UserBodyDto Body { get; set; }
+    }
+
+    public class UserBodyDto
+    {
+        public string Name { get; set; }
+        public string FavoriteDish { get; set; }
     }
 }
