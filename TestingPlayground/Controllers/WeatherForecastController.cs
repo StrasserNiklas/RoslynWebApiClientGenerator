@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace SimpleWebApiWindowsAuth.Controllers
+namespace TestingPlayground.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -25,7 +23,7 @@ namespace SimpleWebApiWindowsAuth.Controllers
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
-                Date = DateTime.Now.AddDays(index),
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })

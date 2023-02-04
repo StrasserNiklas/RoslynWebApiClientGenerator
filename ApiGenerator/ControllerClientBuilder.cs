@@ -230,9 +230,15 @@ public class ControllerClientBuilder
             baseRoute = baseRoute.Replace("[action]", methodName);
         }
 
-        var trimmed = methodRoute.Trim('\\');
+        var methodRouteNotNullOrWhitespace = string.IsNullOrWhiteSpace(methodRoute);
 
-        return string.IsNullOrWhiteSpace(methodRoute) ? baseRoute : $"{baseRoute}/{trimmed}";
+        if (!methodRouteNotNullOrWhitespace && methodRoute.StartsWith("/"))
+        {
+            // if the route starts with a '/', the base route will be ignored by the API
+            return methodRoute.Trim('/');
+        }
+
+        return methodRouteNotNullOrWhitespace ? baseRoute : $"{baseRoute}/{methodRoute}";
     }
 
     private string GetMethodRoute(IMethodSymbol methodSymbol, AttributeData httpMethodAttribute)

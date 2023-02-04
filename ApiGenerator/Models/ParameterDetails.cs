@@ -22,7 +22,7 @@ public class ParameterDetails
             if (isPrimitive)
             {
                 this.QueryString = $$"""
-                    "?{{parameterSymbol.Name}}={Uri.EscapeDataString({{parameterSymbol.Name}}.ToString())}"
+                    ?{{parameterSymbol.Name}}={Uri.EscapeDataString({{parameterSymbol.Name}}.ToString())}
                     """;
             }
             // extract members

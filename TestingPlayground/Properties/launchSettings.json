@@ -1,20 +1,30 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
-    "windowsAuthentication": true,
-    "anonymousAuthentication": false,
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:11237",
-      "sslPort": 44311
+      "applicationUrl": "http://localhost:9315",
+      "sslPort": 44302
     }
   },
   "profiles": {
-    "SimpleWebApiWindowsAuth": {
+    "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "https://localhost:7123;http://localhost:5191",
+      "applicationUrl": "http://localhost:5009",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7093;http://localhost:5009",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

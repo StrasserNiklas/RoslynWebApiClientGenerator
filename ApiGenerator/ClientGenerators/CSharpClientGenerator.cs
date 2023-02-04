@@ -121,13 +121,14 @@ public class CSharpClientGenerator : ClientGeneratorBase
                         routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
                         """);
                 }
+            }
 
-                if (parameter.Value.AttributeDetails.HasQueryAttribute)
-                {
-                    routeQueryParamStringBuilder.AppendLine($"""
+            // add query values e.g. ?example=10
+            if (parameter.Value.AttributeDetails.HasQueryAttribute)
+            {
+                routeQueryParamStringBuilder.AppendLine($"""
                         routeBuilder.Append($"{parameter.Value.QueryString}");
                         """);
-                }
             }
 
             // add header values

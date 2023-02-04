@@ -24,6 +24,18 @@ namespace SimpleWebApi.Controllers
             var v = "";
         }
 
+        [Route("get")]
+        [HttpGet]
+        public DataResponse<WeatherForecast> Get(Tool some)
+        {
+            return new DataResponse<WeatherForecast>(new WeatherForecast()
+            {
+                Date = DateTime.Now,
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            });
+        }
+
         [Route("getmore")]
         [HttpGet]
         public IEnumerable<WeatherForecast> GetMore(Tool tool, Guid clientId,
@@ -41,20 +53,19 @@ namespace SimpleWebApi.Controllers
             .ToArray();
         }
 
-        [Route("get")]
-        [HttpGet]
-        public IEnumerable<WeatherForecast> Get(UserDto some)
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+        
 
         
+    }
+
+    public class DataResponse<TGeneric>
+    {
+        public TGeneric Data { get; set; }
+
+        public DataResponse(TGeneric data)
+        {
+            this.Data = data;
+        }
     }
 
     public class Response
@@ -75,7 +86,7 @@ namespace SimpleWebApi.Controllers
         public int Second { get; set; }
         //[FromQuery]
 
-        [FromBody]
+        //[FromBody]
 
         public int Third { get; set; }
     }

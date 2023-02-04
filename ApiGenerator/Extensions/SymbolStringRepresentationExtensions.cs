@@ -76,6 +76,51 @@ public static class SymbolStringRepresentationExtensions
 
         var classMemberBuilder = new StringBuilder();
 
+        // TODO generate generics here
+        // think of a way to not totally put it in a own method...
+        if (symbol is INamedTypeSymbol namedTypeSymbolWithArguments && namedTypeSymbolWithArguments.TypeArguments.Count() != 0)
+        {
+            // DataResponse<T>
+            // DataResponse<T, U> 
+
+            // sanitize
+            var args = namedTypeSymbolWithArguments.GetMembers();
+
+            var classString = symbol.ToString();
+
+            foreach (var mem in args)
+            {
+                if (mem is IMethodSymbol methodSymbol)
+                {
+                    if (methodSymbol.MethodKind == MethodKind.Constructor)
+                    {
+                        // do this for each generic parameter
+                        // TODO dont forget that they must also match its properties (mb one is just private, whatever I dont know)
+                        foreach (var parameter in methodSymbol.Parameters)
+                        {
+                            var gen = parameter.OriginalDefinition.ToString();
+                        }
+                    }
+                }
+            }
+
+
+            var genericConstructor = $$"""
+                public class {{classString}}<T>
+                {
+                    public T Data { get; set; }
+
+                    public DataResponse(T data)
+                    {
+                        this.Data = data;
+                    }
+                }
+                """;
+        }
+
+
+
+
         foreach (var member in symbol.GetMembers())
         {
             if (member is IFieldSymbol field)
