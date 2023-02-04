@@ -18,6 +18,8 @@ public class Configuration
     };
 
     public bool GenerateClientOnBuild { get; set; } = true;
+
+    // TODO use this!
     public bool UseExternalAssemblyContracts { get; set; } = true;
     public bool UseSeparateClientFiles { get; set; } = false;
     public bool UseInterfacesForClients { get; set; } = true;

@@ -65,7 +65,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         foreach (var method in controllerClientDetails.HttpMethods)
         {
             methodsBuilder.AppendLine(this.GenerateSingleMethodWithoutCancellationToken(method));
-            methodsBuilder.AppendLine(this.GenerateSingleMethod(method));
+            methodsBuilder.AppendLine(this.GenerateSingleEndpointMethod(method));
         }
 
         var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
@@ -84,94 +84,97 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """;
     }
 
-
-    // TODO clean this method up as much as possible
-    private string GenerateSingleMethod(ControllerMethodDetails methodDetails)
+    private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)
     {
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
-        var parameterCheckSb = new StringBuilder();
+        var parameterCheckStringBuilder = new StringBuilder();
+        var routeQueryParamStringBuilder = new StringBuilder();
+        var headerKeyValuesStringBuilder = new StringBuilder();
+        ParameterDetails bodyParameter = null;
 
         foreach (var parameter in methodDetails.Parameters)
         {
+            // add null check if possible
             if (parameter.Value.ParameterSymbol.Type.IsNullable())
             {
-                parameterCheckSb.Append($$"""
+                parameterCheckStringBuilder.Append($$"""
                 if({{parameter.Key}} == null)
                 {
                     throw new ArgumentNullException(nameof({{parameter.Key}}), "The object can´t be null");
                 }
                 """);
             }
-        }
 
-        var nonPrimitive = methodDetails.Parameters.FirstOrDefault(x => !x.Value.IsPrimitive); //.Value.ParameterTypeString ?? string.Empty;
-        var nonPrimitiveString = nonPrimitive.Value is not null ? nonPrimitive.Value.ParameterTypeString : string.Empty;
-        var nonPrimitiveArgument = nonPrimitive.Value is not null ? nonPrimitive.Key : "null";
+            // assign a possible body parameter
+            if (parameter.Value.AttributeDetails.HasBodyAttribute)
+            {
+                bodyParameter = parameter.Value;
+            }
 
-        var routeStringWithQueryParams = string.Empty;
-        var routeQueryParamSb = new StringBuilder();
-
-        if (methodDetails.HasRouteQueryParameters)
-        {
-            foreach (var parameter in methodDetails.Parameters)
+            // add route query parameters e.g. /api/clients/{id}
+            if (methodDetails.HasRouteQueryParameters)
             {
                 if (parameter.Value.IsRouteQueryParameter)
                 {
-                    routeQueryParamSb.AppendLine($$"""
+                    routeQueryParamStringBuilder.AppendLine($$"""
                         routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
                         """);
+                }
+
+                if (parameter.Value.AttributeDetails.HasQueryAttribute)
+                {
+                    routeQueryParamStringBuilder.AppendLine($"""
+                        routeBuilder.Append($"{parameter.Value.QueryString}");
+                        """);
+                }
+            }
+
+            // add header values
+            if (parameter.Value.AttributeDetails.HasHeaderAttribute)
+            {
+                foreach (var headerKey in parameter.Value.HeaderKeys)
+                {
+                    headerKeyValuesStringBuilder.AppendLine($$"""
+                    { "{{headerKey}}", {{parameter.Value.Name}}.{{headerKey}}.ToString()},
+                    """);
                 }
             }
         }
 
-        if (methodDetails.Parameters.SingleOrDefault(x => x.Value.AttributeDetails.HasQueryAttribute) is var keyValuePair && keyValuePair.Value is not null)
-        {
-            routeQueryParamSb.AppendLine($"""
-                routeBuilder.Append($"{keyValuePair.Value.QueryString}");
-                """);
-        }
+        
 
-        var headerKeyValuesSb = new StringBuilder();
+        // TODO THIS IS NOT OK!!!!!
+        //var nonPrimitive = methodDetails.Parameters.FirstOrDefault(x => !x.Value.IsPrimitive);
+        //var nonPrimitiveString = nonPrimitive.Value is not null ? nonPrimitive.Value.ParameterTypeString : string.Empty;
+        //var nonPrimitiveArgument = nonPrimitive.Value is not null ? nonPrimitive.Key : "null";
 
-        if (nonPrimitive.Value is not null && nonPrimitive.Value.AttributeDetails.HasHeaderAttribute)
-        {
-            foreach (var headerKey in nonPrimitive.Value.HeaderKeys)
-            {
-                headerKeyValuesSb.AppendLine($$"""
-                    { "{{headerKey}}", {{nonPrimitive.Value.ParameterSymbol.Name}}.{{headerKey}}.ToString()},
-                    """);
-            }
-        }
+        // TODO did I forget something here? test route parameters
+        var routeStringWithQueryParams = string.Empty;
 
         // TODO find a way to only add this when there ARE headers
         var headerString = $$"""
             var headers = new Dictionary<string, string>()
             {
-                {{headerKeyValuesSb}}
+                {{headerKeyValuesStringBuilder}}
             };
             """;
 
-        // TODO also this needs to work for primitives and not just types!!!!!!!!
-        // by that i mean the TRequest and if it is a primitive there is always null added still
-        // TODO DO THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        // (for now) only use a request class for an actual body
-        var methodCallString = (nonPrimitive.Key == null ? false : nonPrimitive.Value.AttributeDetails.HasBodyAttribute) switch
+        var methodCallString = (bodyParameter is not null) switch
         {
-            true => $"var httpClientResponse = await this.SendJsonAsync<{nonPrimitive.Value.ParameterTypeString}>(uri, {nonPrimitiveArgument}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);",
+            true => $"var httpClientResponse = await this.SendJsonAsync<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);",
             false => $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);"
         };
 
         return $$"""
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
             {
-                {{parameterCheckSb}}
+                {{parameterCheckStringBuilder}}
 
                 var routeBuilder = new StringBuilder();
                 routeBuilder.Append("{{methodDetails.Route}}");
 
-                {{routeQueryParamSb}}
+                {{routeQueryParamStringBuilder}}
 
                 var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
                 
@@ -185,46 +188,69 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """;
     }
 
-    private string AddHandleResponseMethod(ControllerMethodDetails controllerMethodDetails)
+    private string AddHandleResponseMethod(ControllerMethodDetails methodDetails)
     {
-        var switchSb = new StringBuilder();
+        var switchStringBuilder = new StringBuilder();
 
-        foreach (var pair in controllerMethodDetails.ReturnTypes)
+        foreach (var pair in methodDetails.ReturnTypes)
         {
-            var cleanClassValue = pair.Value.SanitizeClassTypeString();
-            var resultString = $$"""
-                return new ApiResponse<{{controllerMethodDetails.ReturnTypeString}}>(default, statusCode) { ErrorResponse = new ApiErrorResponse<{{cleanClassValue}}>(result{{pair.Key}}.SuccessResponse, statusCode) };
-                """; 
-
-            if (controllerMethodDetails.ReturnTypes.IndexOf(pair) == 0)
+            if (pair.Value is not null)
             {
-                resultString = $"return result{ pair.Key};";
+                var cleanClassValue = pair.Value.SanitizeClassTypeString();
+
+                var methodErrorReturnString = methodDetails.ReturnType is not null ? $"""
+                    return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
+                    """: $"""
+                    return new ApiErrorResponse<{cleanClassValue}>(default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
+                    """;
+
+                var methodReturnString = methodDetails.ReturnType is not null ? $"""
+                    return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, result{pair.Key}.Response, statusCode);
+                    """ : $"""
+                    return new ApiErrorResponse<{cleanClassValue}>(result{pair.Key}.Response, statusCode);
+                    """;
+
+                switchStringBuilder.AppendLine($$"""
+                    case {{pair.Key}}:
+                        var result{{pair.Key}} = await this.DeserializeResponse<{{cleanClassValue}}>(httpClientResponse, false, cancellationToken);
+
+                        if (result{{pair.Key}} is ApiErrorResponse<{{cleanClassValue}}, object> errorResponse{{pair.Key}})
+                        {
+                            {{methodErrorReturnString}}
+                        }
+
+                        {{methodReturnString}}
+                    """);
             }
+            else
+            {
+                switchStringBuilder.AppendLine($$"""
+                    case {{pair.Key}}:
+                        return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
+                    """);
+            }
+        }
+        
+        var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}, object>(default, default, " : "(";
 
-            switchSb.AppendLine($$"""
-                case {{pair.Key}}:
-                    var result{{pair.Key}} = await this.DeserializeResponse<{{cleanClassValue}}>(httpClientResponse, false, cancellationToken);
-                    
-                    if (result{{pair.Key}}.IsError)
-                    {
-                        return new ApiResponse<{{controllerMethodDetails.ReturnTypeString}}>(default, 0, result{{pair.Key}}.ErrorMessage, result{{pair.Key}}.Exception);
-                    }
-
-                    {{resultString}}
+        if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count == 0)
+        {
+            switchStringBuilder.AppendLine($$"""
+                case 200:
+                case 201:
+                    return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
                 """);
         }
-
-        var defaultReturnString = controllerMethodDetails.ReturnType is not null ? $"<{controllerMethodDetails.ReturnTypeString}>(default, " : "(";
 
         return $$"""
             var statusCode = (int)httpClientResponse.StatusCode;
 
             switch (statusCode)
             {
-                {{switchSb}}
+                {{switchStringBuilder}}
 
                 default:
-                    return new ApiResponse{{defaultReturnString}}statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
+                    return new ApiErrorResponse{{defaultReturnString}}statusCode, $"Encountered unexpected statuscode {statusCode}. {httpClientResponse.ReasonPhrase ?? string.Empty}");
             }
             """;
     }
@@ -262,11 +288,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string AddClientInterfaceWithMethods(ControllerClientDetails controllerClientDetails)
     {
-        var interfaceMethodsBuilder = new StringBuilder();
+        var interfaceMethodsStringBuilder = new StringBuilder();
 
         foreach (var method in controllerClientDetails.HttpMethods)
         {
-            interfaceMethodsBuilder.AppendLine(this.GenerateInterfaceMethod(method));
+            interfaceMethodsStringBuilder.AppendLine(this.GenerateInterfaceMethod(method));
         }
 
         var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
@@ -274,7 +300,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         return $$"""
             public{{partialString}} interface I{{controllerClientDetails.Name}}
             {
-                {{interfaceMethodsBuilder}}
+                {{interfaceMethodsStringBuilder}}
             }
             """;
     }
@@ -361,8 +387,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 }
                 catch (JsonException exception)
                 {
-                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.", exception);
-
+                    return new ApiErrorResponse<T, object>(default, default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.", exception);
                 }
             }
             else
@@ -371,11 +396,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 try
                 {
                     var result = JsonSerializer.Deserialize<T>(responseText, this.jsonSerializerOptions);
-                    return new ApiResponse<T>(result, (int)response.StatusCode,string.Empty);
+                    return new ApiResponse<T>(result, (int)response.StatusCode, string.Empty);
                 }
                 catch (JsonException exception)
                 {
-                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze response of type {typeof(T).FullName}.", exception);
+                    return new ApiErrorResponse<T, object>(default, default, (int)response.StatusCode, $"Failed to deserialze response of type {typeof(T).FullName}.", exception);
                 }
             }
         }
@@ -384,41 +409,61 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string AddApiResponseClass() => """
         public class ApiResponse
         {
-            public ApiResponse(int statusCode, string errorMessage = "", Exception? exception = null)
+            public ApiResponse(int statusCode, string message = "")
             {
-                StatusCode = statusCode;
-                ErrorMessage = errorMessage;
-                Exception = exception;
+                this.StatusCode = statusCode;
+                this.Message = message;
             }
-
+        
             public int StatusCode { get; }
-            public string ErrorMessage { get; }
+            public string Message { get; }
+        }
+        
+        public class ApiErrorResponse : ApiResponse
+        {
+            public ApiErrorResponse(int statusCode, string message = "", Exception? exception = null) : base(statusCode, message)
+            {
+                this.Exception = exception;
+            }
+        
             public Exception? Exception { get; }
         }
 
+        public class ApiErrorResponse<TErrorResponse> : ApiResponse<TErrorResponse>
+        {
+            public ApiErrorResponse(TErrorResponse response, int statusCode, string message = "", Exception? exception = null)
+                : base(response, statusCode, message)
+            {
+                Response = response;
+                Exception = exception;
+            }
+
+            public new TErrorResponse? Response { get; }
+            public Exception? Exception { get; }
+        }
+        
         public class ApiResponse<TResponse> : ApiResponse
         {
-            public ApiResponse(TResponse response, int statusCode, string errorMessage = "", Exception? exception = null)
-                : base(statusCode, errorMessage, exception)
+            public ApiResponse(TResponse response, int statusCode, string message = "")
+                : base(statusCode, message)
             {
-                SuccessResponse = response;
+                this.Response = response;
             }
-            public bool IsError => this.ErrorResponse != null;
-
-            public TResponse SuccessResponse { get; set; }
-
-            public ApiResponse? ErrorResponse { get; set; } = null;
+        
+            public TResponse Response { get; set; }
         }
-
-        public class ApiErrorResponse<TErrorResponse> : ApiResponse
+        
+        public class ApiErrorResponse<TExpectedResponse, TErrorResponse> : ApiResponse<TExpectedResponse>
         {
-            public ApiErrorResponse(TErrorResponse response, int statusCode, string errorMessage = "", Exception? exception = null)
-                : base(statusCode, errorMessage, exception)
+            public ApiErrorResponse(TExpectedResponse exprectedResponse, TErrorResponse response, int statusCode, string message = "", Exception? exception = null)
+                : base(exprectedResponse, statusCode, message)
             {
-                ErrorResponse = response;
+                Response = response;
+                Exception = exception;
             }
-
-            public TErrorResponse? ErrorResponse { get; }
+        
+            public new TErrorResponse? Response { get; }
+            public Exception? Exception { get; }
         }
         """;
 

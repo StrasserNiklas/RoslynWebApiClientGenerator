@@ -103,7 +103,7 @@ public class ControllerClientBuilder
 
                 var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
                 var additionalReturnTypes = this.AddMethodResponseTypes(methodSymbol, returnType, generatedClasses);
-                var httpMethodInformation = new ControllerMethodDetails(httpMethod, additionalReturnTypes, parameterMapping, methodNameWithoutAsnyc, finalRoute);
+                var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, additionalReturnTypes, parameterMapping, methodNameWithoutAsnyc, finalRoute);
                 clientInformation.HttpMethods.Add(httpMethodInformation);
             }
         }
@@ -188,6 +188,12 @@ public class ControllerClientBuilder
                     additionalReturnTypes.Add(new KeyValuePair<int, ITypeSymbol>(code, responseType));
                 }
             }
+
+            if (responseTypeAttribute.ConstructorArguments.Count() == 1)
+            {
+                additionalReturnTypes.Add(new KeyValuePair<int, ITypeSymbol>(int.Parse(responseTypeAttribute.ConstructorArguments[0].Value.ToString()), null));
+            }
+
         }
 
         if (returnType != null)
@@ -224,7 +230,9 @@ public class ControllerClientBuilder
             baseRoute = baseRoute.Replace("[action]", methodName);
         }
 
-        return string.IsNullOrWhiteSpace(methodRoute) ? baseRoute : $"{baseRoute}/{methodRoute}";
+        var trimmed = methodRoute.Trim('\\');
+
+        return string.IsNullOrWhiteSpace(methodRoute) ? baseRoute : $"{baseRoute}/{trimmed}";
     }
 
     private string GetMethodRoute(IMethodSymbol methodSymbol, AttributeData httpMethodAttribute)
@@ -269,7 +277,7 @@ public class ControllerClientBuilder
             {
                 var route = literal.Token.ValueText;
                 this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
-                var methodDetails = new ControllerMethodDetails(httpMethod, null, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
+                var methodDetails = new ControllerMethodDetails(httpMethod, null, null, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
                 controllerClientDetails.HttpMethods.Add(methodDetails);
             }
         }

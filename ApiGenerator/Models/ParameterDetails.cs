@@ -9,6 +9,7 @@ public class ParameterDetails
 {
     public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, ParameterAttributeDetails parameterAttributeDetails, List<string> headerKeys)
     {
+        this.Name = parameterSymbol.Name;
         this.HasExplizitDefaultValue = parameterSymbol.HasExplicitDefaultValue;
         this.ParameterSymbol = parameterSymbol;
         this.IsPrimitive = isPrimitive;
@@ -51,6 +52,7 @@ public class ParameterDetails
     public string QueryString { get; }
     public bool IsRouteQueryParameter { get; set; }
     public string ParameterTypeString { get; }
+    public string Name { get; }
     public bool HasExplizitDefaultValue { get; }
     public IParameterSymbol ParameterSymbol { get; }
     public bool IsPrimitive { get; }

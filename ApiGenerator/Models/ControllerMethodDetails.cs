@@ -9,10 +9,10 @@ namespace ApiGenerator.Models;
 
 public class ControllerMethodDetails
 {
-    public ControllerMethodDetails(HttpMethod httpMethod, List<KeyValuePair<int, ITypeSymbol>> returnTypes, Dictionary<string, ParameterDetails> parameters, string methodName, string finalRoute)
+    public ControllerMethodDetails(HttpMethod httpMethod, ITypeSymbol returnType, List<KeyValuePair<int, ITypeSymbol>> returnTypes, Dictionary<string, ParameterDetails> parameters, string methodName, string finalRoute)
     {
         this.HttpMethod = httpMethod;
-        ReturnTypes = returnTypes;
+        this.ReturnTypes = returnTypes;
         this.MethodName = methodName + "Async";
         this.Route = finalRoute;
 
@@ -38,7 +38,7 @@ public class ControllerMethodDetails
             this.ParameterString = string.Join(", ", parameters.Select(x => $"{x.Value.ParameterTypeString}  {x.Key}")).TrimEnd(',');
         }
 
-        this.ReturnType = returnTypes?.FirstOrDefault().Value;
+        this.ReturnType = returnType;
 
         if (this.ReturnType != null)
         {

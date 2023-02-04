@@ -124,9 +124,15 @@ public static class SymbolExtensions
         return false;
     }
 
+    // TODO is this just dumb because we could just use ToString() ? but maybe only when we are not creating our classes ourselves!
+    // this should probably only be used when generating the classes ourselves (so either all classes or basically the classes which come from our own assembly (the api))
     public static string SanitizeClassTypeString(this ISymbol symbol)
     {
-        // IEnumerable<Something>, IDictionary<Something, Something>, IList<IDictionary<Something, Something>>
+        if (symbol is null)
+        {
+            return string.Empty;
+        }
+
         var typeString = symbol.Name;
 
         if (symbol is ITypeSymbol typeSymbol)

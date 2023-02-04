@@ -12,7 +12,6 @@
   - [Cloning the repo](#Cloning-the-repo)
 - [Configuration](#Configuration)
   - [List of configuration values](#List-of-configuration-values)
-
 - [NuGet Package Versioning](#NuGet-Package-Versioning)
 - [Known problems](#Known-problems)
 - [Contributions](#Contributions)
