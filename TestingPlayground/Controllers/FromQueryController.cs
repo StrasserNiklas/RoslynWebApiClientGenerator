@@ -20,6 +20,18 @@ namespace TestingPlayground.Controllers
         }
 
         [HttpGet]
+        public ActionResult Class_Parameter_WithAttribute_SomePropertiesAttributed([FromQuery] SomePropertiesAttributed somePropertiesAttributed)
+        {
+            return Ok();
+        }
+
+        [HttpGet]
+        public ActionResult Class_Parameter_WithAttribute_AllPropertiesAttributed([FromQuery] AllPropertiesAttributed somePropertiesAttributed)
+        {
+            return Ok();
+        }
+
+        [HttpGet]
         public ActionResult Class_Parameter_WithAttribute([FromQuery] SimpleQueryClass simpleQueryClass)
         {
             return Ok();

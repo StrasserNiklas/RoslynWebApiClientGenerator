@@ -19,23 +19,44 @@ namespace SimpleWebApi.Controllers
         }
 
 
-        [Route("get")]
+        [Route("get1")]
         [HttpGet]
-        public ActionResult Get(Tool some)
+        public ActionResult Get1(AllAttributes some)
         {
             return Ok(new { A = some.MineString, B = some.Second });
         }
 
         [Route("get2")]
         [HttpGet]
-        public ActionResult Get2(Tool2 some)
+        public ActionResult Get2(SomeAttributes some)
         {
             return Ok(new { A = some.MineString, B = some.Second});
         }
 
         [Route("get3")]
         [HttpGet]
-        public ActionResult Get3(Tool3 some)
+        public ActionResult Get3(NoAttributes some)
+        {
+            return Ok(new { A = some.MineString, B = some.Second });
+        }
+
+        [Route("get10")]
+        [HttpGet]
+        public ActionResult Get10([FromQuery] AllAttributes some)
+        {
+            return Ok(new { A = some.MineString, B = some.Second });
+        }
+
+        [Route("get20")]
+        [HttpGet]
+        public ActionResult Get20([FromQuery] SomeAttributes some)
+        {
+            return Ok(new { A = some.MineString, B = some.Second });
+        }
+
+        [Route("get30")]
+        [HttpGet]
+        public ActionResult Get30([FromQuery] NoAttributes some)
         {
             return Ok(new { A = some.MineString, B = some.Second });
         }
@@ -84,37 +105,37 @@ namespace SimpleWebApi.Controllers
 
     public class Response
     {
-        public IEnumerable<Tool> Tools { get; set; }
-        public IDictionary<string, Tool> DicTools { get; set; }
-        public List<IDictionary<string, Tool>> ToolList { get; set; }
+        public IEnumerable<AllAttributes> Tools { get; set; }
+        public IDictionary<string, AllAttributes> DicTools { get; set; }
+        public List<IDictionary<string, AllAttributes>> ToolList { get; set; }
     }
 
-    public class Tool
+    public class AllAttributes
     {
-        [FromHeader]
-        //[FromQuery]
+        [FromQuery]
 
         public string MineString { get; set; }
 
-        [FromHeader]
-        //[FromQuery]
+        [FromQuery]
         public int Second { get; set; }
-        //[FromQuery]
     }
 
-    public class Tool2
+    public class SomeAttributes
     {
-        [FromHeader]
         public string MineString { get; set; }
+
+        [FromQuery]
 
         public int Second { get; set; }
     }
 
-    public class Tool3
+    public class NoAttributes
     {
+        public int Second { get; set; }
+
         public string MineString { get; set; }
 
-        public int Second { get; set; }
+        
     }
 
     public class UserDto

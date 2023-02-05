@@ -1,4 +1,6 @@
 
+using Microsoft.AspNetCore.Mvc;
+
 namespace TestingPlayground
 {
     public class Program
@@ -14,6 +16,8 @@ namespace TestingPlayground
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
+            builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressInferBindingSourcesForParameters = true);
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
