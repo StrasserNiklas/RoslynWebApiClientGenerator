@@ -137,9 +137,10 @@ public static class SymbolExtensions
 
         if (symbol is ITypeSymbol typeSymbol)
         {
-            if (typeSymbol.IsPrimitive())
+            if (typeSymbol.IsPrimitive() || typeSymbol.ToString() == "object" || typeSymbol.ToString() == "object?")
             {
                 typeString = typeSymbol.ToString();
+                return typeString;
             }
         }
 

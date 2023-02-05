@@ -185,7 +185,14 @@ public class ControllerClientBuilder
 
                 if (exists.Value == null)
                 {
-                    additionalReturnTypes.Add(new KeyValuePair<int, ITypeSymbol>(code, responseType));
+                    if (responseType.ToString() == "void")
+                    {
+                        additionalReturnTypes.Add(new KeyValuePair<int, ITypeSymbol>(code, null));
+                    }
+                    else
+                    {
+                        additionalReturnTypes.Add(new KeyValuePair<int, ITypeSymbol>(code, responseType));
+                    }
                 }
             }
 
