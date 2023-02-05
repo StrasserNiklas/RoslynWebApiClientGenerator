@@ -18,25 +18,31 @@ namespace SimpleWebApi.Controllers
             _logger = logger;
         }
 
+
         [Route("get")]
         [HttpGet]
-        public ActionResult Get(string some)
+        public ActionResult Get(Tool some)
         {
-            return Ok( new MetaResponse<WeatherForecast, object>(new WeatherForecast()
-            {
-                Date = DateTime.Now,
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            }, ""));
+            return Ok(new { A = some.MineString, B = some.Second });
+        }
+
+        [Route("get2")]
+        [HttpGet]
+        public ActionResult Get2(Tool2 some)
+        {
+            return Ok(new { A = some.MineString, B = some.Second});
+        }
+
+        [Route("get3")]
+        [HttpGet]
+        public ActionResult Get3(Tool3 some)
+        {
+            return Ok(new { A = some.MineString, B = some.Second });
         }
 
         [Route("getmore")]
         [HttpGet]
-        public IEnumerable<WeatherForecast> GetMore(Tool tool, Guid clientId,
-            DateTime? from,
-            DateTime? to,
-            int offset = 0,
-            int limit = 100)
+        public IEnumerable<WeatherForecast> GetMore([FromHeader] string some)
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
@@ -85,18 +91,30 @@ namespace SimpleWebApi.Controllers
 
     public class Tool
     {
-        //[FromHeader]
+        [FromHeader]
         //[FromQuery]
 
         public string MineString { get; set; }
 
+        [FromHeader]
         //[FromQuery]
         public int Second { get; set; }
         //[FromQuery]
+    }
 
-        //[FromBody]
+    public class Tool2
+    {
+        [FromHeader]
+        public string MineString { get; set; }
 
-        public int Third { get; set; }
+        public int Second { get; set; }
+    }
+
+    public class Tool3
+    {
+        public string MineString { get; set; }
+
+        public int Second { get; set; }
     }
 
     public class UserDto

@@ -49,8 +49,6 @@ public class ControllerClientBuilder
 
     private void AddControllerMethods(IEnumerable<ISymbol> methods, ControllerClientDetails clientInformation)
     {
-        // TODO make this whole method clearer by extracting methods...
-
         IDictionary<string, string> generatedClasses = new Dictionary<string, string>();
 
         foreach (var method in methods)
@@ -122,6 +120,7 @@ public class ControllerClientBuilder
         {
             // check if every property has header attribute
             var members = methodParameter.Type.GetMembers();
+            var hasMemberWithAttribute = false;
 
             foreach (var member in members)
             {
@@ -131,16 +130,22 @@ public class ControllerClientBuilder
 
                     if (fromHeaderAttribute is null)
                     {
-                        var errorMessage = $"""
-                                            Error with method {methodName} in {controllerClassName} class.
-                                            Uses a [FromHeader] attribute on a class that doesn´t annotate all its properties with the [FromHeader] attribute!
-                                            """;
-
-                        throw new ArgumentException(errorMessage, methodParameter.Name);
+                        continue;
                     }
 
+                    hasMemberWithAttribute = true;
                     headerKeys.Add(member.Name);
                 }
+            }
+
+            if (!hasMemberWithAttribute)
+            {
+                var errorMessage = $"""
+                Error with method {methodName} in {controllerClassName} class.
+                Uses a [FromHeader] attribute on a class that doesn´t annotate at least one of its properties with the [FromHeader] attribute!
+                """;
+
+                throw new ArgumentException(errorMessage, methodParameter.Name);
             }
         }
 

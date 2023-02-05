@@ -3,27 +3,32 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace TestingPlayground.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class FromBodyController : ControllerBase
     {
+        [HttpPost]
+        public ActionResult Class_Parameter_NoAttribute(SimpleBodyClass simpleBodyClass)
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        public ActionResult Class_Parameter_WithAttribute([FromBody] SimpleBodyClass simpleBodyClass)
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        public ActionResult Primitive_Parameter_WithAttribute([FromBody] string simpleString)
+        {
+            return Ok();
+        }
     }
 
-    [Route("api/[controller]")]
-    [ApiController]
-    public class FromQueryController : ControllerBase
+    public class SimpleBodyClass
     {
-    }
-
-    [Route("api/[controller]")]
-    [ApiController]
-    public class FromHeaderController : ControllerBase
-    {
-    }
-
-    [Route("api/[controller]")]
-    [ApiController]
-    public class FromRouteController : ControllerBase
-    {
+        public string ExampleString { get; set; }
+        public int ExampleInteger { get; set; }
     }
 }
