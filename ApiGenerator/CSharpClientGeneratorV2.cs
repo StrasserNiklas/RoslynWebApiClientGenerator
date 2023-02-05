@@ -1,16 +1,18 @@
 ﻿using ApiGenerator.Extensions;
-using ApiGenerator.Models;
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using ApiGenerator.Models;
+using ApiGenerator.ClientGenerators;
 using System.Text;
+using System.IO;
+using System.Reflection.Metadata;
 
-namespace ApiGenerator.ClientGenerators;
+namespace ApiGenerator;
 
-public class CSharpClientGenerator : ClientGeneratorBase
+public class CSharpClientGeneratorV2 : ClientGeneratorBase
 {
-    public CSharpClientGenerator(Configuration configuration, string projectName) : base(configuration, projectName) { }
+    public CSharpClientGeneratorV2(Configuration configuration, string projectName) : base(configuration, projectName) { }
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
@@ -88,89 +90,79 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
-        var parameterCheckStringBuilder = new StringBuilder();
-        var routeQueryParamStringBuilder = new StringBuilder();
-        var headerKeyValuesStringBuilder = new StringBuilder();
-        ParameterDetails bodyParameter = null;
-
-        foreach (var parameter in methodDetails.Parameters)
-        {
-            // add null check if possible
-            if (parameter.Value.ParameterSymbol.Type.IsNullable())
-            {
-                parameterCheckStringBuilder.Append($$"""
-                if({{parameter.Key}} == null)
-                {
-                    throw new ArgumentNullException(nameof({{parameter.Key}}), "The object can´t be null");
-                }
-                """);
-            }
-
-            // assign a possible body parameter
-            if (parameter.Value.AttributeDetails.HasBodyAttribute)
-            {
-                bodyParameter = parameter.Value;
-            }
-
-            // add route query parameters e.g. /api/clients/{id}
-            if (methodDetails.HasRouteQueryParameters)
-            {
-                if (parameter.Value.IsRouteQueryParameter)
-                {
-                    routeQueryParamStringBuilder.AppendLine($$"""
-                        routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
-                        """);
-                }
-            }
-
-            // add query values e.g. ?example=10
-            if (parameter.Value.AttributeDetails.HasQueryAttribute)
-            {
-                routeQueryParamStringBuilder.AppendLine($"""
-                        routeBuilder.Append($"{parameter.Value.QueryString}");
-                        """);
-            }
-
-            // add header values
-            if (parameter.Value.AttributeDetails.HasHeaderAttribute)
-            {
-                foreach (var headerKey in parameter.Value.HeaderKeys)
-                {
-                    headerKeyValuesStringBuilder.AppendLine($$"""
-                    { "{{headerKey}}", {{parameter.Value.Name}}.{{headerKey}}.ToString()},
-                    """);
-                }
-            }
-        }
-
-        // TODO find a way to only add this when there ARE headers
-        var headerString = $$"""
-            var headers = new Dictionary<string, string>()
-            {
-                {{headerKeyValuesStringBuilder}}
-            };
-            """;
-
-        var methodCallString = (bodyParameter is not null) switch
-        {
-            true => $"var httpClientResponse = await this.SendJsonAsync<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);",
-            false => $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);"
-        };
+        ParameterDetails bodyParameter = methodDetails.Parameters.SingleOrDefault(x => x.Value.AttributeDetails.HasBodyAttribute).Value; // will null work?
 
         return $$"""
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
             {
-                {{parameterCheckStringBuilder}}
+                {{string.Join("", methodDetails.Parameters.Select(parameter =>
+                {
+                    if (parameter.Value.ParameterSymbol.Type.IsNullable())
+                    {
+                        return $$"""
+                        if({{parameter.Key}} == null)
+                        {
+                            throw new ArgumentNullException(nameof({{parameter.Key}}), "The object can´t be null");
+                        }
+                        """;
+                    }
+
+                    return string.Empty;
+                }))}}
 
                 var routeBuilder = new StringBuilder();
                 routeBuilder.Append("{{methodDetails.Route}}");
 
-                {{routeQueryParamStringBuilder}}
+                {{string.Join("", methodDetails.Parameters.Select(parameter =>
+                {
+                    if (methodDetails.HasRouteQueryParameters)
+                    {
+                        if (parameter.Value.IsRouteQueryParameter)
+                        {
+                            return $$"""
+                            routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
+                            """;
+                        }
+                    }
+                    return string.Empty;
+                }))}}
+
+                {{string.Join("", methodDetails.Parameters.Select(parameter =>
+                {
+                    if (parameter.Value.AttributeDetails.HasQueryAttribute)
+                    {
+                        return $$"""
+                        routeBuilder.Append($"{{parameter.Value.QueryString}}");
+                        """;
+                    }
+
+                    return string.Empty;
+                }))}}
 
                 var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
                 
-                {{headerString}}
-                {{methodCallString}}
+                var headers = new Dictionary<string, string>()
+                {
+                    {{string.Join("", methodDetails.Parameters.Select(parameter =>
+                    {
+                        if (parameter.Value.AttributeDetails.HasHeaderAttribute)
+                        {
+                            return string.Join("", parameter.Value.HeaderKeys.Select(headerKey =>
+                            {
+                                return $$"""
+                                { "{{headerKey}}", {{parameter.Value.Name}}.{{headerKey}}.ToString()},
+                                """;
+                            }));
+                        }
+
+                        return string.Empty;
+                    }))}}
+                };
+
+                {{(bodyParameter is not null ?
+                $"var httpClientResponse = await this.SendJsonAsync<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);"
+                : $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);"
+                )}}
 
                 this.ProcessResponse(this.httpClient, httpClientResponse);
 
@@ -191,7 +183,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
                 var methodErrorReturnString = methodDetails.ReturnType is not null ? $"""
                     return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
-                    """: $"""
+                    """ : $"""
                     return new ApiErrorResponse<{cleanClassValue}>(default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
                     """;
 
@@ -221,7 +213,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     """);
             }
         }
-        
+
         var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}, object>(default, default, " : "(";
 
         if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count == 0)
