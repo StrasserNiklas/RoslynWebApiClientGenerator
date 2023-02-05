@@ -137,7 +137,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 foreach (var headerKey in parameter.Value.HeaderKeys)
                 {
                     headerKeyValuesStringBuilder.AppendLine($$"""
-                    { "{{headerKey}}", {{parameter.Value.Name}}.{{headerKey}}.ToString()},
+                    { "{{headerKey}}", {{headerKey}}.ToString()},
                     """);
                 }
             }
