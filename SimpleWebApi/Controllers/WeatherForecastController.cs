@@ -16,24 +16,18 @@ namespace SimpleWebApi.Controllers
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
-
-
-
-
-
-            var v = "";
         }
 
         [Route("get")]
         [HttpGet]
-        public DataResponse<WeatherForecast> Get(Tool some)
+        public ActionResult Get(string some)
         {
-            return new DataResponse<WeatherForecast>(new WeatherForecast()
+            return Ok( new MetaResponse<WeatherForecast, object>(new WeatherForecast()
             {
                 Date = DateTime.Now,
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            });
+            }, ""));
         }
 
         [Route("getmore")]
@@ -66,6 +60,20 @@ namespace SimpleWebApi.Controllers
         {
             this.Data = data;
         }
+    }
+
+    public class MetaResponse<TGeneric, SecondOne>
+    {
+        public TGeneric Data { get; set; }
+        public SecondOne kek { get; set; }
+
+        public MetaResponse(TGeneric data, SecondOne kek)
+        {
+            this.Data = data;
+            this.kek = kek;
+        }
+
+        public string MineStreing { get; set; }
     }
 
     public class Response

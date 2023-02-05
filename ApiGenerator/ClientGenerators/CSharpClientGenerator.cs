@@ -76,6 +76,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
                 {{methodsBuilder}}
+                {{this.AddPrepareRequestMessageMethod()}}
                 {{this.AddPostJsonHelperMethod()}}
                 {{this.AddDeserializeMethod()}}
                 {{this.AddPrepareRequestDelegate()}}
@@ -86,6 +87,27 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)
     {
+        // CODE FOR FromForm !!!!!!!!!!!!!!!!
+        /*
+         
+            var formBoundaryGuid = Guid.NewGuid().ToString();
+            var formContent = new MultipartFormDataContent(formBoundaryGuid);
+            formContent.Headers.Remove("Content-Type");
+            formContent.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + formBoundaryGuid);
+
+            //if (name != null)
+            //{
+            //    formContent.Add(new System.Net.Http.StringContent(ConvertToString(name, System.Globalization.CultureInfo.InvariantCulture)), "Name");
+            //}
+
+            //if (favoriteDish != null)
+            //{
+            //    formContent.Add(new System.Net.Http.StringContent(ConvertToString(favoriteDish, System.Globalization.CultureInfo.InvariantCulture)), "FavoriteDish");
+            //}
+            request.Content = formContent;
+          */
+
+
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
         var parameterCheckStringBuilder = new StringBuilder();
@@ -153,8 +175,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         var methodCallString = (bodyParameter is not null) switch
         {
-            true => $"var httpClientResponse = await this.SendJsonAsync<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);",
-            false => $"var httpClientResponse = await this.SendJsonAsync<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, cancellationToken, prepareSingleRequest);"
+            true => $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);",
+            false => $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);"
         };
 
         return $$"""
@@ -172,6 +194,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{headerString}}
                 {{methodCallString}}
 
+                var httpClientResponse = await this.SendJsonAsync(httpRequestMessage, cancellationToken);
                 this.ProcessResponse(this.httpClient, httpClientResponse);
 
                 {{this.AddHandleResponseMethod(methodDetails)}}
@@ -458,41 +481,49 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
         """;
 
-    private string AddPostJsonHelperMethod() => $$"""
-        private async Task<HttpResponseMessage> SendJsonAsync<TRequest>(Uri endpoint, TRequest? requestObject, HttpMethod httpMethod, Dictionary<string, string> headers,  CancellationToken cancellationToken,  Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
+    private string AddPrepareRequestMessageMethod() => """
+        private HttpRequestMessage PrepareRequestMessage<TRequest>(Uri endpoint, TRequest? requestObject, HttpMethod httpMethod, Dictionary<string, string> headers, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
+        {
+            var request = new HttpRequestMessage();
+            this.PrepareRequest(this.httpClient, request);
+            request.RequestUri = endpoint;
+            request.Method = httpMethod;
+
+            foreach (var header in headers)
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            if (prepareSingleRequest is not null)
+            {
+                prepareSingleRequest(this.httpClient, request);
+            }
+
+            if (requestObject is not null)
+            {
+                var requestJson = JsonSerializer.Serialize(requestObject, this.jsonSerializerOptions);
+                request.Content = new StringContent(requestJson);
+                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            }
+
+            return request;
+        }
+        """;
+
+    private string AddPostJsonHelperMethod() => """
+        private async Task<HttpResponseMessage> SendJsonAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             using var timeout = new CancellationTokenSource(this.httpClient.Timeout);
-
             try
             {
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-
-                using var request = new HttpRequestMessage();
-                this.PrepareRequest(this.httpClient, request);
-                request.RequestUri = endpoint;
-                request.Method = httpMethod;
-
-                foreach (var header in headers)
+                using (request)
                 {
-                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    return await this.httpClient.SendAsync(request, linked.Token);
+
                 }
-
-                if (prepareSingleRequest is not null)
-                {
-                    prepareSingleRequest(this.httpClient, request);
-                }
-
-                if (requestObject is not null)
-                {
-                    var requestJson = JsonSerializer.Serialize(requestObject, this.jsonSerializerOptions);
-                    request.Content = new StringContent(requestJson);
-                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                }
-
-                return await this.httpClient.SendAsync(request, linked.Token);
-
             }
-            catch (TaskCanceledException) when (timeout.IsCancellationRequested)
+            catch (TaskCanceledException)when (timeout.IsCancellationRequested)
             {
                 throw new TimeoutException($"Did not receive an answer from the service within a timespan of {this.httpClient.Timeout}.");
             }

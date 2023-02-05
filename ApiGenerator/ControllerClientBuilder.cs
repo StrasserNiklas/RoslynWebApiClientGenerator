@@ -81,9 +81,8 @@ public class ControllerClientBuilder
                     var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
                     var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
                     var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
-
-                    //var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
-                    //var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
+                    var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
+                    var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
 
                     var headerKeys = new List<string>();
 
@@ -97,7 +96,7 @@ public class ControllerClientBuilder
                         generatedClasses.AddMany(methodParameter.Type.GenerateClassString());
                     }
 
-                    var parameterAttributeDetails = new ParameterAttributeDetails(fromBody, fromQuery, fromHeader);
+                    var parameterAttributeDetails = new ParameterAttributeDetails(fromBody, fromQuery, fromHeader, fromRoute, fromForm);
                     parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsPrimitive(), parameterAttributeDetails, headerKeys));
                 }
 

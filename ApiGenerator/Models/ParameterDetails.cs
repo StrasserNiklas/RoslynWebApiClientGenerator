@@ -17,6 +17,13 @@ public class ParameterDetails
         this.HeaderKeys = headerKeys;
         this.ParameterTypeString = parameterSymbol.Type.SanitizeClassTypeString();
 
+        if (parameterAttributeDetails.HasNoAttributes && isPrimitive)
+        {
+            this.QueryString = $$"""
+                    ?{{parameterSymbol.Name}}={Uri.EscapeDataString({{parameterSymbol.Name}}.ToString())}
+                    """;
+        }
+
         if (parameterAttributeDetails.HasQueryAttribute)
         {
             if (isPrimitive)
