@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ApiGenerator.Extensions;
 
@@ -10,10 +11,6 @@ public static class SymbolStringRepresentationExtensions
 {
     public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
     {
-        var string1 = symbol.ToDisplayString();
-        var string2 = symbol.ToString();
-        
-
         //MetadataReference.
         var assembly = symbol.ContainingAssembly;
 
@@ -47,25 +44,9 @@ public static class SymbolStringRepresentationExtensions
             return stringClassRepresentations;
         }
 
-        // this is for e.g. IEnumerable<T>
-        //if (symbol.TypeKind == TypeKind.Interface)
-        //{
-        //    if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeArguments.Count() != 0)
-        //    {
-        //        foreach (var argument in typeSymbol.TypeArguments)
-        //        {
-        //            CheckAndGenerateClassString(argument, stringClassRepresentations);
-        //        }
-        //    }
-
-        //    return stringClassRepresentations;
-        //}
-
         // TODO what about classes that inherit from it shrug
         if (symbol.ContainingNamespace.ToString().Contains("System.Collections") && symbol is INamedTypeSymbol namedTypeSymbol)
         {
-            var test = namedTypeSymbol.SanitizeClassTypeString();
-
             foreach (var argument in namedTypeSymbol.TypeArguments)
             {
                 CheckAndGenerateClassString(argument, stringClassRepresentations);
@@ -75,51 +56,69 @@ public static class SymbolStringRepresentationExtensions
         }
 
         var classMemberBuilder = new StringBuilder();
+        var isGenericType = false;
+        var addedGenericProperties = new List<string>();
+        var genericPropertyStringBuilder = new StringBuilder();
+        var genericConstructorStringBuilder = new StringBuilder();
+        var genericConstructorAssignmentStringBuilder = new StringBuilder();
+        var genericClassName = string.Empty;
 
-        // TODO generate generics here
-        // think of a way to not totally put it in a own method...
-        if (symbol is INamedTypeSymbol namedTypeSymbolWithArguments && namedTypeSymbolWithArguments.TypeArguments.Count() != 0)
+        if (symbol is INamedTypeSymbol namedTypeSymbolWithArguments && namedTypeSymbolWithArguments.IsGenericType)
         {
-            // DataResponse<T>
-            // DataResponse<T, U> 
+            isGenericType = namedTypeSymbolWithArguments.IsGenericType;
+            genericClassName = namedTypeSymbolWithArguments.OriginalDefinition.ToString().Split('.').Last();
+            var declaration = symbol.DeclaringSyntaxReferences.FirstOrDefault();
 
-            // sanitize
-            var args = namedTypeSymbolWithArguments.GetMembers();
-
-            var classString = symbol.ToString();
-
-            foreach (var mem in args)
+            foreach (var argument in namedTypeSymbolWithArguments.TypeArguments)
             {
-                if (mem is IMethodSymbol methodSymbol)
+                CheckAndGenerateClassString(argument, stringClassRepresentations);
+            }
+
+            // this will only work if the type is contained in the API assembly (not in project references etc.)
+            if (declaration is not null)
+            {
+                var syntax = declaration.GetSyntax();
+                var genericCodeSyntax = syntax.ToFullString();
+                stringClassRepresentations.Add(genericClassName, genericCodeSyntax);
+                return stringClassRepresentations;
+            }
+            else
+            {
+                var args = namedTypeSymbolWithArguments.GetMembers();
+                
+                // generate the generic type
+                foreach (var mem in args)
                 {
-                    if (methodSymbol.MethodKind == MethodKind.Constructor)
+                    if (mem is IPropertySymbol propertySymbol)
                     {
-                        // do this for each generic parameter
-                        // TODO dont forget that they must also match its properties (mb one is just private, whatever I dont know)
-                        foreach (var parameter in methodSymbol.Parameters)
+                        var propertyName = propertySymbol.Name;
+                        var match = Regex.Match(genericClassName, @"\<(.*?)\>");
+
+                        string genericParameter = string.Empty;
+
+                        if (match.Success && match.Groups.Count > 1)
                         {
-                            var gen = parameter.OriginalDefinition.ToString();
+                            genericParameter = Regex.Match(genericClassName, @"\<(.*?)\>").Groups[1].Value;
+                        }
+
+                        var generics = genericParameter.Split(',').Select(x => x.Trim());
+
+                        var returnTypeString = propertySymbol.OriginalDefinition.GetMethod.ReturnType.ToString();
+
+                        if (generics.Contains(returnTypeString))
+                        {
+                            genericPropertyStringBuilder.AppendLine($$"""
+                                public {{returnTypeString}} {{propertyName}} { get; set; }
+                                """);
+
+                            genericConstructorStringBuilder.Append($"{returnTypeString} {propertyName},");
+                            genericConstructorAssignmentStringBuilder.AppendLine($"this.{propertyName} = {propertyName};");
+                            addedGenericProperties.Add(propertyName);
                         }
                     }
                 }
             }
-
-
-            var genericConstructor = $$"""
-                public class {{classString}}<T>
-                {
-                    public T Data { get; set; }
-
-                    public DataResponse(T data)
-                    {
-                        this.Data = data;
-                    }
-                }
-                """;
         }
-
-
-
 
         foreach (var member in symbol.GetMembers())
         {
@@ -135,13 +134,13 @@ public static class SymbolStringRepresentationExtensions
             }
             else if (member is IPropertySymbol property)
             {
+                if (addedGenericProperties.Contains(member.Name))
+                {
+                    continue;
+                }
+
                 if (property.Type is INamedTypeSymbol propertyTypeSymbol)
                 {
-                    if (propertyTypeSymbol.ToString().Contains("claim"))
-                    {
-
-                    }
-
                     if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum || propertyTypeSymbol.TypeKind == TypeKind.Interface)
                     {
                         CheckAndGenerateClassString(propertyTypeSymbol, stringClassRepresentations);
@@ -162,6 +161,7 @@ public static class SymbolStringRepresentationExtensions
                 classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
                 classMemberBuilder.AppendLine(Environment.NewLine);
             }
+            // handle arrays
             else if (member is IMethodSymbol methodSymbol)
             {
                 if (methodSymbol.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
@@ -181,6 +181,19 @@ public static class SymbolStringRepresentationExtensions
             }
         }
 
+        var genericCode = $$"""
+                public class {{genericClassName}}
+                {
+                    public {{className}}({{genericConstructorStringBuilder.ToString().TrimEnd(',')}})
+                    {
+                        {{genericConstructorAssignmentStringBuilder}}
+                    }
+
+                    {{genericPropertyStringBuilder}}
+                    {{classMemberBuilder}}
+                }
+                """;
+
         var classCode = $$"""
             {{accessibility}} {{classModifiers}} {{classType}} {{className}}
             {
@@ -188,6 +201,12 @@ public static class SymbolStringRepresentationExtensions
             }
             """;
 
+        if (isGenericType)
+        {
+            stringClassRepresentations.Add(className, genericCode);
+            return stringClassRepresentations;
+        }
+        
         stringClassRepresentations.Add(className, classCode);
         return stringClassRepresentations;
     }
@@ -196,6 +215,11 @@ public static class SymbolStringRepresentationExtensions
     {
         if (!argument.IsPrimitive())
         {
+            if (argument.ToString() == "object" || argument.ToString() == "object?")
+            {
+                return;
+            }
+
             var propertyClassTypeString = argument.GenerateClassString();
 
             foreach (var classStringRepresentation in propertyClassTypeString)
