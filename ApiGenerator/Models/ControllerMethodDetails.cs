@@ -42,7 +42,7 @@ public class ControllerMethodDetails
 
         if (this.ReturnType != null)
         {
-            this.ReturnTypeString = this.ReturnType.SanitizeClassTypeString();
+            this.ReturnTypeString = this.ReturnType.CheckAndSanitizeClassString();
         }
     }
 

@@ -3,6 +3,7 @@ using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using ApiGenerator.Packaging;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace ApiGenerator;
 
@@ -18,38 +20,76 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 {
     private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
 
-    private static readonly DiagnosticDescriptor FailureDescriptor = new DiagnosticDescriptor("META001", "CMS Meta Failure", "{0}",
-            "Failure",
-            DiagnosticSeverity.Warning, isEnabledByDefault: true, description: "The CMS Meta Generation failed.");
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.NoControllersDetected);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(FailureDescriptor);
+    private IEnumerable<string> GetNamespaces(INamespaceSymbol namespaceSymbol)
+    {
+        yield return namespaceSymbol.ToString();
+
+        foreach (var childNamespace in namespaceSymbol.GetNamespaceMembers())
+        {
+            foreach (var name in GetNamespaces(childNamespace))
+            {
+                yield return name;
+            }
+        }
+    }
 
     public void Execute(CompilationAnalysisContext context)
     {
-        var configuration = Configuration.ParseConfiguration(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
+        //var x = context.Compilation.DirectiveReferences;
+        //var y = context.Compilation.GetUsedAssemblyReferences();
+        //var z = context.Compilation.ReferencedAssemblyNames;
+        //var a = context.Compilation.References;
+        //var b = context.Compilation.SourceModule;
+        //var c = context.Compilation.Assembly.NamespaceNames;
 
-        if (!configuration.GenerateClientOnBuild)
+
+        Configuration.ParseConfiguration(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
+
+        if (!Configuration.GenerateClientOnBuild)
         {
             return;
         }
 
         //context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("12345", "title", "messageformat", "category", DiagnosticSeverity.Error, true), Location.None, DiagnosticSeverity.Error));
-        var controllerClientBuilder = new ControllerClientBuilder();
         var completeControllerDetailList = new List<ControllerClientDetails>();
         var projectName = context.Compilation.AssemblyName;
+        var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
+        var projectInformation = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
+
+        var globalNamespaces = GetNamespaces(context.Compilation.GlobalNamespace).ToList();
+
+        foreach (var assemblyName in projectInformation.PackageReferences)
+        {
+            var namespaces = globalNamespaces.Where(x => x.StartsWith(assemblyName.PackageName));
+
+            if (namespaces.Count() != 0)
+            {
+                assemblyName.Namespaces = namespaces;
+            }
+        }
+
+        var projectAssemblyNamespaces = globalNamespaces.Where(x => x.StartsWith(projectName));
+        Configuration.ProjectAssemblyNamespaces = projectAssemblyNamespaces;
+        var controllerClientBuilder = new ControllerClientBuilder();
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
-        this.clientGenerators.Add(new CSharpClientGenerator(configuration, projectName));
+        this.clientGenerators.Add(new CSharpClientGenerator(projectName));
 
         foreach (var tree in context.Compilation.SyntaxTrees)
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
+            //emanticModel.get
+            var lol = semanticModel.LookupNamespacesAndTypes(0);
+
+            var hmm = tree.GetRoot().DescendantNodes().OfType<NamespaceDeclarationSyntax>().ToList();
 
             // check for minimal APIs
             // TODO not added right now, fix it
             controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
 
-            // TODO right now is always true because the metadata is there wtf...
+            // TODO right now is always true because the metadata is there...
             // maybe just remove it altogether
             if (!semanticModel.ContainsControllerTypes())
             {
@@ -75,14 +115,23 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         }
 
-        // TODO error when there are no clients (possible diagnostic warning)
+        if (completeControllerDetailList.Count == 0 || context.Compilation.SyntaxTrees.Count() == 0)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoControllersDetected, Location.None));
+            return;
+        }
 
+
+        // TODO filepath?
         var fileDirectory = "C:\\Workspace\\TestingApp\\TestingApp\\Test\\";
         //var fileDirectory = "C:\\Masterarbeit\\testProjFolder\\NugetTest";
 
+        // TODO put this in final versions
+        var outDirectory = PackageUtilities.FindProjectFileDirectory(context.Compilation.SyntaxTrees.First().FilePath);
+
         foreach (var clientGenerator in this.clientGenerators)
         {
-            if (configuration.UseSeparateClientFiles)
+            if (Configuration.UseSeparateClientFiles)
             {
                 foreach (var controllerDetail in completeControllerDetailList)
                 {
@@ -95,12 +144,9 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             }
         }
 
-        var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
-        var projectInformation = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
-
         var version = projectInformation.Version;
 
-        if (configuration.UseGitVersionInformation)
+        if (Configuration.UseGitVersionInformation)
         {
             var gitVersionInformation = PackageUtilities.GetProjectVersionInformation(Path.GetDirectoryName(csprojFilePath));
 
@@ -110,9 +156,27 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             }
         }
 
-        XmlUtilities.CreateProjectFile(projectInformation.PackageReferences, fileDirectory, $"{projectName}.csproj", version);
+        var allUsings = completeControllerDetailList.Select(x => x.AdditionalUsings).Aggregate((a, b) => a.Union(b).ToList());
+        var finalReferences = new List<PackageDetails>();
 
-        if (configuration.CreateNugetPackageOnBuild)
+        foreach (var packageDetail in projectInformation.PackageReferences)
+        {
+            foreach (var singleUsing in allUsings)
+            {
+                if (packageDetail.Namespaces.Contains(singleUsing))
+                {
+                    if (!finalReferences.Contains(packageDetail))
+                    {
+                        finalReferences.Add(packageDetail);
+                    }
+
+                }
+            }
+        }
+
+        XmlUtilities.CreateProjectFile(finalReferences, fileDirectory, $"{projectName}.csproj", version);
+
+        if (Configuration.CreateNugetPackageOnBuild)
         {
             PackageUtilities.CreateNugetPackage(fileDirectory);
         }

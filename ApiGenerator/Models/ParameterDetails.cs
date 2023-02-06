@@ -1,6 +1,7 @@
 ﻿using ApiGenerator.Extensions;
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ApiGenerator.Models;
@@ -15,7 +16,8 @@ public class ParameterDetails
         this.IsPrimitive = isPrimitive;
         this.AttributeDetails = parameterAttributeDetails;
         this.HeaderKeys = headerKeys;
-        this.ParameterTypeString = parameterSymbol.Type.SanitizeClassTypeString();
+
+        this.ParameterTypeString = parameterSymbol.Type.CheckAndSanitizeClassString();
 
         if (parameterAttributeDetails.HasNoAttributes && isPrimitive)
         {

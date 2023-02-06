@@ -19,6 +19,32 @@ namespace SimpleWebApi.Controllers
         }
 
 
+        [Route("getmore/{id}")]
+        [HttpGet]
+        public IEnumerable<WeatherForecast> GetMore(int id, [FromHeader] string some, [FromQuery] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
+        {
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateTime.Now.AddDays(index),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+            .ToArray();
+        }
+
+        [Route("{id}/getmore")]
+        [HttpGet]
+        public IEnumerable<WeatherForecast> GetMore2(int id, [FromHeader] string some, [FromQuery] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
+        {
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateTime.Now.AddDays(index),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+            .ToArray();
+        }
+
         [Route("get1")]
         [HttpGet]
         public ActionResult Get1(AllAttributes some)
@@ -30,7 +56,7 @@ namespace SimpleWebApi.Controllers
         [HttpGet]
         public ActionResult Get2(SomeAttributes some)
         {
-            return Ok(new { A = some.MineString, B = some.Second});
+            return Ok(new { A = some.MineString, B = some.Second });
         }
 
         [Route("get3")]
@@ -61,22 +87,9 @@ namespace SimpleWebApi.Controllers
             return Ok(new { A = some.MineString, B = some.Second });
         }
 
-        [Route("getmore")]
-        [HttpGet]
-        public IEnumerable<WeatherForecast> GetMore([FromHeader] string some)
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
 
-        
 
-        
+
     }
 
     public class DataResponse<TGeneric>

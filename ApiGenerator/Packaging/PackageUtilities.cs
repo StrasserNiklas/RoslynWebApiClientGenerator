@@ -35,19 +35,20 @@ public static class PackageUtilities
     {
         if (compilation.SyntaxTrees.Count() != 0)
         {
-            return FindProjectFilePath(compilation.SyntaxTrees.First().FilePath);
+            var directoryPath = FindProjectFileDirectory(compilation.SyntaxTrees.First().FilePath);
+            return FindProjectFilePath(directoryPath);
         }
 
         return string.Empty;
     }
 
-    private static string FindProjectFilePath(string filePath)
+    public static string FindProjectFileDirectory(string filePath)
     {
         string[] files = Directory.GetFiles(Path.GetDirectoryName(filePath), "*.csproj");
 
         if (files.Count() != 0)
         {
-            return files.First();
+            return Path.GetDirectoryName(filePath);
         }
 
         string parentPath = Directory.GetParent(filePath)?.FullName;
@@ -57,7 +58,19 @@ public static class PackageUtilities
             return string.Empty;
         }
 
-        return FindProjectFilePath(parentPath);
+        return FindProjectFileDirectory(parentPath);
+    }
+
+    private static string FindProjectFilePath(string directoryPath)
+    {
+        string[] files = Directory.GetFiles(directoryPath, "*.csproj");
+
+        if (files.Count() != 0)
+        {
+            return files.First();
+        }
+
+        return string.Empty;
     }
 
     public static string GetProjectVersionInformation(string directoryPath)

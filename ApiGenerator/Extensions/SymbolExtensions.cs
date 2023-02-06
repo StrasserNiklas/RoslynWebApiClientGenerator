@@ -126,6 +126,35 @@ public static class SymbolExtensions
 
     // TODO is this just dumb because we could just use ToString() ? but maybe only when we are not creating our classes ourselves!
     // this should probably only be used when generating the classes ourselves (so either all classes or basically the classes which come from our own assembly (the api))
+    
+    public static string CheckAndSanitizeClassString(this ITypeSymbol typeSymbol)
+    {
+        if (Configuration.UseExternalAssemblyContracts)
+        {
+            if (typeSymbol is IArrayTypeSymbol arrayTypeSymbol)
+            {
+                typeSymbol = arrayTypeSymbol.ElementType;
+            }
+
+            if (Configuration.ProjectAssemblyNamespaces.Contains(typeSymbol.ContainingNamespace.ToString()))
+            {
+                return typeSymbol.SanitizeClassTypeString();
+            }
+            else if (typeSymbol is INamedTypeSymbol namedTypeSymbol &&  namedTypeSymbol.IsGenericType)
+            {
+                return typeSymbol.SanitizeClassTypeString();
+            }
+            else
+            {
+                return typeSymbol.ToString();
+            }
+        }
+        else
+        {
+            return typeSymbol.SanitizeClassTypeString();
+        }
+    }
+    
     public static string SanitizeClassTypeString(this ISymbol symbol)
     {
         if (symbol is null)
@@ -159,7 +188,7 @@ public static class SymbolExtensions
 
                 for (int i = 0; i < namedTypeSymbol.TypeArguments.Count(); i++)
                 {
-                    typeString += namedTypeSymbol.TypeArguments[i].SanitizeClassTypeString();
+                    typeString += namedTypeSymbol.TypeArguments[i].CheckAndSanitizeClassString();//SanitizeClassTypeString();
 
                     if (i != namedTypeSymbol.TypeArguments.Count() - 1)
                     {

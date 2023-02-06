@@ -17,6 +17,7 @@ public class ControllerClientBuilder
         { "MapGet", HttpMethod.Get} , { "MapPost" , HttpMethod.Post }, { "MapPut" , HttpMethod.Put }, { "MapDelete" , HttpMethod.Delete }
     };//, "Map", "MapWhen" }; MapMethods
 
+
     public IEnumerable<ControllerClientDetails> GetControllerClientDetails(IEnumerable<ClassDeclarationSyntax> classNodes, SemanticModel semanticModel)
     {
         foreach (var classNode in classNodes)
@@ -30,7 +31,6 @@ public class ControllerClientBuilder
 
             if (classSymbol.IsApiController(semanticModel))
             {
-                var authorizeAttribute = classSymbol.GetAttribute("Microsoft.AspNetCore.Authorization.AuthorizeAttribute");
                 var routeAttribute = classSymbol.GetRouteAttribute();
                 var clientInformation = new ControllerClientDetails(classSymbol.Name, routeAttribute);
 
@@ -49,7 +49,8 @@ public class ControllerClientBuilder
 
     private void AddControllerMethods(IEnumerable<ISymbol> methods, ControllerClientDetails clientInformation)
     {
-        IDictionary<string, string> generatedClasses = new Dictionary<string, string>();
+        var generatedClasses = new Dictionary<string, string>();
+        var additionalUsings = new List<string>();
 
         foreach (var method in methods)
         {
@@ -91,7 +92,10 @@ public class ControllerClientBuilder
 
                     if (!methodParameter.Type.IsPrimitive())
                     {
-                        generatedClasses.AddMany(methodParameter.Type.GenerateClassString());
+                        // TODO but do generate classes from own assembly
+                        var generatedClassDetails = methodParameter.Type.GenerateClassString();
+                        additionalUsings.AddRange(generatedClassDetails.AdditionalUsings);
+                        generatedClasses.AddMany(generatedClassDetails.GeneratedCodeClasses);
                     }
 
                     var parameterAttributeDetails = new ParameterAttributeDetails(fromBody, fromQuery, fromHeader, fromRoute, fromForm);
@@ -99,12 +103,13 @@ public class ControllerClientBuilder
                 }
 
                 var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
-                var additionalReturnTypes = this.AddMethodResponseTypes(methodSymbol, returnType, generatedClasses);
+                var additionalReturnTypes = this.AddMethodResponseTypes(methodSymbol, returnType, generatedClasses, additionalUsings);
                 var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, additionalReturnTypes, parameterMapping, methodNameWithoutAsnyc, finalRoute);
                 clientInformation.HttpMethods.Add(httpMethodInformation);
             }
         }
 
+        clientInformation.AdditionalUsings = additionalUsings;
         clientInformation.GeneratedCodeClasses = generatedClasses;
     }
 
@@ -172,7 +177,7 @@ public class ControllerClientBuilder
         return returnType;
     }
 
-    private List<KeyValuePair<int, ITypeSymbol>> AddMethodResponseTypes(IMethodSymbol methodSymbol, ITypeSymbol returnType, IDictionary<string, string> generatedClasses)
+    private List<KeyValuePair<int, ITypeSymbol>> AddMethodResponseTypes(IMethodSymbol methodSymbol, ITypeSymbol returnType, IDictionary<string, string> generatedClasses, List<string> additionalUsings)
     {
         var responseTypeAttributes = methodSymbol.GetAttributes("Microsoft.AspNetCore.Mvc.ProducesResponseTypeAttribute");
         var additionalReturnTypes = new List<KeyValuePair<int, ITypeSymbol>>();
@@ -183,7 +188,9 @@ public class ControllerClientBuilder
             if (responseTypeAttribute.ConstructorArguments.Count() > 1)
             {
                 var responseType = responseTypeAttribute.ConstructorArguments[0].Value as ITypeSymbol;
-                generatedClasses.AddMany(responseType.GenerateClassString());
+                var generatedCodeDetails = responseType.GenerateClassString();
+                additionalUsings.AddRange(generatedCodeDetails.AdditionalUsings);
+                generatedClasses.AddMany(generatedCodeDetails.GeneratedCodeClasses);
                 var code = int.Parse(responseTypeAttribute.ConstructorArguments[1].Value.ToString());
                 var exists = additionalReturnTypes.SingleOrDefault(x => x.Key == code);
 
@@ -209,7 +216,9 @@ public class ControllerClientBuilder
 
         if (returnType != null)
         {
-            generatedClasses.AddMany(returnType.GenerateClassString());
+            var generatedCodeDetails = returnType.GenerateClassString();
+            additionalUsings.AddRange(generatedCodeDetails.AdditionalUsings);
+            generatedClasses.AddMany(generatedCodeDetails.GeneratedCodeClasses);
 
             var exists = additionalReturnTypes.SingleOrDefault(x => x.Value.Name == returnType.Name);
 

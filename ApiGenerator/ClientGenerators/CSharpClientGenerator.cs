@@ -1,6 +1,7 @@
 ﻿using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using Microsoft.CodeAnalysis;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace ApiGenerator.ClientGenerators;
 
 public class CSharpClientGenerator : ClientGeneratorBase
 {
-    public CSharpClientGenerator(Configuration configuration, string projectName) : base(configuration, projectName) { }
+    public CSharpClientGenerator( string projectName) : base(projectName) { }
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
@@ -30,7 +31,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         foreach (var controllerClient in controllerClientDetails)
         {
-            if (this.Configuration.UseInterfacesForClients)
+            if (Configuration.UseInterfacesForClients)
             {
                 clientCodeStringBuilder.AppendLine(this.AddClientInterfaceWithMethods(controllerClient));
             }
@@ -43,7 +44,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             //     This file was auto generated.
             // </auto-generated>
 
-            {{this.AddUsings()}}
+            {{this.AddUsings(controllerClientDetails.Select(x => x.AdditionalUsings).Aggregate((a, b) => a.Union(b).ToList()))}}
 
             namespace {{this.ProjectName}}.CSharp
             {
@@ -68,8 +69,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             methodsBuilder.AppendLine(this.GenerateSingleEndpointMethod(method));
         }
 
-        var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
-        var interfaceString = this.Configuration.UseInterfacesForClients ? $": I{controllerClientDetails.Name}" : string.Empty;
+        var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+        var interfaceString = Configuration.UseInterfacesForClients ? $": I{controllerClientDetails.Name}" : string.Empty;
 
         return $$"""
             public{{partialString}} class {{controllerClientDetails.Name}} {{interfaceString}}
@@ -210,7 +211,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         {
             if (pair.Value is not null)
             {
-                var cleanClassValue = pair.Value.SanitizeClassTypeString();
+                var cleanClassValue = pair.Value.CheckAndSanitizeClassString();//SanitizeClassTypeString();
 
                 var methodErrorReturnString = methodDetails.ReturnType is not null ? $"""
                     return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
@@ -309,7 +310,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             interfaceMethodsStringBuilder.AppendLine(this.GenerateInterfaceMethod(method));
         }
 
-        var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+        var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
 
         return $$"""
             public{{partialString}} interface I{{controllerClientDetails.Name}}
@@ -344,25 +345,34 @@ public class CSharpClientGenerator : ClientGeneratorBase
     // TODO doesnt work yet, what do I need to do so I have the right assembly?
     private string AddUsings(IEnumerable<string> additionalUsings = null)
     {
-        var stringBuilder = new StringBuilder();
+        IEnumerable<string> finalList = new List<string>();
 
-        stringBuilder.AppendLine("""
-            using System;
-            using System.Threading;
-            using System.Threading.Tasks;
-            using System.Net;
-            using System.Net.Http;
-            using System.Net.Http.Headers;
-            using System.Text;
-            using System.Text.Json;
-            """);
+        var baseList = new List<string>()
+        {
+            "System",
+            "System.Threading",
+            "System.Threading.Tasks",
+            "System.Net",
+            "System.Net.Http",
+            "System.Net.Http.Headers",
+            "System.Text",
+            "System.Text.Json",
+        };
+
+        var stringBuilder = new StringBuilder();
 
         if (additionalUsings is not null)
         {
-            foreach (var singleUsing in additionalUsings)
-            {
-                stringBuilder.AppendLine($"using {singleUsing};");
-            }
+            finalList = baseList.Union(additionalUsings);
+        }
+        else
+        {
+            finalList = baseList;
+        }
+
+        foreach (var usingString in finalList)
+        {
+            stringBuilder.AppendLine($"using {usingString};");
         }
 
         return stringBuilder.ToString();

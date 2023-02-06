@@ -12,7 +12,7 @@ namespace ApiGenerator;
 
 public class CSharpClientGeneratorV2 : ClientGeneratorBase
 {
-    public CSharpClientGeneratorV2(Configuration configuration, string projectName) : base(configuration, projectName) { }
+    public CSharpClientGeneratorV2(string projectName) : base(projectName) { }
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
@@ -32,7 +32,7 @@ public class CSharpClientGeneratorV2 : ClientGeneratorBase
 
         foreach (var controllerClient in controllerClientDetails)
         {
-            if (this.Configuration.UseInterfacesForClients)
+            if (Configuration.UseInterfacesForClients)
             {
                 clientCodeStringBuilder.AppendLine(this.AddClientInterfaceWithMethods(controllerClient));
             }
@@ -70,8 +70,8 @@ public class CSharpClientGeneratorV2 : ClientGeneratorBase
             methodsBuilder.AppendLine(this.GenerateSingleEndpointMethod(method));
         }
 
-        var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
-        var interfaceString = this.Configuration.UseInterfacesForClients ? $": I{controllerClientDetails.Name}" : string.Empty;
+        var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+        var interfaceString = Configuration.UseInterfacesForClients ? $": I{controllerClientDetails.Name}" : string.Empty;
 
         return $$"""
             public{{partialString}} class {{controllerClientDetails.Name}} {{interfaceString}}
@@ -179,7 +179,7 @@ public class CSharpClientGeneratorV2 : ClientGeneratorBase
         {
             if (pair.Value is not null)
             {
-                var cleanClassValue = pair.Value.SanitizeClassTypeString();
+                var cleanClassValue = pair.Value.CheckAndSanitizeClassString();//SanitizeClassTypeString();
 
                 var methodErrorReturnString = methodDetails.ReturnType is not null ? $"""
                     return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
@@ -278,7 +278,7 @@ public class CSharpClientGeneratorV2 : ClientGeneratorBase
             interfaceMethodsStringBuilder.AppendLine(this.GenerateInterfaceMethod(method));
         }
 
-        var partialString = this.Configuration.UsePartialClientClasses ? " partial" : string.Empty;
+        var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
 
         return $$"""
             public{{partialString}} interface I{{controllerClientDetails.Name}}

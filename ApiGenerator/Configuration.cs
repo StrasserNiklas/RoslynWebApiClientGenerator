@@ -17,17 +17,19 @@ public class Configuration
         { "build_property.ApiClientGenerator_UseGitVersionInformation", false },
     };
 
-    public bool GenerateClientOnBuild { get; set; } = true;
+    public static IEnumerable<string> ProjectAssemblyNamespaces { get; set; } = new List<string>();
+
+    public static bool GenerateClientOnBuild { get; set; } = true;
 
     // TODO use this!
-    public bool UseExternalAssemblyContracts { get; set; } = true;
-    public bool UseSeparateClientFiles { get; set; } = false;
-    public bool UseInterfacesForClients { get; set; } = true;
-    public bool UsePartialClientClasses { get; set; } = true;
-    public bool CreateNugetPackageOnBuild { get; set; } = true;
-    public bool UseGitVersionInformation { get; set; } = true;
+    public static bool UseExternalAssemblyContracts { get; set; } = true;
+    public static bool UseSeparateClientFiles { get; set; } = false;
+    public static bool UseInterfacesForClients { get; set; } = true;
+    public static bool UsePartialClientClasses { get; set; } = true;
+    public static bool CreateNugetPackageOnBuild { get; set; } = true;
+    public static bool UseGitVersionInformation { get; set; } = true;
 
-    public static Configuration ParseConfiguration(AnalyzerConfigOptions globalOptions)
+    public static void ParseConfiguration(AnalyzerConfigOptions globalOptions)
     {
         foreach (var item in buildPropertiesWithBooleanDefaultValue)
         {
@@ -37,15 +39,13 @@ public class Configuration
             }
         }
 
-        return new Configuration()
-        {
-            GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateClientOnBuild"],
-            UseExternalAssemblyContracts = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseExternalAssemblyContracts"],
-            UseSeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseSeparateClientFiles"],
-            UseInterfacesForClients = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseInterfacesForClients"],
-            UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UsePartialClientClasses"],
-            UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseGitVersionInformation"],
-            CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_CreateNugetPackageOnBuild"]
-        };
+
+        GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateClientOnBuild"];
+        UseExternalAssemblyContracts = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseExternalAssemblyContracts"];
+        UseSeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseSeparateClientFiles"];
+        UseInterfacesForClients = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseInterfacesForClients"];
+        UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UsePartialClientClasses"];
+        UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseGitVersionInformation"];
+        CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_CreateNugetPackageOnBuild"];
     }
 }

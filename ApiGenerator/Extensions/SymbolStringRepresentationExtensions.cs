@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ApiGenerator.Models;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,20 @@ namespace ApiGenerator.Extensions;
 
 public static class SymbolStringRepresentationExtensions
 {
-    public static IDictionary<string, string> GenerateClassString(this ITypeSymbol symbol)
+    public static ClassGenerationDetails GenerateClassString(this ITypeSymbol symbol)
     {
+        var classGenerationDetails = new ClassGenerationDetails();
+
         //MetadataReference.
         var assembly = symbol.ContainingAssembly;
+        var symbolNamespace = symbol.ContainingNamespace.ToString();
 
-        var stringClassRepresentations = new Dictionary<string, string>();
+        if (Configuration.UseExternalAssemblyContracts && !Configuration.ProjectAssemblyNamespaces.Contains(symbolNamespace))
+        {
+            classGenerationDetails.AdditionalUsings.Add(symbolNamespace);
+            return classGenerationDetails;
+        }
+
         string className = symbol.Name;
         string accessibility = symbol.DeclaredAccessibility.ToString().ToLowerInvariant();
         string classModifiers = string.Empty;
@@ -34,14 +43,14 @@ public static class SymbolStringRepresentationExtensions
         // TODO keep an eye on this
         if (symbol.TypeKind == TypeKind.Struct || symbol.IsPrimitive())
         {
-            return stringClassRepresentations;
+            return classGenerationDetails;
         }
 
         if (symbol.TypeKind == TypeKind.Enum)
         {
             var enumString = symbol.GenerateEnumClassString();
-            stringClassRepresentations.Add(className, enumString);
-            return stringClassRepresentations;
+            classGenerationDetails.GeneratedCodeClasses.Add(className, enumString);
+            return classGenerationDetails;
         }
 
         // TODO what about classes that inherit from it shrug
@@ -49,10 +58,10 @@ public static class SymbolStringRepresentationExtensions
         {
             foreach (var argument in namedTypeSymbol.TypeArguments)
             {
-                CheckAndGenerateClassString(argument, stringClassRepresentations);
+                CheckAndGenerateClassString(argument, classGenerationDetails);
             }
 
-            return stringClassRepresentations;
+            return classGenerationDetails;
         }
 
         var classMemberBuilder = new StringBuilder();
@@ -63,6 +72,7 @@ public static class SymbolStringRepresentationExtensions
         var genericConstructorAssignmentStringBuilder = new StringBuilder();
         var genericClassName = string.Empty;
 
+        // TODO do generics (namespace...)
         if (symbol is INamedTypeSymbol namedTypeSymbolWithArguments && namedTypeSymbolWithArguments.IsGenericType)
         {
             isGenericType = namedTypeSymbolWithArguments.IsGenericType;
@@ -71,7 +81,7 @@ public static class SymbolStringRepresentationExtensions
 
             foreach (var argument in namedTypeSymbolWithArguments.TypeArguments)
             {
-                CheckAndGenerateClassString(argument, stringClassRepresentations);
+                CheckAndGenerateClassString(argument, classGenerationDetails);
             }
 
             // this will only work if the type is contained in the API assembly (not in project references etc.)
@@ -79,8 +89,8 @@ public static class SymbolStringRepresentationExtensions
             {
                 var syntax = declaration.GetSyntax();
                 var genericCodeSyntax = syntax.ToFullString();
-                stringClassRepresentations.Add(genericClassName, genericCodeSyntax);
-                return stringClassRepresentations;
+                classGenerationDetails.GeneratedCodeClasses.Add(genericClassName, genericCodeSyntax);
+                return classGenerationDetails;
             }
             else
             {
@@ -143,19 +153,49 @@ public static class SymbolStringRepresentationExtensions
                 {
                     if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum || propertyTypeSymbol.TypeKind == TypeKind.Interface)
                     {
-                        CheckAndGenerateClassString(propertyTypeSymbol, stringClassRepresentations);
+                        //if (useExternalAssemblyContracts)
+                        //{
+                        //    var propertySymbolNamespace = propertyTypeSymbol.ContainingNamespace.ToString();
+
+                        //    if (projectAssemblyNamespaces.Contains(propertySymbolNamespace))
+                        //    {
+                        //        CheckAndGenerateClassString(propertyTypeSymbol, classGenerationDetails, useExternalAssemblyContracts, projectAssemblyNamespaces);
+                        //    }
+                        //    else
+                        //    {
+                        //        classGenerationDetails.AdditionalUsings.Add(propertySymbolNamespace);
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    CheckAndGenerateClassString(propertyTypeSymbol, classGenerationDetails, useExternalAssemblyContracts, projectAssemblyNamespaces);
+                        //}
+                        CheckAndGenerateClassString(propertyTypeSymbol, classGenerationDetails);
                     }
 
-                    if (propertyTypeSymbol.TypeArguments.Count() != 0)
+
+                    // TODO check and add namespace stuff here or if this is even called anymore lol -> zum beispiel nullable lol
+                    if (propertyTypeSymbol.IsGenericType)
                     {
                         foreach (var argument in propertyTypeSymbol.TypeArguments)
                         {
-                            CheckAndGenerateClassString(argument, stringClassRepresentations);
+                            CheckAndGenerateClassString(argument, classGenerationDetails);
                         }
                     }
                 }
 
-                var outputString = property.Type.SanitizeClassTypeString();
+                if (property.Name == "Parameters")
+                {
+
+                }
+
+                var outputString = property.Type.CheckAndSanitizeClassString();
+                
+
+                //if (!Configuration.UseExternalAssemblyContracts || Configuration.ProjectAssemblyNamespaces.Contains(property.Type.ContainingNamespace.ToString()))
+                //{
+                //    outputString = property.Type.SanitizeClassTypeString();
+                //}
 
                 // TODO check if set is available? <- what does he mean?
                 classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
@@ -166,7 +206,7 @@ public static class SymbolStringRepresentationExtensions
             {
                 if (methodSymbol.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
                 {
-                    CheckAndGenerateClassString(arrayTypeSymbol.ElementType, stringClassRepresentations);
+                    CheckAndGenerateClassString(arrayTypeSymbol.ElementType, classGenerationDetails);
                 }
             }
             else
@@ -175,7 +215,7 @@ public static class SymbolStringRepresentationExtensions
                 {
                     foreach (var argument in typeSymbol.TypeArguments)
                     {
-                        CheckAndGenerateClassString(argument, stringClassRepresentations);
+                        CheckAndGenerateClassString(argument, classGenerationDetails);
                     }
                 }
             }
@@ -203,15 +243,15 @@ public static class SymbolStringRepresentationExtensions
 
         if (isGenericType)
         {
-            stringClassRepresentations.Add(className, genericCode);
-            return stringClassRepresentations;
+            classGenerationDetails.GeneratedCodeClasses.Add(className, genericCode);
+            return classGenerationDetails;
         }
-        
-        stringClassRepresentations.Add(className, classCode);
-        return stringClassRepresentations;
+
+        classGenerationDetails.GeneratedCodeClasses.Add(className, classCode);
+        return classGenerationDetails;
     }
 
-    private static void CheckAndGenerateClassString(ITypeSymbol argument, IDictionary<string, string> stringClassRepresentations)
+    private static void CheckAndGenerateClassString(ITypeSymbol argument, ClassGenerationDetails classGenerationDetails)
     {
         if (!argument.IsPrimitive())
         {
@@ -220,13 +260,21 @@ public static class SymbolStringRepresentationExtensions
                 return;
             }
 
-            var propertyClassTypeString = argument.GenerateClassString();
+            var classGenerationDetailResult = argument.GenerateClassString();
 
-            foreach (var classStringRepresentation in propertyClassTypeString)
+            foreach (var classStringRepresentation in classGenerationDetailResult.GeneratedCodeClasses)
             {
-                if (!stringClassRepresentations.ContainsKey(classStringRepresentation.Key))
+                if (!classGenerationDetails.GeneratedCodeClasses.ContainsKey(classStringRepresentation.Key))
                 {
-                    stringClassRepresentations.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                    classGenerationDetails.GeneratedCodeClasses.Add(classStringRepresentation.Key, classStringRepresentation.Value);
+                }
+            }
+
+            foreach (var usingString in classGenerationDetailResult.AdditionalUsings)
+            {
+                if (!classGenerationDetails.AdditionalUsings.Contains(usingString))
+                {
+                    classGenerationDetails.AdditionalUsings.Add(usingString);
                 }
             }
         }

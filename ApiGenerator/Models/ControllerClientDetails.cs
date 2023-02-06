@@ -19,6 +19,14 @@ public class ControllerClientDetails
         this.HttpMethods = new List<ControllerMethodDetails>();
         this.GeneratedCodeClasses = new Dictionary<string, string>();
         this.IsMinimalApiClient = isMinimalApiClient;
+
+
+
+
+
+
+        this.ReferencedAssemblyNamespaces = new Dictionary<string, string>();
+        this.AdditionalUsings = new List<string>();
     }
 
     public string Name { get; }
@@ -26,4 +34,12 @@ public class ControllerClientDetails
     public List<ControllerMethodDetails> HttpMethods { get; set; }
     public IDictionary<string, string> GeneratedCodeClasses { get; set; }
     public bool IsMinimalApiClient { get; }
+
+
+
+
+
+    public List<string> AdditionalUsings { get; set; }
+    public IDictionary<string, string> ReferencedAssemblyNamespaces { get; set; }
+
 }
