@@ -24,7 +24,7 @@ public static class XmlUtilities
         </Project>
         """;
 
-    public static string CreateProjectFile(List<PackageDetails> packageReferences, string fileDirectory, string fileName, string version = "1.0.0")
+    public static string CreateProjectFile(IEnumerable<PackageDetails> packageReferences, string fileDirectory, string fileName, string version = "1.0.0")
     {
         XmlDocument doc = new XmlDocument();
 

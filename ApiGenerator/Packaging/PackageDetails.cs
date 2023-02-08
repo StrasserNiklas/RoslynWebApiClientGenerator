@@ -4,7 +4,7 @@ namespace ApiGenerator.Packaging;
 
 public class PackageDetails
 {
-    public PackageDetails(string packageName, string versionInfo)
+    public PackageDetails(string packageName, string versionInfo = "latest")
     {
         PackageName = packageName;
         VersionInfo = versionInfo;
@@ -12,7 +12,7 @@ public class PackageDetails
     }
 
     public string PackageName { get; }
-    public string VersionInfo { get; }
+    public string VersionInfo { get; set; }
     public IEnumerable<string> Namespaces { get; set; }
 
 }

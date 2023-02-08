@@ -20,7 +20,10 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
         DiagnosticDescriptors.NoControllersDetected,
-        DiagnosticDescriptors.NoClientGenerated);
+        DiagnosticDescriptors.NoClientGenerated,
+        DiagnosticDescriptors.NuGetGenerationFailed,
+        DiagnosticDescriptors.NoSyntaxTreesFound,
+        DiagnosticDescriptors.GenericWarning);
 
     public void Execute(CompilationAnalysisContext context)
     {
@@ -40,23 +43,12 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             return;
         }
 
-        var projectName = context.Compilation.AssemblyName;
         var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
-        var projectInformation = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
-        var globalNamespaces = GetNamespaces(context.Compilation.GlobalNamespace).ToList();
-
-        foreach (var assemblyName in projectInformation.PackageReferences)
-        {
-            var namespaces = globalNamespaces.Where(x => x.StartsWith(assemblyName.PackageName));
-
-            if (namespaces.Count() != 0)
-            {
-                assemblyName.Namespaces = namespaces;
-            }
-        }
-
-        var projectAssemblyNamespaces = globalNamespaces.Where(x => x.StartsWith(projectName));
-        Configuration.ProjectAssemblyNamespaces = projectAssemblyNamespaces;
+        var projectDetails = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
+        var globalNamespaces = this.GetNamespaces(context.Compilation.GlobalNamespace).ToList();
+        this.MapNamespacesToPackages(projectDetails, globalNamespaces);
+        var projectName = context.Compilation.AssemblyName;
+        Configuration.ProjectAssemblyNamespaces = globalNamespaces.Where(x => x.StartsWith(projectName));
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
         this.clientGenerators.Add(new CSharpClientGenerator(projectName));
@@ -70,6 +62,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         }
 
         // TODO testing
+        // add this to config?
         var fileDirectory = "C:\\Workspace\\TestingApp\\TestingApp\\Test\\";
 
         var outDirectory = PackageUtilities.FindProjectFileDirectory(context.Compilation.SyntaxTrees.First().FilePath) + "\\out";
@@ -89,43 +82,9 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             }
         }
 
-        var version = projectInformation.Version;
-
-        if (Configuration.UseGitVersionInformation)
-        {
-            var gitVersionInformation = PackageUtilities.GetProjectVersionInformation(Path.GetDirectoryName(csprojFilePath));
-
-            if (!string.IsNullOrWhiteSpace(gitVersionInformation))
-            {
-                version = gitVersionInformation;
-            }
-        }
-
+        var version = this.GetPackageVersion(projectDetails, csprojFilePath);
         var allAdditionalUsings = completeControllerDetailList.Select(x => x.AdditionalUsings).Aggregate((a, b) => a.Union(b).ToList());
-        var finalReferences = new List<PackageDetails>();
-
-        foreach (var packageDetail in projectInformation.PackageReferences)
-        {
-            if (Configuration.ConfiguredPackageReferences.Contains(packageDetail.PackageName))
-            {
-                if (!finalReferences.Contains(packageDetail))
-                {
-                    finalReferences.Add(packageDetail);
-                }
-            }
-
-            foreach (var singleUsing in allAdditionalUsings)
-            {
-                if (packageDetail.Namespaces.Contains(singleUsing))
-                {
-                    if (!finalReferences.Contains(packageDetail))
-                    {
-                        finalReferences.Add(packageDetail);
-                    }
-
-                }
-            }
-        }
+        var finalReferences = this.CompileFinalPackageReferences(projectDetails, allAdditionalUsings);
 
         XmlUtilities.CreateProjectFile(finalReferences, fileDirectory, $"{projectName}.csproj", version);
 
@@ -168,6 +127,75 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         }
 
         return completeControllerDetailList;
+    }
+
+    private string GetPackageVersion(ProjectDetails projectInformation, string csprojFilePath)
+    {
+        var version = projectInformation.Version;
+
+        if (Configuration.UseGitVersionInformation)
+        {
+            var gitVersionInformation = PackageUtilities.GetProjectVersionInformation(Path.GetDirectoryName(csprojFilePath));
+
+            if (!string.IsNullOrWhiteSpace(gitVersionInformation))
+            {
+                version = gitVersionInformation;
+            }
+        }
+
+        return version;
+    }
+
+    private void MapNamespacesToPackages(ProjectDetails projectDetails, List<string> globalNamespaces)
+    {
+        foreach (var assemblyName in projectDetails.PackageReferences)
+        {
+            var namespaces = globalNamespaces.Where(x => x.StartsWith(assemblyName.PackageName));
+
+            if (namespaces.Count() != 0)
+            {
+                assemblyName.Namespaces = namespaces;
+            }
+        }
+    }
+
+    
+
+    private List<PackageDetails> CompileFinalPackageReferences(ProjectDetails projectDetails, List<string> allAdditionalUsings)
+    {
+        var finalReferences = new List<PackageDetails>();
+
+        foreach (var packageDetail in projectDetails.PackageReferences)
+        {
+            var configuredPackage = Configuration.ConfiguredPackageReferences.FirstOrDefault(x => x.PackageName.Contains(packageDetail.PackageName));
+
+            if (configuredPackage is not null)
+            {
+                if (configuredPackage.VersionInfo != "latest")
+                {
+                    packageDetail.VersionInfo = configuredPackage.VersionInfo;
+                }
+
+                if (!finalReferences.Contains(packageDetail))
+                {
+                    finalReferences.Add(packageDetail);
+                }
+            }
+
+            foreach (var singleUsing in allAdditionalUsings)
+            {
+                if (packageDetail.Namespaces.Contains(singleUsing))
+                {
+                    if (!finalReferences.Contains(packageDetail))
+                    {
+                        finalReferences.Add(packageDetail);
+                    }
+
+                }
+            }
+        }
+
+        return finalReferences;
     }
 
     private IEnumerable<string> GetNamespaces(INamespaceSymbol namespaceSymbol)
