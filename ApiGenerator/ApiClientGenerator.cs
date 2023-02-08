@@ -18,12 +18,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 {
     private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        DiagnosticDescriptors.NoControllersDetected,
-        DiagnosticDescriptors.NoClientGenerated,
-        DiagnosticDescriptors.NuGetGenerationFailed,
-        DiagnosticDescriptors.NoSyntaxTreesFound,
-        DiagnosticDescriptors.GenericWarning);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.Descriptors);
 
     public void Execute(CompilationAnalysisContext context)
     {
@@ -167,11 +162,11 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         foreach (var packageDetail in projectDetails.PackageReferences)
         {
-            var configuredPackage = Configuration.ConfiguredPackageReferences.FirstOrDefault(x => x.PackageName.Contains(packageDetail.PackageName));
+            var configuredPackage = Configuration.ConfiguredPackageReferences.FirstOrDefault(configuredPackage => configuredPackage.PackageName == packageDetail.PackageName);
 
             if (configuredPackage is not null)
             {
-                if (configuredPackage.VersionInfo != "latest")
+                if (configuredPackage.VersionInfo != string.Empty)
                 {
                     packageDetail.VersionInfo = configuredPackage.VersionInfo;
                 }
@@ -179,6 +174,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
                 if (!finalReferences.Contains(packageDetail))
                 {
                     finalReferences.Add(packageDetail);
+                    Configuration.ConfiguredPackageReferences.Remove(configuredPackage);
                 }
             }
 
@@ -192,6 +188,14 @@ public class ApiClientGenerator : DiagnosticAnalyzer
                     }
 
                 }
+            }
+        }
+
+        foreach (var configuredPackage in Configuration.ConfiguredPackageReferences)
+        {
+            if (configuredPackage.VersionInfo == string.Empty)
+            {
+                DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.PackageVersionNotFound, Location.None, configuredPackage.PackageName));
             }
         }
 
@@ -210,7 +214,6 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             }
         }
     }
-
 
     public override void Initialize(AnalysisContext context)
     {

@@ -64,13 +64,16 @@ public class Configuration
                         throw new ArgumentException("Format of 'Package:Version' in property ApiClientGenerator_PackageReferences was used incorrectly");
                     }
 
-                    if (packageSplit.Length == 1)
+                    if (packageSplit.Length == 1 && !string.IsNullOrWhiteSpace(packageSplit[0]))
                     {
                         ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0]));
                         continue;
                     }
 
-                    ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0], packageSplit[1]);
+                    if (!string.IsNullOrWhiteSpace(packageSplit[0]) && !string.IsNullOrWhiteSpace(packageSplit[1]))
+                    {
+                        ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0], packageSplit[1]));
+                    }
                 }
             }
         }

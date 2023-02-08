@@ -1,9 +1,20 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 
 namespace ApiGenerator.Diagnostics;
 
 public class DiagnosticDescriptors
 {
+    public static readonly DiagnosticDescriptor[] Descriptors = new DiagnosticDescriptor[]
+    {
+        NoControllersDetected,
+        NoClientGenerated,
+        NuGetGenerationFailed,
+        NoSyntaxTreesFound,
+        GenericWarning,
+        PackageVersionNotFound
+    };
+
     public static readonly DiagnosticDescriptor GenericWarning = new(id: "APIGEN000",
                                                                                               title: "Warning",
                                                                                               messageFormat: "'{0} {1}",
@@ -37,5 +48,12 @@ public class DiagnosticDescriptors
                                                                                           messageFormat: "NuGet client generation failed with error '{0}' ",
                                                                                           category: "ApiClientGenerator",
                                                                                           DiagnosticSeverity.Warning,
+                                                                                          isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor PackageVersionNotFound = new(id: "APIGEN005",
+                                                                                          title: "Package version was not found",
+                                                                                          messageFormat: "Package version was not added and also couldn´t be resolved for package '{0}'",
+                                                                                          category: "ApiClientGenerator",
+                                                                                          DiagnosticSeverity.Error,
                                                                                           isEnabledByDefault: true);
 }
