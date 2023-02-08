@@ -90,16 +90,15 @@ public class ControllerClientBuilder
                         headerKeys = this.GetHeaderValues(methodParameter, method.Name, clientInformation.Name.Replace("Client", "Controller"));
                     }
 
-                    if (!methodParameter.Type.IsPrimitive())
+                    if (!methodParameter.Type.IsSimpleType())
                     {
-                        // TODO but do generate classes from own assembly
                         var generatedClassDetails = methodParameter.Type.GenerateClassString();
                         additionalUsings.AddRange(generatedClassDetails.AdditionalUsings);
                         generatedClasses.AddMany(generatedClassDetails.GeneratedCodeClasses);
                     }
 
                     var parameterAttributeDetails = new ParameterAttributeDetails(fromBody, fromQuery, fromHeader, fromRoute, fromForm);
-                    parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsPrimitive(), parameterAttributeDetails, headerKeys));
+                    parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsSimpleType(), parameterAttributeDetails, headerKeys));
                 }
 
                 var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
@@ -117,13 +116,13 @@ public class ControllerClientBuilder
     {
         var headerKeys = new List<string>();
 
-        if (methodParameter.Type.IsPrimitive())
+        if (methodParameter.Type.IsSimpleType())
         {
             headerKeys.Add(methodParameter.Name);
         }
         else
         {
-            // check if every property has header attribute
+            // check if at least one property has header attribute
             var members = methodParameter.Type.GetMembers();
             var hasMemberWithAttribute = false;
 
@@ -270,13 +269,12 @@ public class ControllerClientBuilder
             return routeAttribute.ConstructorArguments.FirstOrDefault().Value.ToString() ?? string.Empty;
         }
 
-        // TODO think about if route name has any meaning 
         return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
     }
 
     public void AddMinimalApis(SyntaxTree tree, SemanticModel semanticModel, List<ControllerClientDetails> completeControllerDetailList)
     {
-        var controllerClientDetails = new ControllerClientDetails("Simple", null, true);
+        var controllerClientDetails = new ControllerClientDetails("MinimalEndpoints", null, true);
 
         var root = tree.GetRoot();
         var methodInvocations = root

@@ -43,7 +43,7 @@ public static class SymbolExtensions
 
         if (occurences.Count() > 1)
         {
-            // TODO maybe diagnostic here
+            // could diagnostic here
             // warning to use attribute only once
             // maybe only needed for certain attribute e.g. routes
         }
@@ -91,13 +91,10 @@ public static class SymbolExtensions
         return false;
     }
 
-    // TODO change this or attribute where it is from
     // also maybe need more like here: https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding?view=aspnetcore-7.0#simple-types
-    // TODO what about structs pepelaugh
-    public static bool IsPrimitive(this ITypeSymbol typeSymbol)
+    // think about structs
+    public static bool IsSimpleType(this ITypeSymbol typeSymbol)
     {
-        
-
         switch (typeSymbol.SpecialType)
         {
             case SpecialType.None: 
@@ -119,14 +116,12 @@ public static class SymbolExtensions
             case SpecialType.System_Decimal:
             case SpecialType.System_DateTime:
                 return true;
-        }
 
-        return false;
+            default:
+                return false;
+        }
     }
 
-    // TODO is this just dumb because we could just use ToString() ? but maybe only when we are not creating our classes ourselves!
-    // this should probably only be used when generating the classes ourselves (so either all classes or basically the classes which come from our own assembly (the api))
-    
     public static string CheckAndSanitizeClassString(this ITypeSymbol typeSymbol)
     {
         if (Configuration.UseExternalAssemblyContracts)
@@ -166,7 +161,7 @@ public static class SymbolExtensions
 
         if (symbol is ITypeSymbol typeSymbol)
         {
-            if (typeSymbol.IsPrimitive() || typeSymbol.ToString() == "object" || typeSymbol.ToString() == "object?")
+            if (typeSymbol.IsSimpleType() || typeSymbol.ToString() == "object" || typeSymbol.ToString() == "object?")
             {
                 typeString = typeSymbol.ToString();
                 return typeString;
@@ -215,7 +210,7 @@ public static class SymbolExtensions
             return true;
         }
 
-        if (typeSymbol.IsPrimitive())
+        if (typeSymbol.IsSimpleType())
         {
             return typeSymbol.IsNullableValueType();
         }

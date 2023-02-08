@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <ProjectReference Include="..\ApiGenerator\ApiGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	  
+	  <PackageReference Include="ApiGenerator" Version="1.0.16" />
+	  
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
+
+	<PropertyGroup>
+		<ApiClientGenerator_PackageReferences>Something, something</ApiClientGenerator_PackageReferences>
+		<ApiClientGenerator_GenerateClientOnBuild>false</ApiClientGenerator_GenerateClientOnBuild>
+	</PropertyGroup>
 
 </Project>

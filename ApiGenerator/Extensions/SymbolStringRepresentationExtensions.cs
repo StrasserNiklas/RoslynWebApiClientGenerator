@@ -14,7 +14,6 @@ public static class SymbolStringRepresentationExtensions
     {
         var classGenerationDetails = new ClassGenerationDetails();
 
-        //MetadataReference.
         var assembly = symbol.ContainingAssembly;
         var symbolNamespace = symbol.ContainingNamespace.ToString();
 
@@ -40,8 +39,8 @@ public static class SymbolStringRepresentationExtensions
 
         string classType = symbol.TypeKind.ToString().ToLowerInvariant();
 
-        // TODO keep an eye on this
-        if (symbol.TypeKind == TypeKind.Struct || symbol.IsPrimitive())
+        // keep an eye on this
+        if (symbol.TypeKind == TypeKind.Struct || symbol.IsSimpleType())
         {
             return classGenerationDetails;
         }
@@ -53,7 +52,7 @@ public static class SymbolStringRepresentationExtensions
             return classGenerationDetails;
         }
 
-        // TODO what about classes that inherit from it shrug
+        // TODO what about classes that inherit from it
         if (symbol.ContainingNamespace.ToString().Contains("System.Collections") && symbol is INamedTypeSymbol namedTypeSymbol)
         {
             foreach (var argument in namedTypeSymbol.TypeArguments)
@@ -72,7 +71,6 @@ public static class SymbolStringRepresentationExtensions
         var genericConstructorAssignmentStringBuilder = new StringBuilder();
         var genericClassName = string.Empty;
 
-        // TODO do generics (namespace...)
         if (symbol is INamedTypeSymbol namedTypeSymbolWithArguments && namedTypeSymbolWithArguments.IsGenericType)
         {
             isGenericType = namedTypeSymbolWithArguments.IsGenericType;
@@ -151,7 +149,7 @@ public static class SymbolStringRepresentationExtensions
 
                 if (property.Type is INamedTypeSymbol propertyTypeSymbol)
                 {
-                    if (propertyTypeSymbol.TypeKind == TypeKind.Class || propertyTypeSymbol.TypeKind == TypeKind.Enum || propertyTypeSymbol.TypeKind == TypeKind.Interface)
+                    if (propertyTypeSymbol.TypeKind is TypeKind.Class or TypeKind.Enum or TypeKind.Interface)
                     {
                         //if (useExternalAssemblyContracts)
                         //{
@@ -174,7 +172,7 @@ public static class SymbolStringRepresentationExtensions
                     }
 
 
-                    // TODO check and add namespace stuff here or if this is even called anymore lol -> zum beispiel nullable lol
+                    // e.g. Nullable<T>
                     if (propertyTypeSymbol.IsGenericType)
                     {
                         foreach (var argument in propertyTypeSymbol.TypeArguments)
@@ -190,18 +188,10 @@ public static class SymbolStringRepresentationExtensions
                 }
 
                 var outputString = property.Type.CheckAndSanitizeClassString();
-                
 
-                //if (!Configuration.UseExternalAssemblyContracts || Configuration.ProjectAssemblyNamespaces.Contains(property.Type.ContainingNamespace.ToString()))
-                //{
-                //    outputString = property.Type.SanitizeClassTypeString();
-                //}
-
-                // TODO check if set is available? <- what does he mean?
                 classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
                 classMemberBuilder.AppendLine(Environment.NewLine);
             }
-            // handle arrays
             else if (member is IMethodSymbol methodSymbol)
             {
                 if (methodSymbol.ReturnType is IArrayTypeSymbol arrayTypeSymbol)
@@ -253,7 +243,7 @@ public static class SymbolStringRepresentationExtensions
 
     private static void CheckAndGenerateClassString(ITypeSymbol argument, ClassGenerationDetails classGenerationDetails)
     {
-        if (!argument.IsPrimitive())
+        if (!argument.IsSimpleType())
         {
             if (argument.ToString() == "object" || argument.ToString() == "object?")
             {

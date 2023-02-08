@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Diagnostics;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
 
@@ -19,9 +20,9 @@ public class Configuration
 
     public static IEnumerable<string> ProjectAssemblyNamespaces { get; set; } = new List<string>();
 
-    public static bool GenerateClientOnBuild { get; set; } = true;
+    public static List<string> ConfiguredPackageReferences { get; set; } = new List<string>();
 
-    // TODO use this!
+    public static bool GenerateClientOnBuild { get; set; } = true;
     public static bool UseExternalAssemblyContracts { get; set; } = true;
     public static bool UseSeparateClientFiles { get; set; } = false;
     public static bool UseInterfacesForClients { get; set; } = true;
@@ -31,7 +32,7 @@ public class Configuration
 
     public static void ParseConfiguration(AnalyzerConfigOptions globalOptions)
     {
-        foreach (var item in buildPropertiesWithBooleanDefaultValue)
+        foreach (var item in new Dictionary<string, bool>(buildPropertiesWithBooleanDefaultValue))
         {
             if (globalOptions.TryGetValue(item.Key, out var value))
             {
@@ -39,6 +40,21 @@ public class Configuration
             }
         }
 
+        if (globalOptions.TryGetValue("build_property.ApiClientGenerator_PackageReferences", out string packageReferences))
+        {
+            var packages = packageReferences.Split(',');
+
+            foreach (var package in packages)
+            {
+                if (!string.IsNullOrWhiteSpace(package))
+                {
+                    ConfiguredPackageReferences.Add(package.Trim());
+                    continue;
+                }
+
+
+            }
+        }
 
         GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateClientOnBuild"];
         UseExternalAssemblyContracts = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseExternalAssemblyContracts"];

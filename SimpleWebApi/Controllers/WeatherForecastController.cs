@@ -36,6 +36,8 @@ namespace SimpleWebApi.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> GetMore2(int id, [FromHeader] string some, [FromQuery] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
         {
+            var x = "";
+
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),

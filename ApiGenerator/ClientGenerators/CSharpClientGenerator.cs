@@ -15,9 +15,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
-        // TODO for now place all clients into single file
-        // if all clients are in one file, merge its generated (possible duplicates) classes 
-
         var mergedCodeClasses = controllerClientDetails
             .Select(client => client.GeneratedCodeClasses)
             .Merge()
@@ -115,6 +112,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var routeQueryParamStringBuilder = new StringBuilder();
         var headerKeyValuesStringBuilder = new StringBuilder();
         ParameterDetails bodyParameter = null;
+        var hasHeaderParameter = false;
 
         foreach (var parameter in methodDetails.Parameters)
         {
@@ -133,6 +131,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
             if (parameter.Value.AttributeDetails.HasBodyAttribute)
             {
                 bodyParameter = parameter.Value;
+            }
+
+            if (parameter.Value.AttributeDetails.HasHeaderAttribute)
+            {
+                hasHeaderParameter = true;
             }
 
             // add route query parameters e.g. /api/clients/{id}
@@ -166,19 +169,16 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
         }
 
-        // TODO find a way to only add this when there ARE headers
-        var headerString = $$"""
+        var headerString = hasHeaderParameter ? $$"""
             var headers = new Dictionary<string, string>()
             {
                 {{headerKeyValuesStringBuilder}}
             };
-            """;
+            """ : string.Empty;
 
-        var methodCallString = (bodyParameter is not null) switch
-        {
-            true => $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);",
-            false => $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);"
-        };
+        var methodCallString = bodyParameter is not null ? 
+            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);"
+            :  $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);";
 
         return $$"""
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
@@ -211,7 +211,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         {
             if (pair.Value is not null)
             {
-                var cleanClassValue = pair.Value.CheckAndSanitizeClassString();//SanitizeClassTypeString();
+                var cleanClassValue = pair.Value.CheckAndSanitizeClassString();
 
                 var methodErrorReturnString = methodDetails.ReturnType is not null ? $"""
                     return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
@@ -341,8 +341,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
     }
 
-    // TODO global usings?
-    // TODO doesnt work yet, what do I need to do so I have the right assembly?
     private string AddUsings(IEnumerable<string> additionalUsings = null)
     {
         IEnumerable<string> finalList = new List<string>();

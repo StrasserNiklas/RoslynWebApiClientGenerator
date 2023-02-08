@@ -16,9 +16,6 @@ public class CSharpClientGeneratorV2 : ClientGeneratorBase
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
-        // TODO for now place all clients into single file
-        // if all clients are in one file, merge its generated (possible duplicates) classes 
-
         var mergedCodeClasses = controllerClientDetails
             .Select(client => client.GeneratedCodeClasses)
             .Merge()
@@ -309,8 +306,6 @@ public class CSharpClientGeneratorV2 : ClientGeneratorBase
         }
     }
 
-    // TODO global usings?
-    // TODO doesnt work yet, what do I need to do so I have the right assembly?
     private string AddUsings(IEnumerable<string> additionalUsings = null)
     {
         var stringBuilder = new StringBuilder();

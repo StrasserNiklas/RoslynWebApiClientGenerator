@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ApiGenerator.Diagnostics;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -26,8 +27,7 @@ public static class PackageUtilities
 
         if (process.ExitCode != 0)
         {
-            // TODO maybe we use diagnostic here
-            throw new Exception($"Failed to create NuGet package: {output}");
+            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NuGetGenerationFailed, Location.None, output));
         }
     }
 
@@ -118,8 +118,9 @@ public static class PackageUtilities
                 gitBranchName = $"1.0.{commitTimestampString}-{gitBranchName}";
             }
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "Error occured when trying to gather Git version information: ", exception.Message));
         }
 
         return gitBranchName;

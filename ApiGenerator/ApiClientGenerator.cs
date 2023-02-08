@@ -1,17 +1,15 @@
 ﻿using ApiGenerator.ClientGenerators;
-using ApiGenerator.Extensions;
+using ApiGenerator.Diagnostics;
 using ApiGenerator.Models;
 using ApiGenerator.Packaging;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace ApiGenerator;
 
@@ -20,44 +18,31 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 {
     private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.NoControllersDetected);
-
-    private IEnumerable<string> GetNamespaces(INamespaceSymbol namespaceSymbol)
-    {
-        yield return namespaceSymbol.ToString();
-
-        foreach (var childNamespace in namespaceSymbol.GetNamespaceMembers())
-        {
-            foreach (var name in GetNamespaces(childNamespace))
-            {
-                yield return name;
-            }
-        }
-    }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        DiagnosticDescriptors.NoControllersDetected,
+        DiagnosticDescriptors.NoClientGenerated);
 
     public void Execute(CompilationAnalysisContext context)
     {
-        //var x = context.Compilation.DirectiveReferences;
-        //var y = context.Compilation.GetUsedAssemblyReferences();
-        //var z = context.Compilation.ReferencedAssemblyNames;
-        //var a = context.Compilation.References;
-        //var b = context.Compilation.SourceModule;
-        //var c = context.Compilation.Assembly.NamespaceNames;
+        DiagnosticReporter.ReportDiagnostic = context.ReportDiagnostic;
 
+        if (context.Compilation.SyntaxTrees.Count() == 0)
+        {
+            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoSyntaxTreesFound, Location.None));
+            return;
+        }
 
         Configuration.ParseConfiguration(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
 
         if (!Configuration.GenerateClientOnBuild)
         {
+            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoClientGenerated, Location.None));
             return;
         }
 
-        //context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("12345", "title", "messageformat", "category", DiagnosticSeverity.Error, true), Location.None, DiagnosticSeverity.Error));
-        var completeControllerDetailList = new List<ControllerClientDetails>();
         var projectName = context.Compilation.AssemblyName;
         var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
         var projectInformation = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
-
         var globalNamespaces = GetNamespaces(context.Compilation.GlobalNamespace).ToList();
 
         foreach (var assemblyName in projectInformation.PackageReferences)
@@ -72,62 +57,22 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         var projectAssemblyNamespaces = globalNamespaces.Where(x => x.StartsWith(projectName));
         Configuration.ProjectAssemblyNamespaces = projectAssemblyNamespaces;
-        var controllerClientBuilder = new ControllerClientBuilder();
 
         // in the future this could be done via config, e.g. whether to add a typescript client as well
         this.clientGenerators.Add(new CSharpClientGenerator(projectName));
 
-        foreach (var tree in context.Compilation.SyntaxTrees)
+        var completeControllerDetailList = this.ExtractControllerClients(context);
+
+        if (completeControllerDetailList.Count == 0)
         {
-            var semanticModel = context.Compilation.GetSemanticModel(tree);
-            //emanticModel.get
-            var lol = semanticModel.LookupNamespacesAndTypes(0);
-
-            var hmm = tree.GetRoot().DescendantNodes().OfType<NamespaceDeclarationSyntax>().ToList();
-
-            // check for minimal APIs
-            // TODO not added right now, fix it
-            controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
-
-            // TODO right now is always true because the metadata is there...
-            // maybe just remove it altogether
-            if (!semanticModel.ContainsControllerTypes())
-            {
-                continue;
-            }
-
-            var classNodes = semanticModel.SyntaxTree
-                .GetRoot()
-                .DescendantNodes()
-                .OfType<ClassDeclarationSyntax>();
-
-            // usually there should only one single controller be present in a file (possible diagnostic warning)
-            var controllerClients = controllerClientBuilder.GetControllerClientDetails(classNodes, semanticModel);
-
-            foreach (var controllerClient in controllerClients)
-            {
-                // TODO quick fix for partial controllers
-                if (completeControllerDetailList.SingleOrDefault(x => x.Name == controllerClient.Name) is null)
-                {
-                    completeControllerDetailList.Add(controllerClient);
-                }
-            }
-
-        }
-
-        if (completeControllerDetailList.Count == 0 || context.Compilation.SyntaxTrees.Count() == 0)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoControllersDetected, Location.None));
+            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoControllersDetected, Location.None));
             return;
         }
 
-
-        // TODO filepath?
+        // TODO testing
         var fileDirectory = "C:\\Workspace\\TestingApp\\TestingApp\\Test\\";
-        //var fileDirectory = "C:\\Masterarbeit\\testProjFolder\\NugetTest";
 
-        // TODO put this in final versions
-        var outDirectory = PackageUtilities.FindProjectFileDirectory(context.Compilation.SyntaxTrees.First().FilePath);
+        var outDirectory = PackageUtilities.FindProjectFileDirectory(context.Compilation.SyntaxTrees.First().FilePath) + "\\out";
 
         foreach (var clientGenerator in this.clientGenerators)
         {
@@ -156,12 +101,20 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             }
         }
 
-        var allUsings = completeControllerDetailList.Select(x => x.AdditionalUsings).Aggregate((a, b) => a.Union(b).ToList());
+        var allAdditionalUsings = completeControllerDetailList.Select(x => x.AdditionalUsings).Aggregate((a, b) => a.Union(b).ToList());
         var finalReferences = new List<PackageDetails>();
 
         foreach (var packageDetail in projectInformation.PackageReferences)
         {
-            foreach (var singleUsing in allUsings)
+            if (Configuration.ConfiguredPackageReferences.Contains(packageDetail.PackageName))
+            {
+                if (!finalReferences.Contains(packageDetail))
+                {
+                    finalReferences.Add(packageDetail);
+                }
+            }
+
+            foreach (var singleUsing in allAdditionalUsings)
             {
                 if (packageDetail.Namespaces.Contains(singleUsing))
                 {
@@ -182,14 +135,58 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         }
     }
 
+    private List<ControllerClientDetails> ExtractControllerClients(CompilationAnalysisContext context)
+    {
+        var controllerClientBuilder = new ControllerClientBuilder();
+        var completeControllerDetailList = new List<ControllerClientDetails>();
+
+        foreach (var tree in context.Compilation.SyntaxTrees)
+        {
+            var semanticModel = context.Compilation.GetSemanticModel(tree);
+
+            // check for minimal APIs
+            // TODO not added right now, fix it
+            controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
+
+            var classNodes = semanticModel.SyntaxTree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<ClassDeclarationSyntax>();
+
+            // usually there should only one single controller be present in a file (possible diagnostic warning)
+            var controllerClients = controllerClientBuilder.GetControllerClientDetails(classNodes, semanticModel);
+
+            foreach (var controllerClient in controllerClients)
+            {
+                // dont add a partial controller again, find a better way to do this
+                if (completeControllerDetailList.SingleOrDefault(x => x.Name == controllerClient.Name) is null)
+                {
+                    completeControllerDetailList.Add(controllerClient);
+                }
+            }
+
+        }
+
+        return completeControllerDetailList;
+    }
+
+    private IEnumerable<string> GetNamespaces(INamespaceSymbol namespaceSymbol)
+    {
+        yield return namespaceSymbol.ToString();
+
+        foreach (var childNamespace in namespaceSymbol.GetNamespaceMembers())
+        {
+            foreach (var name in GetNamespaces(childNamespace))
+            {
+                yield return name;
+            }
+        }
+    }
+
 
     public override void Initialize(AnalysisContext context)
     {
-        // enable this to allow for local debugging
-        if (!Debugger.IsAttached)
-        {
-            Debugger.Launch();
-        }
+        //Debugger.Launch();
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();

@@ -1,5 +1,6 @@
 <Project>
    <ItemGroup>
+	   <CompilerVisibleProperty Include="ApiClientGenerator_PackageReferences"/>
 	   <CompilerVisibleProperty Include="ApiClientGenerator_GenerateClientOnBuild" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UseExternalAssemblyContracts" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UsePartialClientClasses" />
