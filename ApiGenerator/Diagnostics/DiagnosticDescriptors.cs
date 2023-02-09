@@ -7,11 +7,11 @@ public class DiagnosticDescriptors
 {
     public static readonly DiagnosticDescriptor[] Descriptors = new DiagnosticDescriptor[]
     {
+        GenericWarning,
+        NoSyntaxTreesFound,
         NoControllersDetected,
         NoClientGenerated,
         NuGetGenerationFailed,
-        NoSyntaxTreesFound,
-        GenericWarning,
         PackageVersionNotFound
     };
 

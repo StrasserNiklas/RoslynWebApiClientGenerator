@@ -110,7 +110,7 @@ public static class PackageUtilities
 
             branchTimestampProcess.Start();
 
-            // simply using Trim only trims the beginning ' and also adds \n for whatever reason
+            // simply using Trim only trims the beginning ' and also adds \n for whatever reason 
             string commitTimestampString = branchTimestampProcess.StandardOutput.ReadToEnd().Trim('\'').Trim().TrimEnd('\'');
 
             if (!string.IsNullOrWhiteSpace(commitTimestampString))

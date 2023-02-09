@@ -10,6 +10,9 @@ namespace ApiGenerator.Extensions;
 
 public static class SymbolStringRepresentationExtensions
 {
+
+    // TODO get alle types of semantic models oder so und dass dann verwenden bei der generierung von models von der eigenenn api
+    // there is a method for that, getting all types of an assembly or something
     public static ClassGenerationDetails GenerateClassString(this ITypeSymbol symbol)
     {
         var classGenerationDetails = new ClassGenerationDetails();
@@ -17,10 +20,30 @@ public static class SymbolStringRepresentationExtensions
         var assembly = symbol.ContainingAssembly;
         var symbolNamespace = symbol.ContainingNamespace.ToString();
 
-        if (Configuration.UseExternalAssemblyContracts && !Configuration.ProjectAssemblyNamespaces.Contains(symbolNamespace))
+        // generics like lists?...
+        if (Configuration.UseExternalAssemblyContracts)
         {
-            classGenerationDetails.AdditionalUsings.Add(symbolNamespace);
-            return classGenerationDetails;
+            // DataResponse<T>
+            // List<T>
+
+            if (symbol is INamedTypeSymbol genericSymbol && genericSymbol.IsGenericType)
+            {
+                foreach (var argument in genericSymbol.TypeArguments)
+                {
+                    if (Configuration.ProjectAssemblyNamespaces.Contains(argument.ContainingNamespace.ToString()))
+                    {
+                        CheckAndGenerateClassString(argument, classGenerationDetails);
+                    }
+                }
+            }
+
+            if (!Configuration.ProjectAssemblyNamespaces.Contains(symbolNamespace))
+            {
+                classGenerationDetails.AdditionalUsings.Add(symbolNamespace);
+                return classGenerationDetails;
+            }
+
+            
         }
 
         string className = symbol.Name;
@@ -53,6 +76,7 @@ public static class SymbolStringRepresentationExtensions
         }
 
         // TODO what about classes that inherit from it
+        // maybe have a list of namespaces that are "not nice"
         if (symbol.ContainingNamespace.ToString().Contains("System.Collections") && symbol is INamedTypeSymbol namedTypeSymbol)
         {
             foreach (var argument in namedTypeSymbol.TypeArguments)
@@ -71,6 +95,7 @@ public static class SymbolStringRepresentationExtensions
         var genericConstructorAssignmentStringBuilder = new StringBuilder();
         var genericClassName = string.Empty;
 
+        // generics
         if (symbol is INamedTypeSymbol namedTypeSymbolWithArguments && namedTypeSymbolWithArguments.IsGenericType)
         {
             isGenericType = namedTypeSymbolWithArguments.IsGenericType;

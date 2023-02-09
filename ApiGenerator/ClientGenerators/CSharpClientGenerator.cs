@@ -177,8 +177,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """ : string.Empty;
 
         var methodCallString = bodyParameter is not null ? 
-            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);"
-            :  $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), headers, prepareSingleRequest);";
+            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
+            :  $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);";
 
         return $$"""
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
@@ -497,9 +497,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
             request.RequestUri = endpoint;
             request.Method = httpMethod;
 
-            foreach (var header in headers)
+            if (headers != null)
             {
-                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                foreach (var header in headers)
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
             }
 
             if (prepareSingleRequest is not null)

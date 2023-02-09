@@ -48,6 +48,12 @@ namespace TestingPlayground.Controllers
         {
             return Ok();
         }
+
+        [HttpGet]
+        public ActionResult Class_Parameter_NoAttribute(SimpleQueryClass soloString)
+        {
+            return Ok();
+        }
     }
 
     public class SimpleQueryClass

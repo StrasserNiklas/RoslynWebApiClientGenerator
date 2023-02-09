@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -18,7 +19,22 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 {
     private List<ClientGeneratorBase> clientGenerators = new List<ClientGeneratorBase>();
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.Descriptors);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        DiagnosticDescriptors.GenericWarning,
+        DiagnosticDescriptors.NoSyntaxTreesFound,
+        DiagnosticDescriptors.NoControllersDetected,
+        DiagnosticDescriptors.NoClientGenerated,
+        DiagnosticDescriptors.NuGetGenerationFailed,
+        DiagnosticDescriptors.PackageVersionNotFound);
+
+    public override void Initialize(AnalysisContext context)
+    {
+        Debugger.Launch();
+
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+        context.RegisterCompilationAction(Execute);
+    }
 
     public void Execute(CompilationAnalysisContext context)
     {
@@ -37,6 +53,10 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoClientGenerated, Location.None));
             return;
         }
+
+
+
+        throw new Exception(string.Join(",", z.Select(x => x.Display)));
 
         var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
         var projectDetails = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
@@ -98,6 +118,8 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 
+            //semanticModel.get
+
             // check for minimal APIs
             // TODO not added right now, fix it
             controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
@@ -154,7 +176,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         }
     }
 
-    
+
 
     private List<PackageDetails> CompileFinalPackageReferences(ProjectDetails projectDetails, List<string> allAdditionalUsings)
     {
@@ -213,14 +235,5 @@ public class ApiClientGenerator : DiagnosticAnalyzer
                 yield return name;
             }
         }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        //Debugger.Launch();
-
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterCompilationAction(Execute);
     }
 }
