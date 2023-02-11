@@ -15,7 +15,7 @@
 		
 		<!--used for local testing-->
 		<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>
-		<OutputPath>C:\Masterarbeit\testProjFolder</OutputPath>
+		<!--<OutputPath>C:\Masterarbeit\testProjFolder</OutputPath>-->
 	</PropertyGroup>
 
 	<ItemGroup>

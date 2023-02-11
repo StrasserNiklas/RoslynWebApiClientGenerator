@@ -54,10 +54,6 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             return;
         }
 
-
-
-        throw new Exception(string.Join(",", z.Select(x => x.Display)));
-
         var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
         var projectDetails = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
         var globalNamespaces = this.GetNamespaces(context.Compilation.GlobalNamespace).ToList();
