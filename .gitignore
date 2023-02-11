@@ -12,7 +12,7 @@
 
 GlobalSuppressions.cs
 
-ClassLibrary
+ClassLibrary/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
