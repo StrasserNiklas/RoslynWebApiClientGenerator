@@ -3,7 +3,7 @@ using TestingPlayground.Models;
 
 namespace TestingPlayground.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 [ApiController]
 public class FromQueryController : ControllerBase
 {

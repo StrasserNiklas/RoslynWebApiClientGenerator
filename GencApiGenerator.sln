@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingContracts", "ApiClie
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingPlayground", "ApiClientGenerator.Testing\TestingPlayground\TestingPlayground.csproj", "{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingPlayground.CSharp", "ApiClientGenerator.Testing\TestingPlayground.CSharp\TestingPlayground.CSharp.csproj", "{BB0936CF-5207-457A-9008-649F945F877D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,10 @@ Global
 		{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0936CF-5207-457A-9008-649F945F877D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0936CF-5207-457A-9008-649F945F877D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0936CF-5207-457A-9008-649F945F877D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0936CF-5207-457A-9008-649F945F877D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +57,7 @@ Global
 		{013D87DD-265A-4FDF-A9DD-AD06D1B7855C} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 		{AC923658-BF04-4851-B881-1DFEA2416FC6} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 		{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
+		{BB0936CF-5207-457A-9008-649F945F877D} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF97F604-81DD-40F1-8923-3BF65CA6D815}
