@@ -21,6 +21,5 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ApiClientGenerator\ApiClientGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\ClassLibrary\ClassLibrary.csproj" />
 	</ItemGroup>
 </Project>

@@ -270,7 +270,7 @@ public static class SymbolStringRepresentationExtensions
     {
         if (!argument.IsSimpleType())
         {
-            if (argument.ToString() == "object" || argument.ToString() == "object?")
+            if (argument.ToString() == "object?")
             {
                 return;
             }

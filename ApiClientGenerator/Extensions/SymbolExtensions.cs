@@ -115,6 +115,7 @@ public static class SymbolExtensions
             case SpecialType.System_String:
             case SpecialType.System_Decimal:
             case SpecialType.System_DateTime:
+            case SpecialType.System_Object:
                 return true;
 
             default:
@@ -161,7 +162,7 @@ public static class SymbolExtensions
 
         if (symbol is ITypeSymbol typeSymbol)
         {
-            if (typeSymbol.IsSimpleType() || typeSymbol.ToString() == "object" || typeSymbol.ToString() == "object?")
+            if (typeSymbol.IsSimpleType())
             {
                 typeString = typeSymbol.ToString();
                 return typeString;

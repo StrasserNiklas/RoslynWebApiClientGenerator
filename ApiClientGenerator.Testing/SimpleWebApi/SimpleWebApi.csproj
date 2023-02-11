@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <ProjectReference Include="..\ApiClientGenerator\ApiClientGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	  <ProjectReference Include="..\..\ApiClientGenerator\ApiClientGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	  <PackageReference Include="Agoda.Builds.Metrics" Version="1.0.72" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
