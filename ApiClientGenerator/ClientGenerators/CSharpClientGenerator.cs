@@ -85,27 +85,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)
     {
-        // CODE FOR FromForm !!!!!!!!!!!!!!!!
-        /*
-         
-            var formBoundaryGuid = Guid.NewGuid().ToString();
-            var formContent = new MultipartFormDataContent(formBoundaryGuid);
-            formContent.Headers.Remove("Content-Type");
-            formContent.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + formBoundaryGuid);
-
-            //if (name != null)
-            //{
-            //    formContent.Add(new System.Net.Http.StringContent(ConvertToString(name, System.Globalization.CultureInfo.InvariantCulture)), "Name");
-            //}
-
-            //if (favoriteDish != null)
-            //{
-            //    formContent.Add(new System.Net.Http.StringContent(ConvertToString(favoriteDish, System.Globalization.CultureInfo.InvariantCulture)), "FavoriteDish");
-            //}
-            request.Content = formContent;
-          */
-
-
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
         var parameterCheckStringBuilder = new StringBuilder();
@@ -113,6 +92,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var headerKeyValuesStringBuilder = new StringBuilder();
         ParameterDetails bodyParameter = null;
         var hasHeaderParameter = false;
+        var fromFromString = string.Empty;
 
         foreach (var parameter in methodDetails.Parameters)
         {
@@ -167,6 +147,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     """);
                 }
             }
+
+            if (parameter.Value.AttributeDetails.HasFormAttribute)
+            {
+                fromFromString = parameter.Value.FormString;
+            }
         }
 
         var headerString = hasHeaderParameter ? $$"""
@@ -194,6 +179,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 
                 {{headerString}}
                 {{methodCallString}}
+                {{fromFromString}}
 
                 var httpClientResponse = await this.SendJsonAsync(httpRequestMessage, cancellationToken);
                 this.ProcessResponse(this.httpClient, httpClientResponse);

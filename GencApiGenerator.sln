@@ -5,22 +5,21 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiClientGenerator", "ApiClientGenerator\ApiClientGenerator.csproj", "{D69627BB-2E83-4417-9D67-463A5308CF6D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ED6A7ECA-BF90-47C7-9BC4-57B1A6CADF85}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{16DB65B7-4AA6-42BC-B71D-54FB778D52F2}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiClientGenerator.Testing", "ApiClientGenerator.Testing", "{07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebApi", "ApiClientGenerator.Testing\SimpleWebApi\SimpleWebApi.csproj", "{013D87DD-265A-4FDF-A9DD-AD06D1B7855C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingContracts", "ApiClientGenerator.Testing\TestingContracts\TestingContracts.csproj", "{AC923658-BF04-4851-B881-1DFEA2416FC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingContracts", "ApiClientGenerator.Testing\TestingContracts\TestingContracts.csproj", "{AC923658-BF04-4851-B881-1DFEA2416FC6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingPlayground", "ApiClientGenerator.Testing\TestingPlayground\TestingPlayground.csproj", "{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingPlayground.CSharp", "ApiClientGenerator.Testing\TestingPlayground.CSharp\TestingPlayground.CSharp.csproj", "{BB0936CF-5207-457A-9008-649F945F877D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingPlayground.CSharp", "ApiClientGenerator.Testing\TestingPlayground.CSharp\TestingPlayground.CSharp.csproj", "{BB0936CF-5207-457A-9008-649F945F877D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{6EC46177-5E82-430D-B5AB-97FE3287496A}"
+	ProjectSection(SolutionItems) = preProject
+		docs\configuration.md = docs\configuration.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,7 +52,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{16DB65B7-4AA6-42BC-B71D-54FB778D52F2} = {ED6A7ECA-BF90-47C7-9BC4-57B1A6CADF85}
 		{013D87DD-265A-4FDF-A9DD-AD06D1B7855C} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 		{AC923658-BF04-4851-B881-1DFEA2416FC6} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 		{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}

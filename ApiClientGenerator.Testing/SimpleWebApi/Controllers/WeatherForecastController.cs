@@ -21,7 +21,7 @@ namespace SimpleWebApi.Controllers
 
         [Route("getmore/{id}")]
         [HttpGet]
-        public IEnumerable<WeatherForecast> GetMore([FromQuery] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
+        public IEnumerable<WeatherForecast> GetMore([FromForm] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

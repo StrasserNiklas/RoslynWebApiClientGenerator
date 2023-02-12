@@ -21,7 +21,7 @@ This document will give additional insight and information about each configurat
 | `ApiClientGenerator_GenerateClientOnBuild` | true | Generate client(s) on each build of the API | [More](#GenerateClientOnBuild)
 | `ApiClientGenerator_UseExternalAssemblyContracts` | true | Models used in Requests/Responses from external references will not be generated  | [More](#UseExternalAssemblyContracts)
 | `ApiClientGenerator_UsePartialClientClasses` | true | Client classes (and interfaces) will be marked partial  | [More](#UsePartialClientClasses)
-| `ApiClientGenerator_UseInterfacesForClients` | true | A interface will be generated for each client  |[More](#UseInterfacesForClients)
+| `ApiClientGenerator_UseInterfacesForClients` | true | An interface will be generated for each client  |[More](#UseInterfacesForClients)
 | `ApiClientGenerator_UseSeparateClientFiles` | false | Each generated client (for each controller) will be placed in a separate file  |[More](#UseSeparateClientFiles)
 | `ApiClientGenerator_CreateNugetPackageOnBuild` | false | A NuGet package will be created on each build of the API  |[More](#CreateNugetPackageOnBuild)
 | `ApiClientGenerator_UseGitVersionInformation` |false | Current Git version information (if availanle) will be used for versioning the NuGet package |[More](#UseGitVersionInformation)
