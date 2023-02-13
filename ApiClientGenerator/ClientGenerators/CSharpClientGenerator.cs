@@ -199,23 +199,23 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 var cleanClassValue = pair.Value.CheckAndSanitizeClassString();
 
-                var methodErrorReturnString = methodDetails.ReturnType is not null ? $"""
-                    return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
-                    """: $"""
-                    return new ApiErrorResponse<{cleanClassValue}>(default, 0, errorResponse{pair.Key}.Message, errorResponse{pair.Key}.Exception);
+                var methodErrorReturnString = methodDetails.ReturnType is not null ? $$"""
+                    return new ApiResponse<{{methodDetails.ReturnTypeString}}>(default, statusCode,  result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
+                    """: $$"""
+                    return new ApiResponse(statusCode, result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
                     """;
 
-                var methodReturnString = methodDetails.ReturnType is not null ? $"""
-                    return new ApiErrorResponse<{methodDetails.ReturnTypeString}, {cleanClassValue}>(default, result{pair.Key}.Response, statusCode);
-                    """ : $"""
-                    return new ApiErrorResponse<{cleanClassValue}>(result{pair.Key}.Response, statusCode);
+                var methodReturnString = methodDetails.ReturnType is not null ? $$"""
+                    return new ApiResponse<{{methodDetails.ReturnTypeString}}>(default, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) { ErrorResponse = result{{pair.Key}}.SuccessResponse };
+                    """ : $$"""
+                    return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty) { ErrorResponse = result{{pair.Key}}.SuccessResponse };
                     """;
 
                 switchStringBuilder.AppendLine($$"""
                     case {{pair.Key}}:
                         var result{{pair.Key}} = await this.DeserializeResponse<{{cleanClassValue}}>(httpClientResponse, false, cancellationToken);
 
-                        if (result{{pair.Key}} is ApiErrorResponse<{{cleanClassValue}}, object> errorResponse{{pair.Key}})
+                        if (result{{pair.Key}}.IsError)
                         {
                             {{methodErrorReturnString}}
                         }
@@ -232,7 +232,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
         }
         
-        var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}, object>(default, default, " : "(";
+        var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}>(default, " : "(";
 
         if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count == 0)
         {
@@ -251,7 +251,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{switchStringBuilder}}
 
                 default:
-                    return new ApiErrorResponse{{defaultReturnString}}statusCode, $"Encountered unexpected statuscode {statusCode}. {httpClientResponse.ReasonPhrase ?? string.Empty}");
+                    return new ApiResponse{{defaultReturnString}}statusCode, $"Encountered unexpected statuscode {statusCode}. {httpClientResponse.ReasonPhrase ?? string.Empty}") { ErrorResponse = new ApiError() };
             }
             """;
     }
@@ -375,12 +375,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
         {
             if (response == null)
             {
-                return new ApiResponse<T>(default, 0, "The response was null.");
+                return new ApiResponse<T>(default, 0, "The response was null.") { ErrorResponse = new ApiError() };
             }
 
             if (response.Content == null)
             {
-                return new ApiResponse<T>(default, (int)response.StatusCode, "There was no content.");
+                return new ApiResponse<T>(default, (int)response.StatusCode, "There was no content.") { ErrorResponse = new ApiError() };
             }
 
             if (isStream)
@@ -390,12 +390,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     {
                         var result = await JsonSerializer.DeserializeAsync<T>(responseStream, this.jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-                        return new ApiResponse<T>(result, (int)response.StatusCode, string.Empty);
+                        return new ApiResponse<T>(result, (int)response.StatusCode);
                     }
                 }
                 catch (JsonException exception)
                 {
-                    return new ApiErrorResponse<T, object>(default, default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.", exception);
+                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.") { Exception = exception };
                 }
             }
             else
@@ -404,11 +404,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 try
                 {
                     var result = JsonSerializer.Deserialize<T>(responseText, this.jsonSerializerOptions);
-                    return new ApiResponse<T>(result, (int)response.StatusCode, string.Empty);
+                    return new ApiResponse<T>(result, (int)response.StatusCode);
                 }
                 catch (JsonException exception)
                 {
-                    return new ApiErrorResponse<T, object>(default, default, (int)response.StatusCode, $"Failed to deserialze response of type {typeof(T).FullName}.", exception);
+                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.") { Exception = exception };
                 }
             }
         }
@@ -422,57 +422,25 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 this.StatusCode = statusCode;
                 this.Message = message;
             }
-        
+
             public int StatusCode { get; }
             public string Message { get; }
-        }
-        
-        public class ApiErrorResponse : ApiResponse
-        {
-            public ApiErrorResponse(int statusCode, string message = "", Exception? exception = null) : base(statusCode, message)
-            {
-                this.Exception = exception;
-            }
-        
-            public Exception? Exception { get; }
+            public bool IsError => this.ErrorResponse != null || this.Exception != null;
+            public Exception? Exception { get; init; }
+            public object? ErrorResponse { get; init; }
         }
 
-        public class ApiErrorResponse<TErrorResponse> : ApiResponse<TErrorResponse>
+        public class ApiResponse<T> : ApiResponse
         {
-            public ApiErrorResponse(TErrorResponse response, int statusCode, string message = "", Exception? exception = null)
-                : base(response, statusCode, message)
+            public ApiResponse(T successResult, int statusCode, string message = "") : base(statusCode, message)
             {
-                Response = response;
-                Exception = exception;
+                SuccessResponse = successResult;
             }
 
-            public new TErrorResponse? Response { get; }
-            public Exception? Exception { get; }
+            public T SuccessResponse { get; }
         }
-        
-        public class ApiResponse<TResponse> : ApiResponse
-        {
-            public ApiResponse(TResponse response, int statusCode, string message = "")
-                : base(statusCode, message)
-            {
-                this.Response = response;
-            }
-        
-            public TResponse Response { get; set; }
-        }
-        
-        public class ApiErrorResponse<TExpectedResponse, TErrorResponse> : ApiResponse<TExpectedResponse>
-        {
-            public ApiErrorResponse(TExpectedResponse exprectedResponse, TErrorResponse response, int statusCode, string message = "", Exception? exception = null)
-                : base(exprectedResponse, statusCode, message)
-            {
-                Response = response;
-                Exception = exception;
-            }
-        
-            public new TErrorResponse? Response { get; }
-            public Exception? Exception { get; }
-        }
+
+        public class ApiError {}
         """;
 
     private string AddPrepareRequestMessageMethod() => """

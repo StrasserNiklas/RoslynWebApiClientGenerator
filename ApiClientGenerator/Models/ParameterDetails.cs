@@ -53,7 +53,7 @@ public class ParameterDetails
                     {
                         if (property.Type is INamedTypeSymbol)
                         {
-                            formStringBuilder.AppendLine($"formContent.Add(new System.Net.Http.StringContent{parameterSymbol.Name}.{member.Name}.ToString()), \"{member.Name}\");");
+                            formStringBuilder.AppendLine($"formContent.Add(new System.Net.Http.StringContent({parameterSymbol.Name}.{member.Name}.ToString()), \"{member.Name}\");");
                         }
                     }
                 }
