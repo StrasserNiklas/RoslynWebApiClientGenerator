@@ -1,6 +1,7 @@
 ﻿using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using Microsoft.CodeAnalysis;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -28,7 +29,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         foreach (var controllerClient in controllerClientDetails)
         {
-            if (Configuration.UseInterfacesForClients)
+            if (Configuration.UseInterfacesForClients && !controllerClient.IsMinimalApiClient)
             {
                 clientCodeStringBuilder.AppendLine(this.AddClientInterfaceWithMethods(controllerClient));
             }
@@ -60,10 +61,22 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         var methodsBuilder = new StringBuilder();
 
-        foreach (var method in controllerClientDetails.HttpMethods)
+        if (controllerClientDetails.IsMinimalApiClient)
         {
-            methodsBuilder.AppendLine(this.GenerateSingleMethodWithoutCancellationToken(method));
-            methodsBuilder.AppendLine(this.GenerateSingleEndpointMethod(method));
+            return "";
+
+            foreach (var method in controllerClientDetails.HttpMethods)
+            {
+                methodsBuilder.AppendLine(this.GenerateMinimalApiEndpoint(method));
+            }
+        }
+        else
+        {
+            foreach (var method in controllerClientDetails.HttpMethods)
+            {
+                methodsBuilder.AppendLine(this.GenerateSingleMethodWithoutCancellationToken(method));
+                methodsBuilder.AppendLine(this.GenerateSingleEndpointMethod(method));
+            }
         }
 
         var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
@@ -81,6 +94,34 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{this.AddProcessResponseDelegate()}}
             }
             """;
+    }
+
+    private string GenerateMinimalApiEndpoint(ControllerMethodDetails methodDetails)
+    {
+        //return $$"""
+        //    public virtual async ApiResponse<TOut> {{methodDetails.MethodName}}<TIn, TOut>({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
+        //    {
+        //        {{parameterCheckStringBuilder}}
+
+        //        var routeBuilder = new StringBuilder();
+        //        routeBuilder.Append("{{methodDetails.Route}}");
+
+        //        {{routeQueryParamStringBuilder}}
+
+        //        var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
+
+        //        {{headerString}}
+        //        {{methodCallString}}
+        //        {{fromFromString}}
+
+        //        var httpClientResponse = await this.SendJsonAsync(httpRequestMessage, cancellationToken);
+        //        this.ProcessResponse(this.httpClient, httpClientResponse);
+
+        //        {{this.AddHandleResponseMethod(methodDetails)}}
+        //    }
+        //    """;
+
+        return string.Empty;
     }
 
     private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)

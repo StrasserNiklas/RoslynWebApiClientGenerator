@@ -17,7 +17,6 @@ public class ControllerClientBuilder
         { "MapGet", HttpMethod.Get} , { "MapPost" , HttpMethod.Post }, { "MapPut" , HttpMethod.Put }, { "MapDelete" , HttpMethod.Delete }
     };//, "Map", "MapWhen" }; MapMethods
 
-
     public IEnumerable<ControllerClientDetails> GetControllerClientDetails(IEnumerable<ClassDeclarationSyntax> classNodes, SemanticModel semanticModel)
     {
         foreach (var classNode in classNodes)
@@ -274,7 +273,7 @@ public class ControllerClientBuilder
 
     public void AddMinimalApis(SyntaxTree tree, SemanticModel semanticModel, List<ControllerClientDetails> completeControllerDetailList)
     {
-        var controllerClientDetails = new ControllerClientDetails("MinimalEndpoints", null, true);
+        var controllerClientDetails = new ControllerClientDetails("MinimalApi", null, true);
 
         var root = tree.GetRoot();
         var methodInvocations = root
@@ -306,11 +305,6 @@ public class ControllerClientBuilder
             }
         }
 
-        // TODO before minimal APIs can be handled in the generation, you have to enable the option to declare the intended request and response type
-        // probably a combination too or can we find this out from
-        //  Task<TOut> GET_weatherforecastAsync<TIn, TOut>(TIn inn, CancellationToken cancellationToken)
-
-        // TODO if it works, uncomment this line
-        //completeControllerDetailList.Add(controllerClientDetails);
+        completeControllerDetailList.Add(controllerClientDetails);
     }
 }
