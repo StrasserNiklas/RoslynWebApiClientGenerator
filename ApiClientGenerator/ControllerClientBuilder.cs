@@ -281,11 +281,18 @@ public class ControllerClientBuilder
             .OfType<InvocationExpressionSyntax>()
             .Where(x => x.Expression is MemberAccessExpressionSyntax expression && this.minimalApiMethods.Keys.Contains(expression.Name.Identifier.Value));
 
+        if (methodInvocations.Count() == 0)
+        {
+            return;
+        }
+
         foreach (var invocation in methodInvocations)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(invocation);
 
             // if you really want to, you can try to find the first parameter/s (id and a object) of the second delegate parameter
+            // there does not seem to be a way of doing that using semantics
+            // in addition, a parameter of the delegate could easily be a service injection
             if (symbolInfo.Symbol is not null && symbolInfo.Symbol is IMethodSymbol methodSymbol)
             {
                 var parameters = methodSymbol.Parameters;

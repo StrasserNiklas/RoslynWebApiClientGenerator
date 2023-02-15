@@ -8,5 +8,6 @@
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UseSeparateClientFiles" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_CreateNugetPackageOnBuild" />
 	   <CompilerVisibleProperty Include="ApiClientGenerator_UseGitVersionInformation" />
+	   <CompilerVisibleProperty Include="ApiClientGenerator_GenerateMinimalApiClient" />
 	</ItemGroup>
 </Project>

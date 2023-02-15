@@ -19,7 +19,8 @@ public class Configuration
         { "build_property.ApiClientGenerator_UseInterfacesForClients", true },
         { "build_property.ApiClientGenerator_UseSeparateClientFiles", false },
         { "build_property.ApiClientGenerator_CreateNugetPackageOnBuild", false },
-        { "build_property.ApiClientGenerator_UseGitVersionInformation", false },
+        { "build_property.ApiClientGenerator_UseGitVersionInformation", true },
+        { "build_property.ApiClientGenerator_GenerateMinimalApiClient", true },
     };
 
     public static IEnumerable<string> ProjectAssemblyNamespaces { get; set; } = new List<string>();
@@ -31,8 +32,9 @@ public class Configuration
     public static bool UseSeparateClientFiles { get; set; } = false;
     public static bool UseInterfacesForClients { get; set; } = true;
     public static bool UsePartialClientClasses { get; set; } = true;
-    public static bool CreateNugetPackageOnBuild { get; set; } = true;
+    public static bool CreateNugetPackageOnBuild { get; set; } = false;
     public static bool UseGitVersionInformation { get; set; } = true;
+    public static bool GenerateMinimalApiClient { get; set; } = true;
 
     public static void ParseConfiguration(AnalyzerConfigOptions globalOptions)
     {
@@ -85,5 +87,6 @@ public class Configuration
         UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UsePartialClientClasses"];
         UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseGitVersionInformation"];
         CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_CreateNugetPackageOnBuild"];
+        GenerateMinimalApiClient = buildPropertiesWithBooleanDefaultValue["build_property.GenerateMinimalApiClient"];
     }
 }

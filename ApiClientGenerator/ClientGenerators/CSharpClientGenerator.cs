@@ -1,18 +1,17 @@
 ﻿using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using Microsoft.CodeAnalysis;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ApiGenerator.ClientGenerators;
 
 public class CSharpClientGenerator : ClientGeneratorBase
 {
-    public CSharpClientGenerator( string projectName) : base(projectName) { }
+    public CSharpClientGenerator(string projectName) : base(projectName) { }
 
     public override void GenerateClient(IEnumerable<ControllerClientDetails> controllerClientDetails, string directoryPath)
     {
@@ -32,6 +31,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
             if (Configuration.UseInterfacesForClients && !controllerClient.IsMinimalApiClient)
             {
                 clientCodeStringBuilder.AppendLine(this.AddClientInterfaceWithMethods(controllerClient));
+            }
+
+            if (controllerClient.IsMinimalApiClient && !Configuration.GenerateMinimalApiClient)
+            {
+                continue;
             }
 
             clientCodeStringBuilder.AppendLine(this.AddClientImplementation(controllerClient));
@@ -63,11 +67,9 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         if (controllerClientDetails.IsMinimalApiClient)
         {
-            return "";
-
             foreach (var method in controllerClientDetails.HttpMethods)
             {
-                methodsBuilder.AppendLine(this.GenerateMinimalApiEndpoint(method));
+                methodsBuilder.AppendLine(this.GenerateMinimalApiEndpoints(method));
             }
         }
         else
@@ -80,7 +82,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
 
         var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
-        var interfaceString = Configuration.UseInterfacesForClients ? $": I{controllerClientDetails.Name}" : string.Empty;
+        var interfaceString = Configuration.UseInterfacesForClients && !controllerClientDetails.IsMinimalApiClient ? $": I{controllerClientDetails.Name}" : string.Empty;
 
         return $$"""
             public{{partialString}} class {{controllerClientDetails.Name}} {{interfaceString}}
@@ -96,32 +98,111 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """;
     }
 
-    private string GenerateMinimalApiEndpoint(ControllerMethodDetails methodDetails)
+    private string GenerateMinimalApiEndpoints(ControllerMethodDetails methodDetails)
     {
-        //return $$"""
-        //    public virtual async ApiResponse<TOut> {{methodDetails.MethodName}}<TIn, TOut>({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
-        //    {
-        //        {{parameterCheckStringBuilder}}
+        var methodStringBuilder = new StringBuilder();
+        var parameterString = string.Empty;
+        var routeQueryParamStringBuilder = new StringBuilder();
 
-        //        var routeBuilder = new StringBuilder();
-        //        routeBuilder.Append("{{methodDetails.Route}}");
+        if (methodDetails.HasRouteQueryParameters)
+        {
+            foreach (Match match in methodDetails.RouteQueryMatches)
+            {
+                var value = match.Groups[1].Value;
+                parameterString += $"string {value}, ";
+                routeQueryParamStringBuilder.AppendLine($$"""
+                        routeBuilder.Replace("{{{value}}}", Uri.EscapeDataString({{value}}));
+                        """
+                );
+            }
+        }
 
-        //        {{routeQueryParamStringBuilder}}
+        var handleSimpleResponseString = "return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);";
+        var handleObjectResponseString = $$"""
+            var result = await this.DeserializeResponse<TOut>(httpClientResponse, false, cancellationToken);
+            if (result.IsError)
+            {
+                return new ApiResponse<TOut>(default, statusCode, result.Message)
+                {Exception = result.Exception};
+            }
+            
+            return new ApiResponse<TOut>(result.SuccessResponse, statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
+            """;
 
-        //        var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
+        var defaultReturnStringWithObjectString = $"return new ApiResponse<TOut>(default, statusCode, $\"Encountered unexpected statuscode {{statusCode}}. {{httpClientResponse.ReasonPhrase ?? string.Empty}}\") {{ErrorResponse = new ApiError()}};";
+        var defaultReturnStringWithoutObjectString = $" return new ApiResponse(statusCode, $\"Encountered unexpected statuscode {{statusCode}}. {{httpClientResponse.ReasonPhrase ?? string.Empty}}\") {{ ErrorResponse = new ApiError() }};";
 
-        //        {{headerString}}
-        //        {{methodCallString}}
-        //        {{fromFromString}}
+        var prepareSimpleRequestString = $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), null, prepareSingleRequest);";
+        var prepareObjectRequestString = $"var httpRequestMessage = this.PrepareRequestMessage<TIn>(uri, requestBody, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), null, prepareSingleRequest);";
 
-        //        var httpClientResponse = await this.SendJsonAsync(httpRequestMessage, cancellationToken);
-        //        this.ProcessResponse(this.httpClient, httpClientResponse);
+        // request and result object
+        methodStringBuilder.AppendLine(this.BuildMinimalApiEndpointMethod(
+            $"Task<ApiResponse<TOut>> {methodDetails.MethodName}<TIn, TOut>({parameterString}TIn requestBody, ",
+            methodDetails.Route,
+            routeQueryParamStringBuilder,
+            prepareObjectRequestString,
+            handleObjectResponseString,
+            defaultReturnStringWithObjectString));
 
-        //        {{this.AddHandleResponseMethod(methodDetails)}}
-        //    }
-        //    """;
+        // request and no result object
+        methodStringBuilder.AppendLine(this.BuildMinimalApiEndpointMethod(
+            $"Task<ApiResponse> {methodDetails.MethodName}<TIn>({parameterString}TIn requestBody, ",
+            methodDetails.Route,
+            routeQueryParamStringBuilder,
+            prepareObjectRequestString,
+            handleSimpleResponseString,
+            defaultReturnStringWithoutObjectString));
 
-        return string.Empty;
+        // no request and result object
+        methodStringBuilder.AppendLine(this.BuildMinimalApiEndpointMethod(
+            $"Task<ApiResponse<TOut>> {methodDetails.MethodName}<TOut>({parameterString}",
+            methodDetails.Route,
+            routeQueryParamStringBuilder,
+            prepareSimpleRequestString,
+            handleObjectResponseString,
+            defaultReturnStringWithObjectString));
+
+        // no request and no result object
+        methodStringBuilder.AppendLine(this.BuildMinimalApiEndpointMethod(
+            $"Task<ApiResponse> {methodDetails.MethodName}({parameterString}",
+            methodDetails.Route,
+            routeQueryParamStringBuilder,
+            prepareSimpleRequestString,
+            handleSimpleResponseString,
+            defaultReturnStringWithoutObjectString));
+
+        return methodStringBuilder.ToString();
+    }
+
+    private string BuildMinimalApiEndpointMethod(string individualMethodSignature, string route, StringBuilder routeQueryParamStringBuilder, string methodCallString, string handleResponseString, string defaultReturnString)
+    {
+        return $$"""
+            public virtual async {{individualMethodSignature}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
+            {
+                var routeBuilder = new StringBuilder();
+                routeBuilder.Append("{{route}}");
+            
+                {{routeQueryParamStringBuilder}}
+            
+                var uri = new Uri(routeBuilder.ToString(), UriKind.RelativeOrAbsolute); 
+            
+                {{methodCallString}}
+            
+                var httpClientResponse = await this.SendJsonAsync(httpRequestMessage, cancellationToken);
+                this.ProcessResponse(this.httpClient, httpClientResponse);
+            
+                var statusCode = (int)httpClientResponse.StatusCode;
+            
+                if (statusCode == 200 || statusCode == 201)
+                {
+                    {{handleResponseString}}
+                }
+                else
+                {
+                    {{defaultReturnString}}
+                }
+            }
+            """;
     }
 
     private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)
@@ -133,7 +214,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var headerKeyValuesStringBuilder = new StringBuilder();
         ParameterDetails bodyParameter = null;
         var hasHeaderParameter = false;
-        var fromFromString = string.Empty;
+        var fromFormString = string.Empty;
 
         foreach (var parameter in methodDetails.Parameters)
         {
@@ -191,7 +272,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
             if (parameter.Value.AttributeDetails.HasFormAttribute)
             {
-                fromFromString = parameter.Value.FormString;
+                fromFormString = parameter.Value.FormString;
             }
         }
 
@@ -202,9 +283,9 @@ public class CSharpClientGenerator : ClientGeneratorBase
             };
             """ : string.Empty;
 
-        var methodCallString = bodyParameter is not null ? 
+        var methodCallString = bodyParameter is not null ?
             $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
-            :  $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);";
+            : $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);";
 
         return $$"""
             public virtual async {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}CancellationToken cancellationToken, Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
@@ -220,7 +301,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 
                 {{headerString}}
                 {{methodCallString}}
-                {{fromFromString}}
+                {{fromFormString}}
 
                 var httpClientResponse = await this.SendJsonAsync(httpRequestMessage, cancellationToken);
                 this.ProcessResponse(this.httpClient, httpClientResponse);
@@ -242,7 +323,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
                 var methodErrorReturnString = methodDetails.ReturnType is not null ? $$"""
                     return new ApiResponse<{{methodDetails.ReturnTypeString}}>(default, statusCode,  result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
-                    """: $$"""
+                    """ : $$"""
                     return new ApiResponse(statusCode, result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
                     """;
 
@@ -272,7 +353,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     """);
             }
         }
-        
+
         var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}>(default, " : "(";
 
         if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count == 0)

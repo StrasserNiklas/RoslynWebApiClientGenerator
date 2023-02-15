@@ -22,13 +22,25 @@ public class ControllerMethodDetails
         {
             foreach (Match match in matches)
             {
-                if (parameters.TryGetValue(match.Groups[1].Value, out var parameterDetails))
+                var value = match.Value;
+
+                if (parameters is not null)
                 {
-                    parameterDetails.IsRouteQueryParameter = true;
+                    if (parameters.TryGetValue(match.Groups[1].Value, out var parameterDetails))
+                    {
+                        parameterDetails.IsRouteQueryParameter = true;
+                    }
+                }
+
+                // needed for minimal api at the moment to avoid a method name like 'Name{id}' which would break the generated code
+                if (methodName.Contains(value))
+                {
+                    this.MethodName = this.MethodName.Replace(value, "");
                 }
             }
 
             this.HasRouteQueryParameters = true;
+            this.RouteQueryMatches = matches;
         }
 
         this.Parameters = parameters;
@@ -47,6 +59,7 @@ public class ControllerMethodDetails
     }
 
     public bool HasRouteQueryParameters { get; }
+    public MatchCollection RouteQueryMatches { get; }
     public string Route { get; }
     public string MethodName { get; }
     public HttpMethod HttpMethod { get; }

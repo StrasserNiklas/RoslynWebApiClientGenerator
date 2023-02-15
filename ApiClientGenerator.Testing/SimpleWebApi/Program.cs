@@ -26,11 +26,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/todoitemss", (HttpContext http) => { return Results.Ok(new Todo()); });
+app.MapGet("/todoitems", (HttpContext http) => { return Results.Ok(new Todo()); });
 
 //app.Mapme
 
-app.MapPost("/todoitems", async (Todo todo) =>
+app.MapPost("/todoitems", async ([FromBody] Todo todo) =>
 {
     return Results.Created($"/todoitems/{todo.Id}", todo);
 });
