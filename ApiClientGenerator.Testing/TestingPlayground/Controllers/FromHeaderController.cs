@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TestingPlayground.Models;
+using TestingPlayground.Models.FromHeader;
 
 namespace TestingPlayground.Controllers;
 
@@ -55,19 +56,4 @@ public class FromHeaderController : ControllerBase
     {
         return Ok();
     }
-}
-
-public class AllPropertiesHeaderAttributed
-{
-    [FromHeader]
-    public string ExampleString { get; set; }
-    [FromHeader]
-    public int ExampleInteger { get; set; }
-}
-
-public class SomePropertiesHeaderAttributed
-{
-    [FromHeader]
-    public string ExampleString { get; set; }
-    public int ExampleInteger { get; set; }
 }

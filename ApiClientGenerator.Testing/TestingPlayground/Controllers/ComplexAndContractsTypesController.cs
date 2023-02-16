@@ -4,7 +4,7 @@ namespace TestingPlayground.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class FromRouteController : ControllerBase
+public class ComplexAndContractsTypesController : ControllerBase
 {
 }
 

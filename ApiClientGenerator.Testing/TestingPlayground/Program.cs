@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using NSwag;
+using TestingPlayground.Controllers;
 
 namespace TestingPlayground
 {
@@ -48,6 +49,7 @@ namespace TestingPlayground
 
 
             app.MapControllers();
+            app.AddMinimalEndpoints();
 
             app.Run();
         }

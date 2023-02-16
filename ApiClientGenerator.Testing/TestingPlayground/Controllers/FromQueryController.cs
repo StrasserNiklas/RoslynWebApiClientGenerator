@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TestingPlayground.Models;
+using TestingPlayground.Models.FromQuery;
 
 namespace TestingPlayground.Controllers;
 
@@ -48,18 +49,4 @@ public class FromQueryController : ControllerBase
     {
         return Ok();
     }
-}
-
-public class AllPropertiesQueryAttributed
-{
-    [FromQuery]
-    public string ExampleString { get; set; }
-    public int ExampleInteger { get; set; }
-}
-
-public class SomePropertiesQueryAttributed
-{
-    [FromQuery]
-    public string ExampleString { get; set; }
-    public int ExampleInteger { get; set; }
 }
