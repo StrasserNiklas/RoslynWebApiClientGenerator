@@ -356,7 +356,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}>(default, " : "(";
 
-        if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count == 0)
+        if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count() == 0)
         {
             switchStringBuilder.AppendLine($$"""
                 case 200:

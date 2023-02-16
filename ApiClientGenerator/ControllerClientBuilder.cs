@@ -7,6 +7,7 @@ using System.Linq;
 using ApiGenerator.Models;
 using System.Net.Http;
 using System;
+using ApiGenerator.Diagnostics;
 
 namespace ApiGenerator;
 
@@ -143,12 +144,7 @@ public class ControllerClientBuilder
 
             if (!hasMemberWithAttribute)
             {
-                var errorMessage = $"""
-                Error with method {methodName} in {controllerClassName} class.
-                Uses a [FromHeader] attribute on a class that doesn´t annotate at least one of its properties with the [FromHeader] attribute!
-                """;
-
-                throw new ArgumentException(errorMessage, methodParameter.Name);
+                DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AttributeMissing, Location.None, "[FromHeader]", methodParameter.Name, methodName,  controllerClassName));
             }
         }
 
@@ -175,7 +171,7 @@ public class ControllerClientBuilder
         return returnType;
     }
 
-    private List<KeyValuePair<int, ITypeSymbol>> AddMethodResponseTypes(IMethodSymbol methodSymbol, ITypeSymbol returnType, IDictionary<string, string> generatedClasses, List<string> additionalUsings)
+    private IEnumerable<KeyValuePair<int, ITypeSymbol>> AddMethodResponseTypes(IMethodSymbol methodSymbol, ITypeSymbol returnType, IDictionary<string, string> generatedClasses, List<string> additionalUsings)
     {
         var responseTypeAttributes = methodSymbol.GetAttributes("Microsoft.AspNetCore.Mvc.ProducesResponseTypeAttribute");
         var additionalReturnTypes = new List<KeyValuePair<int, ITypeSymbol>>();

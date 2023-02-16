@@ -25,7 +25,8 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         DiagnosticDescriptors.NoControllersDetected,
         DiagnosticDescriptors.NoClientGenerated,
         DiagnosticDescriptors.NuGetGenerationFailed,
-        DiagnosticDescriptors.PackageVersionNotFound);
+        DiagnosticDescriptors.PackageVersionNotFound,
+        DiagnosticDescriptors.AttributeMissing);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -114,10 +115,6 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         {
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 
-            //semanticModel.get
-
-            // check for minimal APIs
-            // TODO not added right now, fix it
             controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
 
             var classNodes = semanticModel.SyntaxTree

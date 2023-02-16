@@ -87,6 +87,6 @@ public class Configuration
         UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UsePartialClientClasses"];
         UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseGitVersionInformation"];
         CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_CreateNugetPackageOnBuild"];
-        GenerateMinimalApiClient = buildPropertiesWithBooleanDefaultValue["build_property.GenerateMinimalApiClient"];
+        GenerateMinimalApiClient = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateMinimalApiClient"];
     }
 }

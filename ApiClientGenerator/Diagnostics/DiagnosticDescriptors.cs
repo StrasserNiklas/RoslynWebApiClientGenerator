@@ -5,16 +5,6 @@ namespace ApiGenerator.Diagnostics;
 
 public class DiagnosticDescriptors
 {
-    public static readonly DiagnosticDescriptor[] Descriptors = new DiagnosticDescriptor[]
-    {
-        GenericWarning,
-        NoSyntaxTreesFound,
-        NoControllersDetected,
-        NoClientGenerated,
-        NuGetGenerationFailed,
-        PackageVersionNotFound
-    };
-
     public static readonly DiagnosticDescriptor GenericWarning = new(id: "APIGEN000",
                                                                                               title: "Warning",
                                                                                               messageFormat: "'{0} {1}",
@@ -55,5 +45,12 @@ public class DiagnosticDescriptors
                                                                                           messageFormat: "Package version was not added and also couldn´t be resolved for package '{0}'",
                                                                                           category: "ApiClientGenerator",
                                                                                           DiagnosticSeverity.Error,
+                                                                                          isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor AttributeMissing = new(id: "APIGEN006",
+                                                                                          title: "Attribute is missing",
+                                                                                          messageFormat: "'{0}' attributes on properties are missing for parameter '{1}' in method '{2}' in '{3}'. This might result in a HTTP 400 when not using SuppressInferBindingSourcesForParameters.",
+                                                                                          category: "ApiClientGenerator",
+                                                                                          DiagnosticSeverity.Warning,
                                                                                           isEnabledByDefault: true);
 }
