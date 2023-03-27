@@ -13,14 +13,14 @@ public class Configuration
 {
     private static readonly Dictionary<string, bool> buildPropertiesWithBooleanDefaultValue = new Dictionary<string, bool>()
     {
-        { "build_property.ApiClientGenerator_GenerateClientOnBuild", true },
-        { "build_property.ApiClientGenerator_UseExternalAssemblyContracts", true },
-        { "build_property.ApiClientGenerator_UsePartialClientClasses", true },
-        { "build_property.ApiClientGenerator_UseInterfacesForClients", true },
-        { "build_property.ApiClientGenerator_UseSeparateClientFiles", false },
-        { "build_property.ApiClientGenerator_CreateNugetPackageOnBuild", false },
-        { "build_property.ApiClientGenerator_UseGitVersionInformation", true },
-        { "build_property.ApiClientGenerator_GenerateMinimalApiClient", true },
+        { "build_property.ACGT_GenerateClientOnBuild", true },
+        { "build_property.ACGT_UseExternalAssemblyContracts", true },
+        { "build_property.ACGT_UsePartialClientClasses", true },
+        { "build_property.ACGT_UseInterfacesForClients", true },
+        { "build_property.ACGT_UseSeparateClientFiles", false },
+        { "build_property.ACGT_CreateNugetPackageOnBuild", false },
+        { "build_property.ACGT_UseGitVersionInformation", true },
+        { "build_property.ACGT_GenerateMinimalApiClient", true },
     };
 
     public static IEnumerable<string> ProjectAssemblyNamespaces { get; set; } = new List<string>();
@@ -48,9 +48,9 @@ public class Configuration
             }
         }
 
-        if (globalOptions.TryGetValue("build_property.ApiClientGenerator_PackageReferences", out string packageReferences))
+        if (globalOptions.TryGetValue("build_property.ACGT_PackageReferences", out string packageReferences))
         {
-            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "References: ", packageReferences));
+            //DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "References: ", packageReferences));
 
             var packages = packageReferences.Split(';');
 
@@ -63,7 +63,7 @@ public class Configuration
                     if (packageSplit.Length > 2)
                     {
                         DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "Format of 'Package:Version' was used incorrectly: ", packageSplit));
-                        throw new ArgumentException("Format of 'Package:Version' in property ApiClientGenerator_PackageReferences was used incorrectly");
+                        throw new ArgumentException("Format of 'Package:Version' in property ACGT_PackageReferences was used incorrectly");
                     }
 
                     if (packageSplit.Length == 1 && !string.IsNullOrWhiteSpace(packageSplit[0]))
@@ -80,13 +80,13 @@ public class Configuration
             }
         }
 
-        GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateClientOnBuild"];
-        UseExternalAssemblyContracts = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseExternalAssemblyContracts"];
-        UseSeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseSeparateClientFiles"];
-        UseInterfacesForClients = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseInterfacesForClients"];
-        UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UsePartialClientClasses"];
-        UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_UseGitVersionInformation"];
-        CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_CreateNugetPackageOnBuild"];
-        GenerateMinimalApiClient = buildPropertiesWithBooleanDefaultValue["build_property.ApiClientGenerator_GenerateMinimalApiClient"];
+        GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_GenerateClientOnBuild"];
+        UseExternalAssemblyContracts = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseExternalAssemblyContracts"];
+        UseSeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseSeparateClientFiles"];
+        UseInterfacesForClients = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseInterfacesForClients"];
+        UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UsePartialClientClasses"];
+        UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseGitVersionInformation"];
+        CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_CreateNugetPackageOnBuild"];
+        GenerateMinimalApiClient = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_GenerateMinimalApiClient"];
     }
 }

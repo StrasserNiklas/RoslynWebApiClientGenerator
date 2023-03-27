@@ -1,13 +1,13 @@
 <Project>
    <ItemGroup>
-	   <CompilerVisibleProperty Include="ApiClientGenerator_PackageReferences"/>
-	   <CompilerVisibleProperty Include="ApiClientGenerator_GenerateClientOnBuild" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_UseExternalAssemblyContracts" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_UsePartialClientClasses" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_UseInterfacesForClients" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_UseSeparateClientFiles" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_CreateNugetPackageOnBuild" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_UseGitVersionInformation" />
-	   <CompilerVisibleProperty Include="ApiClientGenerator_GenerateMinimalApiClient" />
+	   <CompilerVisibleProperty Include="ACGT_PackageReferences"/>
+	   <CompilerVisibleProperty Include="ACGT_GenerateClientOnBuild" />
+	   <CompilerVisibleProperty Include="ACGT_UseExternalAssemblyContracts" />
+	   <CompilerVisibleProperty Include="ACGT_UsePartialClientClasses" />
+	   <CompilerVisibleProperty Include="ACGT_UseInterfacesForClients" />
+	   <CompilerVisibleProperty Include="ACGT_UseSeparateClientFiles" />
+	   <CompilerVisibleProperty Include="ACGT_CreateNugetPackageOnBuild" />
+	   <CompilerVisibleProperty Include="ACGT_UseGitVersionInformation" />
+	   <CompilerVisibleProperty Include="ACGT_GenerateMinimalApiClient" />
 	</ItemGroup>
 </Project>
