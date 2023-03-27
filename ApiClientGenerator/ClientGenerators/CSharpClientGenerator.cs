@@ -22,7 +22,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         // beginning of file
         // name of the .cs file is the first controller (if single file) and before that the project name
-        var fileName = $"{this.ProjectName}.{controllerClientDetails.FirstOrDefault()?.Name}.cs";
+        var fileName = $"{this.ProjectName}.{controllerClientDetails.FirstOrDefault()?.ClientName}.cs";
 
         var clientCodeStringBuilder = new StringBuilder();
 
@@ -67,14 +67,14 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         if (controllerClientDetails.IsMinimalApiClient)
         {
-            foreach (var method in controllerClientDetails.HttpMethods)
+            foreach (var method in controllerClientDetails.Endpoints)
             {
                 methodsBuilder.AppendLine(this.GenerateMinimalApiEndpoints(method));
             }
         }
         else
         {
-            foreach (var method in controllerClientDetails.HttpMethods)
+            foreach (var method in controllerClientDetails.Endpoints)
             {
                 methodsBuilder.AppendLine(this.GenerateSingleMethodWithoutCancellationToken(method));
                 methodsBuilder.AppendLine(this.GenerateSingleEndpointMethod(method));
@@ -82,12 +82,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
         }
 
         var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
-        var interfaceString = Configuration.UseInterfacesForClients && !controllerClientDetails.IsMinimalApiClient ? $": I{controllerClientDetails.Name}" : string.Empty;
+        var interfaceString = Configuration.UseInterfacesForClients && !controllerClientDetails.IsMinimalApiClient ? $": I{controllerClientDetails.ClientName}" : string.Empty;
 
         return $$"""
-            public{{partialString}} class {{controllerClientDetails.Name}} {{interfaceString}}
+            public{{partialString}} class {{controllerClientDetails.ClientName}} {{interfaceString}}
             {
-                {{this.AddHttpClientConstructorWithField(controllerClientDetails.Name)}}
+                {{this.AddHttpClientConstructorWithField(controllerClientDetails.ClientName)}}
                 {{methodsBuilder}}
                 {{this.AddPrepareRequestMessageMethod()}}
                 {{this.AddPostJsonHelperMethod()}}
@@ -219,7 +219,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         foreach (var parameter in methodDetails.Parameters)
         {
             // add null check if possible
-            if (parameter.Value.ParameterSymbol.Type.IsNullable())
+            if (parameter.Value.IsNullable)
             {
                 parameterCheckStringBuilder.Append($$"""
                 if({{parameter.Key}} == null)
@@ -413,7 +413,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         var interfaceMethodsStringBuilder = new StringBuilder();
 
-        foreach (var method in controllerClientDetails.HttpMethods)
+        foreach (var method in controllerClientDetails.Endpoints)
         {
             interfaceMethodsStringBuilder.AppendLine(this.GenerateInterfaceMethod(method));
         }
@@ -421,7 +421,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var partialString = Configuration.UsePartialClientClasses ? " partial" : string.Empty;
 
         return $$"""
-            public{{partialString}} interface I{{controllerClientDetails.Name}}
+            public{{partialString}} interface I{{controllerClientDetails.ClientName}}
             {
                 {{interfaceMethodsStringBuilder}}
             }

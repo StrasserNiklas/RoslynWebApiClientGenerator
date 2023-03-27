@@ -87,7 +87,7 @@ public class ControllerClientBuilder
 
                     if (fromHeader is not null)
                     {
-                        headerKeys = this.GetHeaderValues(methodParameter, method.Name, clientInformation.Name.Replace("Client", "Controller"));
+                        headerKeys = this.GetHeaderValues(methodParameter, method.Name, clientInformation.ClientName.Replace("Client", "Controller"));
                     }
 
                     if (!methodParameter.Type.IsSimpleType())
@@ -104,7 +104,7 @@ public class ControllerClientBuilder
                 var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
                 var additionalReturnTypes = this.AddMethodResponseTypes(methodSymbol, returnType, generatedClasses, additionalUsings);
                 var httpMethodInformation = new ControllerMethodDetails(httpMethod, returnType, additionalReturnTypes, parameterMapping, methodNameWithoutAsnyc, finalRoute);
-                clientInformation.HttpMethods.Add(httpMethodInformation);
+                clientInformation.Endpoints.Add(httpMethodInformation);
             }
         }
 
@@ -304,7 +304,7 @@ public class ControllerClientBuilder
                 var route = literal.Token.ValueText;
                 this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
                 var methodDetails = new ControllerMethodDetails(httpMethod, null, null, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
-                controllerClientDetails.HttpMethods.Add(methodDetails);
+                controllerClientDetails.Endpoints.Add(methodDetails);
             }
         }
 

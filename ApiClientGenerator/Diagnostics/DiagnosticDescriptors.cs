@@ -7,7 +7,7 @@ public class DiagnosticDescriptors
 {
     public static readonly DiagnosticDescriptor GenericWarning = new(id: "APIGEN000",
                                                                                               title: "Warning",
-                                                                                              messageFormat: "'{0} {1}",
+                                                                                              messageFormat: "'{0}' '{1}'",
                                                                                               category: "ApiClientGenerator",
                                                                                               DiagnosticSeverity.Warning,
                                                                                               isEnabledByDefault: true);

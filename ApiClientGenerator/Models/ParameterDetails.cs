@@ -13,9 +13,10 @@ public class ParameterDetails
     public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, ParameterAttributeDetails parameterAttributeDetails, List<string> headerKeys)
     {
         this.Name = parameterSymbol.Name;
-        this.HasExplizitDefaultValue = parameterSymbol.HasExplicitDefaultValue;
-        this.ParameterSymbol = parameterSymbol;
-        this.IsPrimitive = isPrimitive;
+        //this.HasExplizitDefaultValue = parameterSymbol.HasExplicitDefaultValue;
+        //this.ParameterSymbol = parameterSymbol;
+        //this.IsPrimitive = isPrimitive;
+        this.IsNullable = parameterSymbol.Type.IsNullable();
         this.AttributeDetails = parameterAttributeDetails;
         this.HeaderKeys = headerKeys;
 
@@ -100,9 +101,10 @@ public class ParameterDetails
     public bool IsRouteQueryParameter { get; set; }
     public string ParameterTypeString { get; }
     public string Name { get; }
-    public bool HasExplizitDefaultValue { get; }
-    public IParameterSymbol ParameterSymbol { get; }
-    public bool IsPrimitive { get; }
+    //public bool HasExplizitDefaultValue { get; }
+    //public IParameterSymbol ParameterSymbol { get; }
+    public bool IsNullable { get; }
+    //public bool IsPrimitive { get; }
     public ParameterAttributeDetails AttributeDetails { get; }
     public List<string> HeaderKeys { get; }
     public string FormString { get; }

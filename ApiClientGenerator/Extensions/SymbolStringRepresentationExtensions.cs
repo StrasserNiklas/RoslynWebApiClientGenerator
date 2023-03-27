@@ -42,8 +42,6 @@ public static class SymbolStringRepresentationExtensions
                 classGenerationDetails.AdditionalUsings.Add(symbolNamespace);
                 return classGenerationDetails;
             }
-
-            
         }
 
         string className = symbol.Name;

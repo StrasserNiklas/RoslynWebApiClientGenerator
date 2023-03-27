@@ -59,7 +59,7 @@ public class ControllerMethodDetails
     }
 
     public bool HasRouteQueryParameters { get; }
-    public MatchCollection RouteQueryMatches { get; }
+    public MatchCollection RouteQueryMatches { get; } // for minimal API
     public string Route { get; }
     public string MethodName { get; }
     public HttpMethod HttpMethod { get; }

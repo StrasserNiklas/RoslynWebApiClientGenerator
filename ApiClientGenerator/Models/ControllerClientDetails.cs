@@ -14,26 +14,21 @@ public class ControllerClientDetails
 
         var route = routeAttributeData?.ConstructorArguments.FirstOrDefault().Value?.ToString();
 
-        this.Name = $"{baseName}Client";
+        this.ClientName = $"{baseName}Client";
         this.BaseRoute = string.IsNullOrWhiteSpace(route) ? string.Empty : route.Replace("[controller]", baseName);
-        this.HttpMethods = new List<ControllerMethodDetails>();
+        this.Endpoints = new List<ControllerMethodDetails>();
         this.GeneratedCodeClasses = new Dictionary<string, string>();
         this.IsMinimalApiClient = isMinimalApiClient;
-
-
-
-
-
-
         this.ReferencedAssemblyNamespaces = new Dictionary<string, string>();
         this.AdditionalUsings = new List<string>();
     }
 
-    public string Name { get; }
+    public string ClientName { get; }
     public string BaseRoute { get; }
-    public List<ControllerMethodDetails> HttpMethods { get; set; }
+    public List<ControllerMethodDetails> Endpoints { get; set; }
     public IDictionary<string, string> GeneratedCodeClasses { get; set; }
     public bool IsMinimalApiClient { get; }
+
 
 
 
