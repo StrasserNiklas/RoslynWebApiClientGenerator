@@ -36,7 +36,7 @@ There are several options to configure the generation of API clients. This is do
 
 ```csharp
 <PropertyGroup>
-	<ApiClientGenerator_GenerateClientOnBuild>false</ApiClientGenerator_GenerateClientOnBuild>
+	<ACGT_GenerateClientOnBuild>false</ACGT_GenerateClientOnBuild>
 </PropertyGroup>
 ```
 
@@ -45,13 +45,13 @@ Below you can find a list of the currently available configuration values. You c
 
 | Configuration Value | Default Value |      Description
 |:----------|:-------------|:-
-| `ApiClientGenerator_GenerateClientOnBuild` | true | Generate client(s) on each build of the API
-| `ApiClientGenerator_UseExternalAssemblyContracts` | true | Models used in Requests/Responses from external references will not be generated 
-| `ApiClientGenerator_UsePartialClientClasses` | true | Client classes (and interfaces) will be marked partial 
-| `ApiClientGenerator_UseInterfacesForClients` | true | An interface will be generated for each client 
-| `ApiClientGenerator_UseSeparateClientFiles` | false | Each generated client (for each controller) will be placed in a separate file 
-| `ApiClientGenerator_CreateNugetPackageOnBuild` | false | A NuGet package will be created on each build of the API  
-| `ApiClientGenerator_UseGitVersionInformation` |false | Current Git version information (if availanle) will be used for versioning the NuGet package 
+| `ACGT_GenerateClientOnBuild` | true | Generate client(s) on each build of the API
+| `ACGT_UseExternalAssemblyContracts` | true | Models used in Requests/Responses from external references will not be generated 
+| `ACGT_UsePartialClientClasses` | true | Client classes (and interfaces) will be marked partial 
+| `ACGT_UseInterfacesForClients` | true | An interface will be generated for each client 
+| `ACGT_UseSeparateClientFiles` | false | Each generated client (for each controller) will be placed in a separate file 
+| `ACGT_CreateNugetPackageOnBuild` | false | A NuGet package will be created on each build of the API  
+| `ACGT_UseGitVersionInformation` |false | Current Git version information (if availanle) will be used for versioning the NuGet package 
 
 ## NuGet Package Versioning
 
