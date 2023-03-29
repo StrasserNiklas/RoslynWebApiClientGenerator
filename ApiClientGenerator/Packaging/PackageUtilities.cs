@@ -31,7 +31,7 @@ public static class PackageUtilities
         }
     }
 
-    public static string GetApiProjectName(Compilation compilation)
+    public static string GetApiProjectFilePath(Compilation compilation)
     {
         if (compilation.SyntaxTrees.Count() != 0)
         {
@@ -61,7 +61,7 @@ public static class PackageUtilities
         return FindProjectFileDirectory(parentPath);
     }
 
-    private static string FindProjectFilePath(string directoryPath)
+    public static string FindProjectFilePath(string directoryPath)
     {
         string[] files = Directory.GetFiles(directoryPath, "*.csproj");
 

@@ -55,7 +55,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             return;
         }
 
-        var csprojFilePath = PackageUtilities.GetApiProjectName(context.Compilation);
+        var csprojFilePath = Configuration.ProjectDirectory != string.Empty ? PackageUtilities.FindProjectFilePath(Configuration.ProjectDirectory) : PackageUtilities.GetApiProjectFilePath(context.Compilation);
         var projectDetails = XmlUtilities.ParseClientProjectFilePackageReferences(csprojFilePath);
         var globalNamespaces = this.GetNamespaces(context.Compilation.GlobalNamespace).ToList();
         this.MapNamespacesToPackages(projectDetails, globalNamespaces);
@@ -73,11 +73,17 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             return;
         }
 
-        // TODO testing
-        // add this to config?
-        var fileDirectory = "C:\\Workspace\\TestingApp\\TestingApp\\Test\\";
+        var fileDirectory = Configuration.OutputPath;
 
-        var outDirectory = PackageUtilities.FindProjectFileDirectory(context.Compilation.SyntaxTrees.First().FilePath) + "\\out";
+        if (fileDirectory == string.Empty)
+        {
+            fileDirectory = $"{Configuration.ProjectDirectory}\\out";
+        }
+
+        if (!Directory.Exists(fileDirectory))
+        {
+            Directory.CreateDirectory(fileDirectory);
+        }
 
         foreach (var clientGenerator in this.clientGenerators)
         {
