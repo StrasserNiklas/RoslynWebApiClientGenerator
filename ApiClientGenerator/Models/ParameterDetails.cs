@@ -1,16 +1,14 @@
 ﻿using ApiGenerator.Extensions;
 using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 
 namespace ApiGenerator.Models;
 
 public class ParameterDetails
 {
-    public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, ParameterAttributeDetails parameterAttributeDetails, List<string> headerKeys)
+    public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, ParameterAttributeDetails parameterAttributeDetails, Dictionary<string, HeaderDetails> headerKeyValues)
     {
         this.Name = parameterSymbol.Name;
         //this.HasExplizitDefaultValue = parameterSymbol.HasExplicitDefaultValue;
@@ -18,9 +16,46 @@ public class ParameterDetails
         //this.IsPrimitive = isPrimitive;
         this.IsNullable = parameterSymbol.Type.IsNullable();
         this.AttributeDetails = parameterAttributeDetails;
-        this.HeaderKeys = headerKeys;
+        this.HeaderKeyValues = new Dictionary<string, string>();
+        this.ComplexTypeString = parameterSymbol.Type.CheckAndSanitizeClassString();
+        this.ParameterStringWithTypes = $"{this.ComplexTypeString} {this.Name}";
+        this.ParameterStringWithoutTypes = this.Name;
 
-        this.ParameterTypeString = parameterSymbol.Type.CheckAndSanitizeClassString();
+        if (parameterAttributeDetails.HasHeaderAttribute)
+        {
+            // should you also check if the symbol even has the attribute?
+            var memberCount = parameterSymbol.Type.GetMembers().Count(s => s is IPropertySymbol);
+            
+            if (isPrimitive)
+            {
+                this.HeaderKeyValues.Add(headerKeyValues.First().Key, headerKeyValues.First().Value.Name);
+            }
+            else if (memberCount != headerKeyValues.Count && headerKeyValues.Count > 0)
+            {
+                // set the parameter different
+                this.IsNullable = false;
+                this.ParameterStringWithTypes = string.Empty;
+                this.ParameterStringWithoutTypes = string.Empty;
+
+                foreach (var header in headerKeyValues)
+                {
+                    var name = char.ToLowerInvariant(header.Value.Name[0]) + header.Value.Name.Substring(1);
+                    this.ParameterStringWithTypes += $"{header.Value.TypeInformation.CheckAndSanitizeClassString()} {name}, ";
+                    this.ParameterStringWithoutTypes += $"{name}, ";
+                    this.HeaderKeyValues.Add(header.Key, name);
+                }
+
+                this.ParameterStringWithTypes = this.ParameterStringWithTypes.TrimEnd(',', ' ');
+                this.ParameterStringWithoutTypes = this.ParameterStringWithoutTypes.TrimEnd(',', ' ');
+            }
+            else
+            {
+                foreach (var header in headerKeyValues)
+                {
+                    this.HeaderKeyValues.Add(header.Key, this.Name + '.' + header.Value.Name);
+                }
+            }
+        }
 
         if (parameterAttributeDetails.HasNoAttributes && isPrimitive)
         {
@@ -99,13 +134,15 @@ public class ParameterDetails
 
     public string QueryString { get; }
     public bool IsRouteQueryParameter { get; set; }
-    public string ParameterTypeString { get; }
+    public string ComplexTypeString { get; }
+    public string ParameterStringWithTypes { get; }
+    public string ParameterStringWithoutTypes { get; }
     public string Name { get; }
     //public bool HasExplizitDefaultValue { get; }
     //public IParameterSymbol ParameterSymbol { get; }
     public bool IsNullable { get; }
     //public bool IsPrimitive { get; }
     public ParameterAttributeDetails AttributeDetails { get; }
-    public List<string> HeaderKeys { get; }
+    public Dictionary<string, string> HeaderKeyValues { get; }
     public string FormString { get; }
 }

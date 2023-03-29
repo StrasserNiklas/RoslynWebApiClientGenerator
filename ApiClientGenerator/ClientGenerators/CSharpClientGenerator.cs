@@ -208,7 +208,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)
     {
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithTypes}, " : string.Empty;
         var parameterCheckStringBuilder = new StringBuilder();
         var routeQueryParamStringBuilder = new StringBuilder();
         var headerKeyValuesStringBuilder = new StringBuilder();
@@ -262,10 +262,10 @@ public class CSharpClientGenerator : ClientGeneratorBase
             // add header values
             if (parameter.Value.AttributeDetails.HasHeaderAttribute)
             {
-                foreach (var headerKey in parameter.Value.HeaderKeys)
+                foreach (var header in parameter.Value.HeaderKeyValues)
                 {
                     headerKeyValuesStringBuilder.AppendLine($$"""
-                    { "{{headerKey}}", {{headerKey}}.ToString()},
+                    { "{{header.Key}}", {{header.Value}}.ToString()},
                     """);
                 }
             }
@@ -284,7 +284,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """ : string.Empty;
 
         var methodCallString = bodyParameter is not null ?
-            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
+            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ComplexTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
             : $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);";
 
         return $$"""
@@ -382,8 +382,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
     {
         var methodNameString = methodDetails.HasParameters ? ", " : string.Empty;
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}, " : string.Empty;
-        var existingParameter = methodDetails.HasParameters ? string.Join(", ", methodDetails.Parameters.Select(x => x.Key)) + ", " : string.Empty;
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithTypes}, " : string.Empty;
+        var existingParameter = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithoutTypes}, " : string.Empty;
 
         return $$"""
             public virtual {{returnTypeString}} {{methodDetails.MethodName}}({{parameterString}}Action<HttpClient, HttpRequestMessage> prepareSingleRequest = null)
@@ -431,7 +431,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
     private string GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
     {
         var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
-        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterString}" : string.Empty;
+        var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithTypes}" : string.Empty;
 
         if (methodDetails.HasParameters)
         {

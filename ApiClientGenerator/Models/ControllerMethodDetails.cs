@@ -47,7 +47,8 @@ public class ControllerMethodDetails
 
         if (parameters != null)
         {
-            this.ParameterString = string.Join(", ", parameters.Select(x => $"{x.Value.ParameterTypeString}  {x.Key}")).TrimEnd(',');
+            this.ParameterStringWithTypes = string.Join(", ", parameters.Select(x => x.Value.ParameterStringWithTypes)).TrimEnd(',');
+            this.ParameterStringWithoutTypes = string.Join(", ", parameters.Select(x => x.Value.ParameterStringWithoutTypes)).TrimEnd(',');
         }
 
         this.ReturnType = returnType;
@@ -66,7 +67,8 @@ public class ControllerMethodDetails
     public IEnumerable<KeyValuePair<int, ITypeSymbol>> ReturnTypes { get; }
     public bool HasParameters => this.Parameters != null && this.Parameters.Count > 0;
     public IDictionary<string, ParameterDetails> Parameters { get; }
-    public string ParameterString { get; }
+    public string ParameterStringWithTypes { get; }
+    public string ParameterStringWithoutTypes { get; }
     public bool HasReturnType => this.ReturnType != null;
     public string ReturnTypeString { get; }
     public ITypeSymbol ReturnType { get; }

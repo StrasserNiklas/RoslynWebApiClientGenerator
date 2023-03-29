@@ -83,7 +83,7 @@ public class ControllerClientBuilder
                     var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
                     var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
 
-                    var headerKeys = new List<string>();
+                    var headerKeys = new Dictionary<string, HeaderDetails>();
 
                     if (fromHeader is not null)
                     {
@@ -112,18 +112,20 @@ public class ControllerClientBuilder
         clientInformation.GeneratedCodeClasses = generatedClasses;
     }
 
-    private List<string> GetHeaderValues(IParameterSymbol methodParameter, string methodName, string controllerClassName)
+    private Dictionary<string, HeaderDetails> GetHeaderValues(IParameterSymbol methodParameter, string methodName, string controllerClassName)
     {
-        var headerKeys = new List<string>();
+        var headerKeys = new Dictionary<string, HeaderDetails>();
 
         if (methodParameter.Type.IsSimpleType())
         {
-            headerKeys.Add(methodParameter.Name);
+            var fromHeaderAttribute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+            headerKeys.Add(this.GetHeaderName(methodParameter, fromHeaderAttribute), new HeaderDetails(methodParameter.Name, methodParameter.Type));
         }
         else
         {
             // check if at least one property has header attribute
             var members = methodParameter.Type.GetMembers();
+            var allMembersHaveAttribute = true;
             var hasMemberWithAttribute = false;
 
             foreach (var member in members)
@@ -134,11 +136,12 @@ public class ControllerClientBuilder
 
                     if (fromHeaderAttribute is null)
                     {
+                        allMembersHaveAttribute = false;
                         continue;
                     }
 
                     hasMemberWithAttribute = true;
-                    headerKeys.Add(member.Name);
+                    headerKeys.Add(this.GetHeaderName(member, fromHeaderAttribute), new HeaderDetails(member.Name, property.Type));
                 }
             }
 
@@ -146,9 +149,39 @@ public class ControllerClientBuilder
             {
                 DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AttributeMissing, Location.None, "[FromHeader]", methodParameter.Name, methodName,  controllerClassName));
             }
+
+            // name müsste der key werden...
+            //[FromHeader(Name = "x-asw-locale")]
+            // geht darum dass ned a klasse angegeben werden muss wenn nedmal alle dinger verwendet werden
+            // vl sollt ich oben schon nur die einzelnen values hernehmen und ned die ganze klasse? 
+            // TODO maybe
+            if (!allMembersHaveAttribute)
+            {
+                // hier den key bzw value ändern?
+            }
         }
 
         return headerKeys;
+    }
+
+    private string GetHeaderName(ISymbol symbol, AttributeData fromHeaderAttribute)
+    {
+        var headerName = symbol.Name;
+
+        if (fromHeaderAttribute is not null)
+        {
+            if (fromHeaderAttribute.NamedArguments.Any())
+            {
+                var actualHeaderName = fromHeaderAttribute.NamedArguments.FirstOrDefault().Value.Value.ToString();
+
+                if (!string.IsNullOrWhiteSpace(actualHeaderName))
+                {
+                    return actualHeaderName;
+                }
+            }
+        }
+
+        return headerName;
     }
 
     private ITypeSymbol UnwrapReturnType(ITypeSymbol returnType)
