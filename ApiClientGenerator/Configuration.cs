@@ -14,7 +14,7 @@ public class Configuration
     private static readonly Dictionary<string, bool> buildPropertiesWithBooleanDefaultValue = new Dictionary<string, bool>()
     {
         { "build_property.ACGT_GenerateClientOnBuild", true },
-        { "build_property.ACGT_UseExternalAssemblyContracts", true },
+        { "build_property.ACGT_UseExternalAssemblyContracts", false },
         { "build_property.ACGT_UsePartialClientClasses", true },
         { "build_property.ACGT_UseInterfacesForClients", true },
         { "build_property.ACGT_UseSeparateClientFiles", false },
@@ -24,11 +24,12 @@ public class Configuration
     };
 
     public static IEnumerable<string> ProjectAssemblyNamespaces { get; set; } = new List<string>();
-
+    public static string OutputPath = string.Empty;
+    public static string ProjectDirectory = string.Empty;
     public static List<PackageDetails> ConfiguredPackageReferences { get; set; } = new List<PackageDetails>();
 
     public static bool GenerateClientOnBuild { get; set; } = true;
-    public static bool UseExternalAssemblyContracts { get; set; } = true;
+    public static bool UseExternalAssemblyContracts { get; set; } = false;
     public static bool UseSeparateClientFiles { get; set; } = false;
     public static bool UseInterfacesForClients { get; set; } = true;
     public static bool UsePartialClientClasses { get; set; } = true;
@@ -46,6 +47,16 @@ public class Configuration
             {
                 buildPropertiesWithBooleanDefaultValue[item.Key] = value.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
+        }
+
+        if (globalOptions.TryGetValue("build_property.projectdir", out string projectDirectory))
+        {
+            ProjectDirectory = projectDirectory;
+        }
+
+        if (globalOptions.TryGetValue("build_property.ACGT_OutputPath", out string outputPath))
+        {
+            OutputPath = outputPath;
         }
 
         if (globalOptions.TryGetValue("build_property.ACGT_PackageReferences", out string packageReferences))

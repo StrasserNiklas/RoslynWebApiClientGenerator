@@ -9,5 +9,6 @@
 	   <CompilerVisibleProperty Include="ACGT_CreateNugetPackageOnBuild" />
 	   <CompilerVisibleProperty Include="ACGT_UseGitVersionInformation" />
 	   <CompilerVisibleProperty Include="ACGT_GenerateMinimalApiClient" />
+	   <CompilerVisibleProperty Include="ACGT_OutputPath" />
 	</ItemGroup>
 </Project>
