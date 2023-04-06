@@ -63,7 +63,7 @@ public class Configuration
         {
             //DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "References: ", packageReferences));
 
-            var packages = packageReferences.Split(';');
+            var packages = packageReferences.Split(',');
 
             foreach (var package in packages)
             {
