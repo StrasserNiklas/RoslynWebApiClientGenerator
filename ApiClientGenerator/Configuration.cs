@@ -1,11 +1,10 @@
 ﻿using ApiGenerator.Diagnostics;
 using ApiGenerator.Packaging;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 
 namespace ApiGenerator;
 
@@ -56,41 +55,61 @@ public class Configuration
 
         if (globalOptions.TryGetValue("build_property.ACGT_OutputPath", out string outputPath))
         {
-            OutputPath = outputPath;
+            OutputPath = ParseOutputPath(outputPath);
         }
 
         if (globalOptions.TryGetValue("build_property.ACGT_PackageReferences", out string packageReferences))
         {
-            //DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "References: ", packageReferences));
+            ParsePackageReferences(packageReferences);
+        }
 
-            var packages = packageReferences.Split(',');
+        SetFinalConfigurationValues();
+    }
 
-            foreach (var package in packages)
+
+    private static string ParseOutputPath(string outputPath)
+    {
+        if (Path.IsPathRooted(outputPath))
+        {
+            return outputPath;
+        }
+
+        string combinedPath = Path.Combine(ProjectDirectory, outputPath);
+        return Path.GetFullPath(combinedPath);
+    }
+
+    private static void ParsePackageReferences(string packageReferences)
+    {
+        var packages = packageReferences.Split(',');
+
+        foreach (var package in packages)
+        {
+            if (!string.IsNullOrWhiteSpace(package))
             {
-                if (!string.IsNullOrWhiteSpace(package))
+                var packageSplit = package.Split(':');
+
+                if (packageSplit.Length > 2)
                 {
-                    var packageSplit = package.Split(':');
+                    DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "Format of 'Package:Version' was used incorrectly: ", packageSplit));
+                    throw new ArgumentException("Format of 'Package:Version' in property ACGT_PackageReferences was used incorrectly");
+                }
 
-                    if (packageSplit.Length > 2)
-                    {
-                        DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, "Format of 'Package:Version' was used incorrectly: ", packageSplit));
-                        throw new ArgumentException("Format of 'Package:Version' in property ACGT_PackageReferences was used incorrectly");
-                    }
+                if (packageSplit.Length == 1 && !string.IsNullOrWhiteSpace(packageSplit[0]))
+                {
+                    ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0]));
+                    continue;
+                }
 
-                    if (packageSplit.Length == 1 && !string.IsNullOrWhiteSpace(packageSplit[0]))
-                    {
-                        ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0]));
-                        continue;
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(packageSplit[0]) && !string.IsNullOrWhiteSpace(packageSplit[1]))
-                    {
-                        ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0], packageSplit[1]));
-                    }
+                if (!string.IsNullOrWhiteSpace(packageSplit[0]) && !string.IsNullOrWhiteSpace(packageSplit[1]))
+                {
+                    ConfiguredPackageReferences.Add(new PackageDetails(packageSplit[0], packageSplit[1]));
                 }
             }
         }
+    }
 
+    private static void SetFinalConfigurationValues()
+    {
         GenerateClientOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_GenerateClientOnBuild"];
         UseExternalAssemblyContracts = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseExternalAssemblyContracts"];
         UseSeparateClientFiles = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseSeparateClientFiles"];
