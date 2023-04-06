@@ -6,6 +6,7 @@
 	   <CompilerVisibleProperty Include="ACGT_UsePartialClientClasses" />
 	   <CompilerVisibleProperty Include="ACGT_UseInterfacesForClients" />
 	   <CompilerVisibleProperty Include="ACGT_UseSeparateClientFiles" />
+	   <CompilerVisibleProperty Include="ACGT_CreateClientProjectFileOnBuild" />
 	   <CompilerVisibleProperty Include="ACGT_CreateNugetPackageOnBuild" />
 	   <CompilerVisibleProperty Include="ACGT_UseGitVersionInformation" />
 	   <CompilerVisibleProperty Include="ACGT_GenerateMinimalApiClient" />

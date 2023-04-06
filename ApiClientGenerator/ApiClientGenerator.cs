@@ -104,11 +104,14 @@ public class ApiClientGenerator : DiagnosticAnalyzer
         var allAdditionalUsings = completeControllerDetailList.Select(x => x.AdditionalUsings).Aggregate((a, b) => a.Union(b).ToList());
         var finalReferences = this.CompileFinalPackageReferences(projectDetails, allAdditionalUsings);
 
-        XmlUtilities.CreateProjectFile(finalReferences, fileDirectory, $"{projectName}.csproj", version);
-
-        if (Configuration.CreateNugetPackageOnBuild)
+        if (Configuration.CreateClientProjectFileOnBuild)
         {
-            PackageUtilities.CreateNugetPackage(fileDirectory);
+            XmlUtilities.CreateProjectFile(finalReferences, fileDirectory, $"{projectName}.csproj", version);
+
+            if (Configuration.CreateNugetPackageOnBuild)
+            {
+                PackageUtilities.CreateNugetPackage(fileDirectory);
+            }
         }
     }
 

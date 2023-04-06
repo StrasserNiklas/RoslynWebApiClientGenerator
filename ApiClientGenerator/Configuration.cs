@@ -17,6 +17,7 @@ public class Configuration
         { "build_property.ACGT_UsePartialClientClasses", true },
         { "build_property.ACGT_UseInterfacesForClients", true },
         { "build_property.ACGT_UseSeparateClientFiles", false },
+        { "build_property.ACGT_CreateClientProjectFileOnBuild", true },
         { "build_property.ACGT_CreateNugetPackageOnBuild", false },
         { "build_property.ACGT_UseGitVersionInformation", true },
         { "build_property.ACGT_GenerateMinimalApiClient", true },
@@ -33,6 +34,7 @@ public class Configuration
     public static bool UseInterfacesForClients { get; set; } = true;
     public static bool UsePartialClientClasses { get; set; } = true;
     public static bool CreateNugetPackageOnBuild { get; set; } = false;
+    public static bool CreateClientProjectFileOnBuild { get; set; } = true;
     public static bool UseGitVersionInformation { get; set; } = true;
     public static bool GenerateMinimalApiClient { get; set; } = true;
 
@@ -117,6 +119,7 @@ public class Configuration
         UsePartialClientClasses = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UsePartialClientClasses"];
         UseGitVersionInformation = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_UseGitVersionInformation"];
         CreateNugetPackageOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_CreateNugetPackageOnBuild"];
+        CreateClientProjectFileOnBuild = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_CreateClientProjectFileOnBuild"];
         GenerateMinimalApiClient = buildPropertiesWithBooleanDefaultValue["build_property.ACGT_GenerateMinimalApiClient"];
     }
 }
