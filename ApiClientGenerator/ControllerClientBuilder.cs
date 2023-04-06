@@ -77,6 +77,11 @@ public class ControllerClientBuilder
                         continue;
                     }
 
+                    if (methodParameter.Type.ToString() == "System.Threading.CancellationToken")
+                    {
+                        continue;
+                    }
+
                     var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
                     var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
                     var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
