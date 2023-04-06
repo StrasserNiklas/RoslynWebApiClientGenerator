@@ -21,6 +21,10 @@ public static class XmlUtilities
         		<LangVersion>latest</LangVersion>
         		<IsPackable>true</IsPackable>
         	</PropertyGroup>
+
+            <ItemGroup>
+        	    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+            </ItemGroup>
         </Project>
         """;
 

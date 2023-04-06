@@ -6,8 +6,8 @@ public class PackageDetails
 {
     public PackageDetails(string packageName, string versionInfo = "")
     {
-        PackageName = packageName;
-        VersionInfo = versionInfo;
+        this.PackageName = packageName;
+        this.VersionInfo = versionInfo;
         this.Namespaces = new List<string>();
     }
 
