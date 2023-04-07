@@ -27,10 +27,10 @@ public class DiagnosticDescriptors
                                                                                               isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor NoClientGenerated = new(id: "APIGEN003",
-                                                                                              title: "No clients were detected",
+                                                                                              title: "No clients were generated",
                                                                                               messageFormat: "There was no client generated because it was turned of by configuration",
                                                                                               category: "ApiClientGenerator",
-                                                                                              DiagnosticSeverity.Warning,
+                                                                                              DiagnosticSeverity.Info,
                                                                                               isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor NuGetGenerationFailed = new(id: "APIGEN004",
