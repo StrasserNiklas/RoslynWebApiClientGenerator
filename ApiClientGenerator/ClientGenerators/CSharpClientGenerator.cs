@@ -327,10 +327,17 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     return new ApiResponse(statusCode, result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
                     """;
 
+                var isSuccessCase = pair.Key == 200 || pair.Key == 201;
+                var defaultString = isSuccessCase ? $"result{pair.Key}.SuccessResponse" : "default";
+                var errorResponseString = isSuccessCase ? string.Empty : $"ErrorResponse = result{pair.Key}.SuccessResponse";
+
                 var methodReturnString = methodDetails.ReturnType is not null ? $$"""
-                    return new ApiResponse<{{methodDetails.ReturnTypeString}}>(default, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) { ErrorResponse = result{{pair.Key}}.SuccessResponse };
+                    return new ApiResponse<{{methodDetails.ReturnTypeString}}>({{defaultString}}, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) 
+                    { 
+                        {{errorResponseString}}
+                    };
                     """ : $$"""
-                    return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty) { ErrorResponse = result{{pair.Key}}.SuccessResponse };
+                    return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty) { {{errorResponseString}} };
                     """;
 
                 switchStringBuilder.AppendLine($$"""
@@ -373,7 +380,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{switchStringBuilder}}
 
                 default:
-                    return new ApiResponse{{defaultReturnString}}statusCode, $"Encountered unexpected statuscode {statusCode}. {httpClientResponse.ReasonPhrase ?? string.Empty}") { ErrorResponse = new ApiError() };
+                    var errorContent = await httpClientResponse.Content.ReadAsStringAsync();
+                    return new ApiResponse{{defaultReturnString}}statusCode, $"Encountered unexpected statuscode {statusCode}. {httpClientResponse.ReasonPhrase ?? string.Empty}. {errorContent}") { ErrorResponse = new ApiError() };
             }
             """;
     }
@@ -548,8 +556,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             public int StatusCode { get; }
             public string Message { get; }
             public bool IsError => this.ErrorResponse != null || this.Exception != null;
-            public Exception? Exception { get; init; }
-            public object? ErrorResponse { get; init; }
+            public Exception? Exception { get; set; }
+            public object? ErrorResponse { get; set; }
         }
 
         public class ApiResponse<T> : ApiResponse
@@ -559,7 +567,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 SuccessResponse = successResult;
             }
 
-            public T SuccessResponse { get; }
+            public T SuccessResponse { get; set; }
         }
 
         public class ApiError {}
