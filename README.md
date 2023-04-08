@@ -2,7 +2,7 @@
 
 ## Description
 
-> **Note**: note
+> **Note**: Be aware that this is not a fully released tool yet.
 
 ## Table of contents
 - [Description](#Description)
@@ -19,15 +19,17 @@
 
 ## Installation
 
+
 ### Prerequisites
 
 **Automatic NuGet package generation:**
 Make sure `dotnet.exe` can be used as an environment variable on your system. This file is usually located in `C:\Program Files\dotnet\dotnet.exe`.
 
 ### NuGet Package
+The current stable release of the tool can be found on NuGet [here](https://www.nuget.org/packages/ApiClientGenerator).
 
 ### Cloning the repo
-
+Alternatively, you can build the source yourself and find the NuGet package in the output directory.
 ## Configuration
 There are several options to configure the generation of API clients. This is done using compiler-visible properties that can be accessed by the analyzer during compilation of the project. These properties are added in the project file (`.csproj`) of the API consuming the client generator. An example can be found below.
 > **Note**: When no configuration properties are added, default values will be used, which can be found in [the list of configuration values](#List-of-configuration-values) for each respective value.

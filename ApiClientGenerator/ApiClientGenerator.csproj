@@ -12,15 +12,25 @@
 		<PackageTags>api client generator; roslyn</PackageTags>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<IsPackable>true</IsPackable>
-		
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<!--used for local testing-->
 		<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>
+		<PackageVersion>1.0.0</PackageVersion>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<!--<OutputPath>C:\Masterarbeit\testProjFolder</OutputPath>-->
 	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(AssemblyName).props" Pack="true" PackagePath="build" Visible="false" />
+		<None Include="..\LICENSE">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 		<Resource Include="Packaging\baseProjectFile.csproj">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource> 
