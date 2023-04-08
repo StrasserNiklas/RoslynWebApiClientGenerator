@@ -30,12 +30,12 @@ app.MapGet("/todoitems", (HttpContext http) => { return Results.Ok(new Todo()); 
 
 //app.Mapme
 
-app.MapPost("/todoitems", async ([FromBody] Todo todo) =>
+app.MapPost("/todoitems", ([FromBody] Todo todo) =>
 {
     return Results.Created($"/todoitems/{todo.Id}", todo);
 });
 
-app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo) =>
+app.MapPut("/todoitems/{id}", (int id, Todo inputTodo) =>
 {
 
     if (inputTodo is null) return Results.NotFound();
@@ -43,7 +43,7 @@ app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo) =>
     return Results.NoContent();
 });
 
-app.MapDelete("/todoitems/{id}", async (int id, Todo db) =>
+app.MapDelete("/todoitems/{id}", (int id, Todo db) =>
 {
     if (db is Todo todo)
     {

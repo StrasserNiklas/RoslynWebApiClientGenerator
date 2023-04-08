@@ -21,8 +21,8 @@ public class ProducesResponseTypeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
-    public ActionResult NoResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass)
+    [HttpPost]
+    public ActionResult NoResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass, [FromQuery] bool flag = true)
     {
         return Ok();
     }

@@ -9,6 +9,36 @@ namespace TestingPlayground.Controllers;
 public class FromHeaderController : ControllerBase
 {
     [HttpGet]
+    public ActionResult ClassParameterWithAttributeAllPropertiesAttributed([FromHeader] AllPropertiesHeaderAttributed allPropertiesAttributed)
+    {
+        return Ok();
+    }
+
+    [HttpGet]
+    public ActionResult PrimitiveParameterWithAttribute([FromHeader] string soloString)
+    {
+        return Ok();
+    }
+
+    [HttpGet]
+    public ActionResult ClassParameterWithAttribute(NoPropertiesAttributedClass noPropertiesAttributedClass)
+    {
+        return Ok();
+    }
+
+    [HttpGet]
+    public ActionResult ClassParameterWithAttributeSomePropertiesAttributed([FromHeader] SomePropertiesHeaderAttributed somePropertiesAttributed)
+    {
+        return Ok();
+    }
+
+    [HttpGet]
+    public ActionResult PrimitiveParameterWithAttributeNamed([FromHeader(Name ="x-solo")] string soloString)
+    {
+        return Ok();
+    }
+
+    [HttpGet]
     public ActionResult ClassParameterWithoutAttributeAllPropertiesAttributed(AllPropertiesHeaderAttributed allPropertiesAttributed)
     {
         return Ok();
@@ -21,29 +51,13 @@ public class FromHeaderController : ControllerBase
         return Ok();
     }
 
-    [HttpGet]
-    public ActionResult ClassParameterWithAttributeSomePropertiesAttributed([FromHeader] SomePropertiesHeaderAttributed somePropertiesAttributed)
-    {
-        return Ok();
-    }
+    
 
-    [HttpGet]
-    public ActionResult ClassParameterWithAttributeAllPropertiesAttributed([FromHeader] AllPropertiesHeaderAttributed somePropertiesAttributed)
-    {
-        return Ok();
-    }
+   
 
-    [HttpGet]
-    public ActionResult ClassParameterWithAttribute([FromHeader] NoPropertiesAttributedClass simpleQueryClass)
-    {
-        return Ok();
-    }
+   
 
-    [HttpGet]
-    public ActionResult PrimitiveParameterWithAttribute([FromHeader] string soloString)
-    {
-        return Ok();
-    }
+    
 
     [HttpGet]
     public ActionResult PrimitiveParameterNoAttribute(string soloString)
@@ -52,7 +66,7 @@ public class FromHeaderController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult ClassParameterNoAttribute(NoPropertiesAttributedClass soloString)
+    public ActionResult ClassParameterNoAttribute(NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
         return Ok();
     }
