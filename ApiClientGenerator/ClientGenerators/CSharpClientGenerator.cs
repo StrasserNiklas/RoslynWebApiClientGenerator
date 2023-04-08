@@ -1,4 +1,5 @@
-﻿using ApiGenerator.Extensions;
+﻿using ApiClientGenerator.Configuration;
+using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;

@@ -15,7 +15,8 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<!--used for local testing-->
 		<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>
-		<PackageVersion>1.0.0</PackageVersion>
+		<!--<PackageVersion>1.0.0</PackageVersion>-->
+		
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<!--<OutputPath>C:\Masterarbeit\testProjFolder</OutputPath>-->
 	</PropertyGroup>
@@ -23,6 +24,10 @@
 	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(AssemblyName).props" Pack="true" PackagePath="build" Visible="false" />
+		<None Include="Configuration\ACGT_ConfigurationSchema.xsd">
+			<Pack>true</Pack>
+			<PackagePath>contentFiles\any\any\ACGT_ConfigurationSchema;content\ACGT_ConfigurationSchema</PackagePath>
+		</None>
 		<None Include="..\LICENSE">
 		  <Pack>True</Pack>
 		  <PackagePath>\</PackagePath>

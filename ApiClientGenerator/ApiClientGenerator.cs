@@ -1,4 +1,5 @@
-﻿using ApiGenerator.ClientGenerators;
+﻿using ApiClientGenerator.Configuration;
+using ApiGenerator.ClientGenerators;
 using ApiGenerator.Diagnostics;
 using ApiGenerator.Models;
 using ApiGenerator.Packaging;
@@ -30,7 +31,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        Debugger.Launch();
+        //Debugger.Launch();
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();

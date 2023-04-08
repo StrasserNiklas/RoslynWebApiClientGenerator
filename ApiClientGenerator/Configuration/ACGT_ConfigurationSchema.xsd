@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://schemas.microsoft.com/developer/msbuild/2003" xmlns:msb="http://schemas.microsoft.com/developer/msbuild/2003" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<!-- <xs:include schemaLocation="Microsoft.Build.Core.xsd" /> -->
+	
+	<xs:element name="ACGT_PackageReferences" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_PackageReferences" _locComment="" -->Help text for ACGT_PackageReferences
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="Package.Name.1,Package.Name.2" />
+				<xs:enumeration value="Package.Name.1:Version,Package.Name.2" />
+				<xs:enumeration value="Package.Name.1:Version,Package.Name.2:Version" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_GenerateClientOnBuild" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_GenerateClientOnBuild" _locComment="" -->Help text for ACGT_GenerateClientOnBuild
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_UseExternalAssemblyContracts" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_UseExternalAssemblyContracts" _locComment="" -->Help text for ACGT_UseExternalAssemblyContracts
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_UsePartialClientClasses" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_UsePartialClientClasses" _locComment="" -->Help text for ACGT_UsePartialClientClasses
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_UseInterfacesForClients" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_UseInterfacesForClients" _locComment="" -->Help text for ACGT_UseInterfacesForClients
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_UseSeparateClientFiles" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_UseSeparateClientFiles" _locComment="" -->Help text for ACGT_UseSeparateClientFiles
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_CreateClientProjectFileOnBuild" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_CreateClientProjectFileOnBuild" _locComment="" -->Help text for ACGT_CreateClientProjectFileOnBuild
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_CreateNugetPackageOnBuild" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_CreateNugetPackageOnBuild" _locComment="" -->Help text for ACGT_CreateNugetPackageOnBuild
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_UseGitVersionInformation" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_UseGitVersionInformation" _locComment="" -->Help text for ACGT_UseGitVersionInformation
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_GenerateMinimalApiClient" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_GenerateMinimalApiClient" _locComment="" -->Help text for ACGT_GenerateMinimalApiClient
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="false" />
+				<xs:enumeration value="true" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+	<xs:element name="ACGT_OutputPath" substitutionGroup="msb:Property">
+		<xs:annotation>
+			<xs:documentation>
+				<!-- _locID_text="ACGT_OutputPath" _locComment="" -->Help text for ACGT_OutputPath
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="..\..\ClientOutputFolder" />
+				<xs:enumeration value="Output\Clients" />
+				<xs:enumeration value="C:\Projects\ClientOutput" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+
+</xs:schema>
