@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SchemaCatalog xmlns="http://schemas.microsoft.com/xsd/catalog">
+	<Association extension="csproj" schema="C:\ProjectFilePath\ACGT_ConfigurationSchema\ACGT_ConfigurationSchema.xsd" defaultNamespace="http://schemas.microsoft.com/developer/msbuild/2003" enableValidation="false"/>
+</SchemaCatalog>
