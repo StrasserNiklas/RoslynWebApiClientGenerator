@@ -5,7 +5,7 @@
 	<xs:element name="ACGT_PackageReferences" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_PackageReferences" _locComment="" -->Help text for ACGT_PackageReferences
+				<!-- _locID_text="ACGT_PackageReferences" _locComment="" -->Add package dependency. Version will be parsed from project references if none given. Use with UseExternalAssemblyContracts configuration. One or more entry can be added (see auto suggestion). Empty per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -20,7 +20,7 @@
 	<xs:element name="ACGT_GenerateClientOnBuild" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_GenerateClientOnBuild" _locComment="" -->Help text for ACGT_GenerateClientOnBuild
+				<!-- _locID_text="ACGT_GenerateClientOnBuild" _locComment="" -->Generate API client on rebuild. True per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -34,13 +34,13 @@
 	<xs:element name="ACGT_UseExternalAssemblyContracts" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_UseExternalAssemblyContracts" _locComment="" -->Help text for ACGT_UseExternalAssemblyContracts
+				<!-- _locID_text="ACGT_UseExternalAssemblyContracts" _locComment="" -->Models used in Requests/Responses from external references will not be generated, contract namespaces will be used instead. False per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
 			<xs:restriction base="xs:string">
-				<xs:enumeration value="false" />
 				<xs:enumeration value="true" />
+				<xs:enumeration value="false" />
 			</xs:restriction>
 		</xs:simpleType>
 	</xs:element>
@@ -48,7 +48,7 @@
 	<xs:element name="ACGT_UsePartialClientClasses" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_UsePartialClientClasses" _locComment="" -->Help text for ACGT_UsePartialClientClasses
+				<!-- _locID_text="ACGT_UsePartialClientClasses" _locComment="" -->Generated Client classes (and interfaces) will be marked partial. True per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -62,7 +62,7 @@
 	<xs:element name="ACGT_UseInterfacesForClients" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_UseInterfacesForClients" _locComment="" -->Help text for ACGT_UseInterfacesForClients
+				<!-- _locID_text="ACGT_UseInterfacesForClients" _locComment="" -->An interface will be created for each generated client. True per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -76,7 +76,7 @@
 	<xs:element name="ACGT_UseSeparateClientFiles" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_UseSeparateClientFiles" _locComment="" -->Help text for ACGT_UseSeparateClientFiles
+				<!-- _locID_text="ACGT_UseSeparateClientFiles" _locComment="" -->Each generated client (for each controller) will be placed in a separate file. False per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -90,7 +90,7 @@
 	<xs:element name="ACGT_CreateClientProjectFileOnBuild" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_CreateClientProjectFileOnBuild" _locComment="" -->Help text for ACGT_CreateClientProjectFileOnBuild
+				<!-- _locID_text="ACGT_CreateClientProjectFileOnBuild" _locComment="" -->Needed if subsequent NuGet package generation is desired. True per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -104,13 +104,13 @@
 	<xs:element name="ACGT_CreateNugetPackageOnBuild" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_CreateNugetPackageOnBuild" _locComment="" -->Help text for ACGT_CreateNugetPackageOnBuild
+				<!-- _locID_text="ACGT_CreateNugetPackageOnBuild" _locComment="" -->A NuGet package will be created on each rebuild of the API. Dependend on CreateClientProjectFileOnBuild. False per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
 			<xs:restriction base="xs:string">
-				<xs:enumeration value="false" />
 				<xs:enumeration value="true" />
+				<xs:enumeration value="false" />
 			</xs:restriction>
 		</xs:simpleType>
 	</xs:element>
@@ -118,13 +118,13 @@
 	<xs:element name="ACGT_UseGitVersionInformation" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_UseGitVersionInformation" _locComment="" -->Help text for ACGT_UseGitVersionInformation
+				<!-- _locID_text="ACGT_UseGitVersionInformation" _locComment="" -->Current Git version information (timestamp-version) will be used for versioning the generated project file (and the NuGet package). False per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
 			<xs:restriction base="xs:string">
-				<xs:enumeration value="false" />
 				<xs:enumeration value="true" />
+				<xs:enumeration value="false" />
 			</xs:restriction>
 		</xs:simpleType>
 	</xs:element>
@@ -132,7 +132,7 @@
 	<xs:element name="ACGT_GenerateMinimalApiClient" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_GenerateMinimalApiClient" _locComment="" -->Help text for ACGT_GenerateMinimalApiClient
+				<!-- _locID_text="ACGT_GenerateMinimalApiClient" _locComment="" -->Create client for all minimal API endpoints in the project. True per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>
@@ -146,7 +146,7 @@
 	<xs:element name="ACGT_OutputPath" substitutionGroup="msb:Property">
 		<xs:annotation>
 			<xs:documentation>
-				<!-- _locID_text="ACGT_OutputPath" _locComment="" -->Help text for ACGT_OutputPath
+				<!-- _locID_text="ACGT_OutputPath" _locComment="" -->Output path, can be fully qualified, relative or relative using dot notation (see auto suggestions). Empty (results in out folder being created in project directory) per default.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:simpleType>

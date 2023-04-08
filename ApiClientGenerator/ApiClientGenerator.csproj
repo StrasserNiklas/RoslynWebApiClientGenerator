@@ -14,9 +14,9 @@
 		<IsPackable>true</IsPackable>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<!--used for local testing-->
-		<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>
-		<!--<PackageVersion>1.0.0</PackageVersion>-->
-		
+		<!--<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>-->
+		<PackageVersion>1.0.1</PackageVersion>
+
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<!--<OutputPath>C:\Masterarbeit\testProjFolder</OutputPath>-->
 	</PropertyGroup>
