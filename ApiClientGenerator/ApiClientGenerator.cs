@@ -123,7 +123,9 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         foreach (var tree in context.Compilation.SyntaxTrees)
         {
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             var semanticModel = context.Compilation.GetSemanticModel(tree);
+#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
 
             controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
 
