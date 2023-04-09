@@ -25,9 +25,17 @@ public static class PackageUtilities
         var output = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
 
+        var finalOutput = output.Split(new[] { "error" }, StringSplitOptions.None);
+        var splitString = string.Empty;
+
+        if (finalOutput.Count() > 1)
+        {
+            splitString = finalOutput.Last();
+        }
+
         if (process.ExitCode != 0)
         {
-            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NuGetGenerationFailed, Location.None, output));
+            DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NuGetGenerationFailed, Location.None, finalOutput.FirstOrDefault(), splitString));
         }
     }
 

@@ -35,7 +35,7 @@ public class DiagnosticDescriptors
 
     public static readonly DiagnosticDescriptor NuGetGenerationFailed = new(id: "APIGEN004",
                                                                                           title: "NuGet client could not be generated",
-                                                                                          messageFormat: "NuGet client generation failed with error '{0}' ",
+                                                                                          messageFormat: "NuGet client generation failed with error '{0}' '{1}' ",
                                                                                           category: "ApiClientGenerator",
                                                                                           DiagnosticSeverity.Warning,
                                                                                           isEnabledByDefault: true);
