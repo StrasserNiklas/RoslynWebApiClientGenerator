@@ -8,8 +8,8 @@ namespace ApiGenerator.Packaging;
 public static class XmlUtilities
 {
     /*
-    TODO Until this is fixed, we will use a string literal of it
     Could not find a part of the path 'C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\Roslyn\Packaging\baseProjectFile.csproj'.'
+    Until this is fixed, we will use a string literal of it
      */
     private static readonly string BaseProjectFilePath = "Packaging/baseProjectFile.csproj";
     private static readonly string ProjectString = """
@@ -33,7 +33,6 @@ public static class XmlUtilities
         XmlDocument doc = new XmlDocument();
 
         doc.Load(new MemoryStream(Encoding.UTF8.GetBytes(ProjectString)));
-        //doc.Load(BaseProjectFilePath);
 
         // add package version
         XmlNode propertyGroupNode = doc.CreateElement("PropertyGroup");

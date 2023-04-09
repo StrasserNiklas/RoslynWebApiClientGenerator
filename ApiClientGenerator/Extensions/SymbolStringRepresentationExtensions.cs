@@ -117,7 +117,7 @@ public static class SymbolStringRepresentationExtensions
             else
             {
                 var args = namedTypeSymbolWithArguments.GetMembers();
-                
+
                 // generate the generic type
                 foreach (var mem in args)
                 {
@@ -152,6 +152,10 @@ public static class SymbolStringRepresentationExtensions
             }
         }
 
+        // TODO check if we can do the same all the time for response/requests classes from the API itself like above
+        // var declaration = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+        // var syntax = declaration.GetSyntax();
+        // var genericCodeSyntax = syntax.ToFullString();
         foreach (var member in symbol.GetMembers())
         {
             if (member is IFieldSymbol field)

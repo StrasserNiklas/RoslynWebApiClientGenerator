@@ -10,16 +10,16 @@ public class ParameterDetails
 {
     public ParameterDetails(IParameterSymbol parameterSymbol, bool isPrimitive, ParameterAttributeDetails parameterAttributeDetails, Dictionary<string, HeaderDetails> headerKeyValues)
     {
-        this.Name = parameterSymbol.Name;
+        this.ParameterName = parameterSymbol.Name;
         //this.HasExplizitDefaultValue = parameterSymbol.HasExplicitDefaultValue;
         //this.ParameterSymbol = parameterSymbol;
         //this.IsPrimitive = isPrimitive;
         this.IsNullable = parameterSymbol.Type.IsNullable();
-        this.AttributeDetails = parameterAttributeDetails;
+        this.ParameterAttributeDetails = parameterAttributeDetails;
         this.HeaderKeyValues = new Dictionary<string, string>();
-        this.ComplexTypeString = parameterSymbol.Type.CheckAndSanitizeClassString();
-        this.ParameterStringWithTypes = $"{this.ComplexTypeString} {this.Name}";
-        this.ParameterStringWithoutTypes = this.Name;
+        this.ParameterTypeString = parameterSymbol.Type.CheckAndSanitizeClassString();
+        this.ParameterStringWithTypes = $"{this.ParameterTypeString} {this.ParameterName}";
+        this.ParameterStringWithoutTypes = this.ParameterName;
 
         if (parameterAttributeDetails.HasHeaderAttribute)
         {
@@ -52,7 +52,7 @@ public class ParameterDetails
             {
                 foreach (var header in headerKeyValues)
                 {
-                    this.HeaderKeyValues.Add(header.Key, this.Name + '.' + header.Value.Name);
+                    this.HeaderKeyValues.Add(header.Key, this.ParameterName + '.' + header.Value.Name);
                 }
             }
         }
@@ -132,17 +132,20 @@ public class ParameterDetails
         }
     }
 
-    public string QueryString { get; }
-    public bool IsRouteQueryParameter { get; set; }
-    public string ComplexTypeString { get; }
+    public string ParameterName { get; }
+    public bool IsNullable { get; }
+    public string ParameterTypeString { get; }
     public string ParameterStringWithTypes { get; }
     public string ParameterStringWithoutTypes { get; }
-    public string Name { get; }
-    //public bool HasExplizitDefaultValue { get; }
-    //public IParameterSymbol ParameterSymbol { get; }
-    public bool IsNullable { get; }
-    //public bool IsPrimitive { get; }
-    public ParameterAttributeDetails AttributeDetails { get; }
+    public bool IsRouteQueryParameter { get; set; }
+    public ParameterAttributeDetails ParameterAttributeDetails { get; }
     public Dictionary<string, string> HeaderKeyValues { get; }
     public string FormString { get; }
+    public string QueryString { get; }
+
+
+
+    //public bool IsPrimitive { get; }
+    //public bool HasExplizitDefaultValue { get; }
+    //public IParameterSymbol ParameterSymbol { get; }
 }

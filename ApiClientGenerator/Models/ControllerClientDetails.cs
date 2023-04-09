@@ -19,7 +19,7 @@ public class ControllerClientDetails
         this.Endpoints = new List<ControllerMethodDetails>();
         this.GeneratedCodeClasses = new Dictionary<string, string>();
         this.IsMinimalApiClient = isMinimalApiClient;
-        this.ReferencedAssemblyNamespaces = new Dictionary<string, string>();
+        //this.ReferencedAssemblyNamespaces = new Dictionary<string, string>();
         this.AdditionalUsings = new List<string>();
     }
 
@@ -35,6 +35,6 @@ public class ControllerClientDetails
 
 
     public List<string> AdditionalUsings { get; set; }
-    public IDictionary<string, string> ReferencedAssemblyNamespaces { get; set; }
+    //public IDictionary<string, string> ReferencedAssemblyNamespaces { get; set; }
 
 }

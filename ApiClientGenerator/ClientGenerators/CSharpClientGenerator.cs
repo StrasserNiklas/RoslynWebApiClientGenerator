@@ -208,7 +208,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateSingleEndpointMethod(ControllerMethodDetails methodDetails)
     {
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.MainReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithTypes}, " : string.Empty;
         var parameterCheckStringBuilder = new StringBuilder();
         var routeQueryParamStringBuilder = new StringBuilder();
@@ -231,12 +231,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
 
             // assign a possible body parameter
-            if (parameter.Value.AttributeDetails.HasBodyAttribute)
+            if (parameter.Value.ParameterAttributeDetails.HasBodyAttribute)
             {
                 bodyParameter = parameter.Value;
             }
 
-            if (parameter.Value.AttributeDetails.HasHeaderAttribute)
+            if (parameter.Value.ParameterAttributeDetails.HasHeaderAttribute)
             {
                 hasHeaderParameter = true;
             }
@@ -253,7 +253,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
 
             // add query values e.g. ?example=10
-            if (parameter.Value.AttributeDetails.HasQueryAttribute)
+            if (parameter.Value.ParameterAttributeDetails.HasQueryAttribute)
             {
                 routeQueryParamStringBuilder.AppendLine($"""
                         routeBuilder.Append($"{parameter.Value.QueryString}");
@@ -261,7 +261,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
 
             // add header values
-            if (parameter.Value.AttributeDetails.HasHeaderAttribute)
+            if (parameter.Value.ParameterAttributeDetails.HasHeaderAttribute)
             {
                 foreach (var header in parameter.Value.HeaderKeyValues)
                 {
@@ -271,7 +271,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 }
             }
 
-            if (parameter.Value.AttributeDetails.HasFormAttribute)
+            if (parameter.Value.ParameterAttributeDetails.HasFormAttribute)
             {
                 fromFormString = parameter.Value.FormString;
             }
@@ -285,7 +285,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
             """ : string.Empty;
 
         var methodCallString = bodyParameter is not null ?
-            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ComplexTypeString}>(uri, {bodyParameter.Name}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
+            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.ParameterName}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
             : $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);";
 
         return $$"""
@@ -322,8 +322,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 var cleanClassValue = pair.Value.CheckAndSanitizeClassString();
 
-                var methodErrorReturnString = methodDetails.ReturnType is not null ? $$"""
-                    return new ApiResponse<{{methodDetails.ReturnTypeString}}>(default, statusCode,  result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
+                var methodErrorReturnString = methodDetails.HasReturnType ? $$"""
+                    return new ApiResponse<{{methodDetails.MainReturnTypeString}}>(default, statusCode,  result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
                     """ : $$"""
                     return new ApiResponse(statusCode, result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
                     """;
@@ -332,8 +332,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 var defaultString = isSuccessCase ? $"result{pair.Key}.SuccessResponse" : "default";
                 var errorResponseString = isSuccessCase ? string.Empty : $"ErrorResponse = result{pair.Key}.SuccessResponse";
 
-                var methodReturnString = methodDetails.ReturnType is not null ? $$"""
-                    return new ApiResponse<{{methodDetails.ReturnTypeString}}>({{defaultString}}, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) 
+                var methodReturnString = methodDetails.HasReturnType ? $$"""
+                    return new ApiResponse<{{methodDetails.MainReturnTypeString}}>({{defaultString}}, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) 
                     { 
                         {{errorResponseString}}
                     };
@@ -362,9 +362,9 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
         }
 
-        var defaultReturnString = methodDetails.ReturnType is not null ? $"<{methodDetails.ReturnTypeString}>(default, " : "(";
+        var defaultReturnString = methodDetails.HasReturnType ? $"<{methodDetails.MainReturnTypeString}>(default, " : "(";
 
-        if (methodDetails.ReturnType is null && methodDetails.ReturnTypes.Count() == 0)
+        if (!methodDetails.HasReturnType && methodDetails.ReturnTypes.Count() == 0)
         {
             switchStringBuilder.AppendLine($$"""
                 case 200:
@@ -389,8 +389,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateSingleMethodWithoutCancellationToken(ControllerMethodDetails methodDetails)
     {
-        var methodNameString = methodDetails.HasParameters ? ", " : string.Empty;
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.MainReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithTypes}, " : string.Empty;
         var existingParameter = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithoutTypes}, " : string.Empty;
 
@@ -439,7 +438,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
     private string GenerateInterfaceMethod(ControllerMethodDetails methodDetails)
     {
-        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.ReturnTypeString}>>" : "Task<ApiResponse>";
+        var returnTypeString = methodDetails.HasReturnType ? $"Task<ApiResponse<{methodDetails.MainReturnTypeString}>>" : "Task<ApiResponse>";
         var parameterString = methodDetails.HasParameters ? $"{methodDetails.ParameterStringWithTypes}" : string.Empty;
 
         if (methodDetails.HasParameters)

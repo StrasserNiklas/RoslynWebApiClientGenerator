@@ -51,25 +51,24 @@ public class ControllerMethodDetails
             this.ParameterStringWithoutTypes = string.Join(", ", parameters.Select(x => x.Value.ParameterStringWithoutTypes)).TrimEnd(',');
         }
 
-        this.ReturnType = returnType;
+        this.HasReturnType = returnType != null;
 
-        if (this.ReturnType != null)
+        if (this.HasReturnType)
         {
-            this.ReturnTypeString = this.ReturnType.CheckAndSanitizeClassString();
+            this.MainReturnTypeString = returnType.CheckAndSanitizeClassString();
         }
     }
-
-    public bool HasRouteQueryParameters { get; }
-    public MatchCollection RouteQueryMatches { get; } // for minimal API
-    public string Route { get; }
     public string MethodName { get; }
+    public string Route { get; }
     public HttpMethod HttpMethod { get; }
-    public IEnumerable<KeyValuePair<int, ITypeSymbol>> ReturnTypes { get; }
+    public bool HasRouteQueryParameters { get; }
     public bool HasParameters => this.Parameters != null && this.Parameters.Count > 0;
     public IDictionary<string, ParameterDetails> Parameters { get; }
     public string ParameterStringWithTypes { get; }
     public string ParameterStringWithoutTypes { get; }
-    public bool HasReturnType => this.ReturnType != null;
-    public string ReturnTypeString { get; }
-    public ITypeSymbol ReturnType { get; }
+    public bool HasReturnType { get; }
+    public string MainReturnTypeString { get; }
+    public IEnumerable<KeyValuePair<int, ITypeSymbol>> ReturnTypes { get; }
+    public MatchCollection RouteQueryMatches { get; } // for minimal API
+
 }

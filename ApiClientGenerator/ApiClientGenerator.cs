@@ -31,7 +31,12 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        //Debugger.Launch();
+        #if DEBUG
+        if (Debugger.IsAttached)
+        {
+            Debugger.Launch();
+        }
+        #endif
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
