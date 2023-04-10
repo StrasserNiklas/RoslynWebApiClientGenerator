@@ -19,9 +19,9 @@ namespace SimpleWebApi.Controllers
         }
 
 
-        [Route("getmore/{id}")]
-        [HttpGet]
-        public IEnumerable<WeatherForecast> GetMore([FromForm] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
+        [Route("getmore")]
+        //[HttpGet]
+        public IEnumerable<WeatherForecast> GetMore()//[FromForm] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
@@ -32,62 +32,62 @@ namespace SimpleWebApi.Controllers
             .ToArray();
         }
 
-        [Route("{id}/getmore")]
-        [HttpGet]
-        public IEnumerable<WeatherForecast> GetMore2(int id, [FromHeader] string some, [FromQuery] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
-        {
-            var x = "";
+        //[Route("{id}/getmore")]
+        //[HttpGet]
+        //public IEnumerable<WeatherForecast> GetMore2(int id, [FromHeader] string some, [FromQuery] NoAttributes noAttributes, [FromBody] UserBodyDto userBodyDto)
+        //{
+        //    var x = "";
 
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+        //    return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        //    {
+        //        Date = DateTime.Now.AddDays(index),
+        //        TemperatureC = Random.Shared.Next(-20, 55),
+        //        Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+        //    })
+        //    .ToArray();
+        //}
 
-        [Route("get1")]
-        [HttpGet]
-        public ActionResult Get1(AllAttributes some)
-        {
-            return Ok(new { A = some.MineString, B = some.Second });
-        }
+        //[Route("get1")]
+        //[HttpGet]
+        //public ActionResult Get1(AllAttributes some)
+        //{
+        //    return Ok(new { A = some.MineString, B = some.Second });
+        //}
 
-        [Route("get2")]
-        [HttpGet]
-        public ActionResult Get2(SomeAttributes some)
-        {
-            return Ok(new { A = some.MineString, B = some.Second });
-        }
+        //[Route("get2")]
+        //[HttpGet]
+        //public ActionResult Get2(SomeAttributes some)
+        //{
+        //    return Ok(new { A = some.MineString, B = some.Second });
+        //}
 
-        [Route("get3")]
-        [HttpGet]
-        public ActionResult Get3(NoAttributes some)
-        {
-            return Ok(new { A = some.MineString, B = some.Second });
-        }
+        //[Route("get3")]
+        //[HttpGet]
+        //public ActionResult Get3(NoAttributes some)
+        //{
+        //    return Ok(new { A = some.MineString, B = some.Second });
+        //}
 
-        [Route("get10")]
-        [HttpGet]
-        public ActionResult Get10([FromQuery] AllAttributes some)
-        {
-            return Ok(new { A = some.MineString, B = some.Second });
-        }
+        //[Route("get10")]
+        //[HttpGet]
+        //public ActionResult Get10([FromQuery] AllAttributes some)
+        //{
+        //    return Ok(new { A = some.MineString, B = some.Second });
+        //}
 
-        [Route("get20")]
-        [HttpGet]
-        public ActionResult Get20([FromQuery] SomeAttributes some)
-        {
-            return Ok(new { A = some.MineString, B = some.Second });
-        }
+        //[Route("get20")]
+        //[HttpGet]
+        //public ActionResult Get20([FromQuery] SomeAttributes some)
+        //{
+        //    return Ok(new { A = some.MineString, B = some.Second });
+        //}
 
-        [Route("get30")]
-        [HttpGet]
-        public ActionResult Get30([FromQuery] NoAttributes some)
-        {
-            return Ok(new { A = some.MineString, B = some.Second });
-        }
+        //[Route("get30")]
+        //[HttpGet]
+        //public ActionResult Get30([FromQuery] NoAttributes some)
+        //{
+        //    return Ok(new { A = some.MineString, B = some.Second });
+        //}
 
 
 

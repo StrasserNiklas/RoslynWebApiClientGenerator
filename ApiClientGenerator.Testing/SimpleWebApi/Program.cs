@@ -26,32 +26,32 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/todoitems", (HttpContext http) => { return Results.Ok(new Todo()); });
+//app.MapGet("/todoitems", (HttpContext http) => { return Results.Ok(new Todo()); });
 
-//app.Mapme
+////app.Mapme
 
-app.MapPost("/todoitems", ([FromBody] Todo todo) =>
-{
-    return Results.Created($"/todoitems/{todo.Id}", todo);
-});
+//app.MapPost("/todoitems", ([FromBody] Todo todo) =>
+//{
+//    return Results.Created($"/todoitems/{todo.Id}", todo);
+//});
 
-app.MapPut("/todoitems/{id}", (int id, Todo inputTodo) =>
-{
+//app.MapPut("/todoitems/{id}", (int id, Todo inputTodo) =>
+//{
 
-    if (inputTodo is null) return Results.NotFound();
+//    if (inputTodo is null) return Results.NotFound();
 
-    return Results.NoContent();
-});
+//    return Results.NoContent();
+//});
 
-app.MapDelete("/todoitems/{id}", (int id, Todo db) =>
-{
-    if (db is Todo todo)
-    {
-        return Results.Ok(todo);
-    }
+//app.MapDelete("/todoitems/{id}", (int id, Todo db) =>
+//{
+//    if (db is Todo todo)
+//    {
+//        return Results.Ok(todo);
+//    }
 
-    return Results.NotFound();
-});
+//    return Results.NotFound();
+//});
 
 app.Run();
 

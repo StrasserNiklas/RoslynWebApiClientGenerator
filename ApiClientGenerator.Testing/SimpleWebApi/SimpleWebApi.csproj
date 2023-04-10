@@ -13,10 +13,4 @@
 	  <PackageReference Include="Agoda.Builds.Metrics" Version="1.0.72" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
-
-	<PropertyGroup>
-		<ApiClientGenerator_PackageReferences>Asw.Api.Lib.Common.Client.CSharp:7.2115.203-develop; Asw.Betting.Contracts.Engine.Entities:8.2250.595-develop</ApiClientGenerator_PackageReferences>
-		<ApiClientGenerator_GenerateClientOnBuild>true</ApiClientGenerator_GenerateClientOnBuild>
-	</PropertyGroup>
-
 </Project>
