@@ -123,7 +123,8 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
     private List<ControllerClientDetails> ExtractControllerClients(CompilationAnalysisContext context)
     {
-        var controllerClientBuilder = new ControllerClientBuilder();
+        var controllerClientBuilder = new ControllerClientBuilder(); 
+        var minimalApiClient = new ControllerClientDetails("MinimalApi", null, true);
         var completeControllerDetailList = new List<ControllerClientDetails>();
 
         foreach (var tree in context.Compilation.SyntaxTrees)
@@ -132,7 +133,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 #pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
 
-            controllerClientBuilder.AddMinimalApis(tree, semanticModel, completeControllerDetailList);
+            controllerClientBuilder.AddMinimalApis(tree, semanticModel, minimalApiClient);
 
             var classNodes = semanticModel.SyntaxTree
                 .GetRoot()
@@ -150,7 +151,11 @@ public class ApiClientGenerator : DiagnosticAnalyzer
                     completeControllerDetailList.Add(controllerClient);
                 }
             }
+        }
 
+        if (minimalApiClient.Endpoints.Any())
+        {
+            completeControllerDetailList.Add(minimalApiClient);
         }
 
         return completeControllerDetailList;

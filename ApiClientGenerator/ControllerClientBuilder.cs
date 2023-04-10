@@ -305,10 +305,8 @@ public class ControllerClientBuilder
         return httpMethodAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? string.Empty;
     }
 
-    public void AddMinimalApis(SyntaxTree tree, SemanticModel semanticModel, List<ControllerClientDetails> completeControllerDetailList)
+    public void AddMinimalApis(SyntaxTree tree, SemanticModel semanticModel, ControllerClientDetails minimalApiController)
     {
-        var controllerClientDetails = new ControllerClientDetails("MinimalApi", null, true);
-
         var root = tree.GetRoot();
         var methodInvocations = root
             .DescendantNodes()
@@ -342,10 +340,8 @@ public class ControllerClientBuilder
                 var route = literal.Token.ValueText;
                 this.minimalApiMethods.TryGetValue(((MemberAccessExpressionSyntax)invocation.Expression).Name.Identifier.Value as string, out var httpMethod);
                 var methodDetails = new ControllerMethodDetails(httpMethod, null, null, null, $"{httpMethod.Method}_{route.Replace("/", "")}", route);
-                controllerClientDetails.Endpoints.Add(methodDetails);
+                minimalApiController.Endpoints.Add(methodDetails);
             }
         }
-
-        completeControllerDetailList.Add(controllerClientDetails);
     }
 }
