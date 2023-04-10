@@ -148,7 +148,10 @@ public class ApiClientGenerator : DiagnosticAnalyzer
                 // dont add a partial controller again, find a better way to do this
                 if (completeControllerDetailList.SingleOrDefault(x => x.ClientName == controllerClient.ClientName) is null)
                 {
-                    completeControllerDetailList.Add(controllerClient);
+                    if (controllerClient.Endpoints.Any())
+                    {
+                        completeControllerDetailList.Add(controllerClient);
+                    }
                 }
             }
         }

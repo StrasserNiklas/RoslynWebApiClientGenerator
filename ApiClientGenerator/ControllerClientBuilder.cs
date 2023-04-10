@@ -62,6 +62,13 @@ public class ControllerClientBuilder
                 } methodSymbol)
             {
                 (var httpMethod, var httpMethodAttribute) = methodSymbol.GetHttpMethodWithAtrributeData();
+
+                if (httpMethod is null)
+                {
+                    DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, $"{method.Name} is marked public but doesn´t have a HttpMethodAttribute.", "Will be ignored for generation!"));
+                    continue;
+                }
+
                 var methodRoute = this.GetMethodRoute(methodSymbol, httpMethodAttribute);
                 var methodNameWithoutAsnyc = methodSymbol.Name.RemoveSuffix("Async");
                 var finalRoute = this.BuildFinalMethodRoute(methodNameWithoutAsnyc, clientInformation.BaseRoute, methodRoute);
