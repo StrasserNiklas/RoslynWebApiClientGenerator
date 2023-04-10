@@ -93,6 +93,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{this.AddPrepareRequestMessageMethod()}}
                 {{this.AddPostJsonHelperMethod()}}
                 {{this.AddDeserializeMethod()}}
+                {{this.AddAuthorizationHelperMethod()}}
                 {{this.AddPrepareRequestDelegate()}}
                 {{this.AddProcessResponseDelegate()}}
             }
@@ -406,11 +407,13 @@ public class CSharpClientGenerator : ClientGeneratorBase
         return $$"""
             private HttpClient httpClient;
             private JsonSerializerOptions jsonSerializerOptions;
+            private Dictionary<string, string> clientWideHeaders;
 
             public {{clientName}}(HttpClient httpClient)
             {
                 this.httpClient = httpClient;
                 this.jsonSerializerOptions = new JsonSerializerOptions();
+                this.clientWideHeaders = new Dictionary<string, string>();
             }
 
             public JsonSerializerOptions JsonSerializerOptions => this.jsonSerializerOptions;
@@ -500,6 +503,13 @@ public class CSharpClientGenerator : ClientGeneratorBase
         public Action<HttpClient, HttpResponseMessage> ProcessResponse { get; set; } = (HttpClient client, HttpResponseMessage httpResponseMessage) => {};
         """;
 
+    private string AddAuthorizationHelperMethod() => """
+        public void AddClientWideAuthorizationHeader(string headerKey, string headerValue)
+        {
+            this.clientWideHeaders.Add(headerKey, headerValue);
+        }
+        """;
+
     private string AddDeserializeMethod() => """
         protected virtual async Task<ApiResponse<T>> DeserializeResponse<T>(HttpResponseMessage response, bool isStream, CancellationToken cancellationToken)
         {
@@ -587,6 +597,11 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
+            }
+
+            foreach (var header in this.clientWideHeaders)
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
 
             if (prepareSingleRequest is not null)
