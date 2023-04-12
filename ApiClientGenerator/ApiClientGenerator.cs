@@ -133,7 +133,10 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             var semanticModel = context.Compilation.GetSemanticModel(tree);
 #pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
 
-            controllerClientBuilder.AddMinimalApis(tree, semanticModel, minimalApiClient);
+            if (Configuration.GenerateMinimalApiClient)
+            {
+                controllerClientBuilder.AddMinimalApis(tree, semanticModel, minimalApiClient);
+            }
 
             var classNodes = semanticModel.SyntaxTree
                 .GetRoot()
