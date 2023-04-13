@@ -15,7 +15,7 @@ public class ParameterAttributeDetails
 
     public bool HasNoAttributes => !this.HasBodyAttribute && !this.HasHeaderAttribute && !this.HasQueryAttribute && !this.HasRouteAttribute && !this.HasFormAttribute;
     public bool HasHeaderAttribute { get; }
-    public bool HasBodyAttribute { get; }
+    public bool HasBodyAttribute { get; set; }
     public bool HasQueryAttribute { get; }
     public bool HasRouteAttribute { get; }
     public bool HasFormAttribute { get; }

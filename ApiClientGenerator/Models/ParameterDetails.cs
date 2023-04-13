@@ -57,11 +57,18 @@ public class ParameterDetails
             }
         }
 
-        if (parameterAttributeDetails.HasNoAttributes && isPrimitive)
+        if (parameterAttributeDetails.HasNoAttributes)
         {
-            this.QueryString = $$"""
+            if (isPrimitive)
+            {
+                this.QueryString = $$"""
                     ?{{parameterSymbol.Name}}={Uri.EscapeDataString({{parameterSymbol.Name}}.ToString())}
                     """;
+            }
+            else
+            {
+                this.ParameterAttributeDetails.HasBodyAttribute = true;
+            }
         }
 
         if (parameterAttributeDetails.HasFormAttribute)

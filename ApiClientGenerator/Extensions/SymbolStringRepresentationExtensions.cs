@@ -158,17 +158,17 @@ public static class SymbolStringRepresentationExtensions
         // var genericCodeSyntax = syntax.ToFullString();
         foreach (var member in symbol.GetMembers())
         {
-            if (member is IFieldSymbol field)
-            {
-                if (field.DeclaredAccessibility != Accessibility.Public)
-                {
-                    continue;
-                }
+            //if (member is IFieldSymbol field)
+            //{
+            //    if (field.DeclaredAccessibility != Accessibility.Public)
+            //    {
+            //        continue;
+            //    }
 
-                classMemberBuilder.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
-                classMemberBuilder.AppendLine(Environment.NewLine);
-            }
-            else if (member is IPropertySymbol property)
+            //    classMemberBuilder.AppendFormat("{0} {1} {2};", accessibility, field.Type, field.Name);
+            //    classMemberBuilder.AppendLine(Environment.NewLine);
+            //}
+            if (member is IPropertySymbol property)
             {
                 if (addedGenericProperties.Contains(member.Name))
                 {
@@ -215,9 +215,9 @@ public static class SymbolStringRepresentationExtensions
 
                 }
 
-                var outputString = property.Type.CheckAndSanitizeClassString();
+                var typeString = property.Type.CheckAndSanitizeClassString();
 
-                classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, outputString, property.Name);
+                classMemberBuilder.AppendFormat("{0} {1} {2} {{ get; set; }}", accessibility, typeString, property.Name);
                 classMemberBuilder.AppendLine(Environment.NewLine);
             }
             else if (member is IMethodSymbol methodSymbol)

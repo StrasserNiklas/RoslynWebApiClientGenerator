@@ -237,11 +237,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 bodyParameter = parameter.Value;
             }
 
-            if (parameter.Value.ParameterAttributeDetails.HasHeaderAttribute)
-            {
-                hasHeaderParameter = true;
-            }
-
             // add route query parameters e.g. /api/clients/{id}
             if (methodDetails.HasRouteQueryParameters)
             {
@@ -264,6 +259,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             // add header values
             if (parameter.Value.ParameterAttributeDetails.HasHeaderAttribute)
             {
+                hasHeaderParameter = true;
+
                 foreach (var header in parameter.Value.HeaderKeyValues)
                 {
                     headerKeyValuesStringBuilder.AppendLine($$"""
