@@ -15,51 +15,14 @@
 
   <ItemGroup>
 	  <!-- OutputItemType="Analyzer" ReferenceOutputAssembly="false" -->
-	  <!--<ProjectReference Include="..\..\ApiClientGenerator\ApiClientGenerator.csproj" />-->
+	  <PackageReference Include="AspNetCore.Authentication.ApiKey" Version="7.0.0"  />
+	  <ProjectReference Include="..\..\ApiClientGenerator\ApiClientGenerator.csproj"  />
 	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	  <PackageReference Include="TestingContracts" Version="2023.2.11.193604" />
   </ItemGroup>
 
-	<PropertyGroup>
-		
-	</PropertyGroup>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	<ItemGroup>
-		<CompilerVisibleProperty Include="ACGT_PackageReferences" />
-		<CompilerVisibleProperty Include="ACGT_GenerateClientOnBuild" />
-		<CompilerVisibleProperty Include="ACGT_UseExternalAssemblyContracts" />
-		<CompilerVisibleProperty Include="ACGT_UsePartialClientClasses" />
-		<CompilerVisibleProperty Include="ACGT_UseInterfacesForClients" />
-		<CompilerVisibleProperty Include="ACGT_UseSeparateClientFiles" />
-		<CompilerVisibleProperty Include="ACGT_CreateNugetPackageOnBuild" />
-		<CompilerVisibleProperty Include="ACGT_UseGitVersionInformation" />
-		<CompilerVisibleProperty Include="ACGT_GenerateMinimalApiClient" />
-		<CompilerVisibleProperty Include="ACGT_OutputPath" />
-	</ItemGroup>
-	
 	<ItemGroup>
     <Folder Include="Models\FromBody\" />
   </ItemGroup>

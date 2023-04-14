@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApiClientGenerator" Version="2023.4.14.165634" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+	<!--<PropertyGroup>
+		<ACGT_OutputPath>C:\Masterarbeit\Github\ApiClientGenerator.Testing\SimpleTestingApi\out</ACGT_OutputPath>
+	</PropertyGroup>-->
+</Project>

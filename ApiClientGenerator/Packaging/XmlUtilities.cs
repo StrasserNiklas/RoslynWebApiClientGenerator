@@ -11,7 +11,7 @@ public static class XmlUtilities
     Could not find a part of the path 'C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\Roslyn\Packaging\baseProjectFile.csproj'.'
     Until this is fixed, we will use a string literal of it
      */
-    private static readonly string BaseProjectFilePath = "Packaging/baseProjectFile.csproj";
+    //private static readonly string BaseProjectFilePath = "Packaging/baseProjectFile.csproj";
     private static readonly string ProjectString = """
         <Project Sdk="Microsoft.NET.Sdk">
         	<PropertyGroup>

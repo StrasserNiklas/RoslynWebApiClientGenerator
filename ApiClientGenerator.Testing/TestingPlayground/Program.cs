@@ -1,4 +1,5 @@
 
+using AspNetCore.Authentication.ApiKey;
 using Microsoft.AspNetCore.Mvc;
 using NSwag;
 using TestingPlayground.Controllers;
@@ -18,6 +19,27 @@ namespace TestingPlayground
             builder.Services.AddEndpointsApiExplorer();
             //builder.Services.AddSwaggerGen();
             builder.Services.AddOpenApiDocument();
+
+            builder.Services
+                .AddAuthentication(ApiKeyDefaults.AuthenticationScheme)
+                .AddApiKeyInHeader(options =>
+                {
+                    options.Realm = "Testing api";
+                    options.KeyName = "Api-Key";
+                    options.Events = new ApiKeyEvents
+                    {
+                        OnValidateKey = context =>
+                        {
+                            if (context.ApiKey == "TestApiKey")
+                                context.ValidationSucceeded();
+                            else
+                                context.ValidationFailed();
+
+                            return Task.CompletedTask;
+                        },
+                    };
+                });
+
 
             builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressInferBindingSourcesForParameters = true);
             var app = builder.Build();
@@ -46,7 +68,7 @@ namespace TestingPlayground
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseAuthentication();
 
             app.MapControllers();
             app.AddMinimalEndpoints();

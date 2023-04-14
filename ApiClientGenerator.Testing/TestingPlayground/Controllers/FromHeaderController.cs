@@ -26,11 +26,23 @@ public class FromHeaderController : ControllerBase
         return Ok();
     }
 
-    [HttpGet]
-    public ActionResult ClassParameterWithAttributeSomePropertiesAttributed([FromHeader] SomePropertiesHeaderAttributed somePropertiesAttributed)
+    public class SomePropertiesHeaderAttributed
     {
-        return Ok();
+        [FromHeader]
+        public string? ExampleString { get; set; }
+
+        [FromHeader(Name = "special-name")]
+        public double ExampleDouble { get; set; }
+        public int ExampleInteger { get; set; }
     }
+
+    [HttpGet]
+    public ActionResult ClassParameterWithAttributeSomePropertiesAttributed(
+        [FromHeader] SomePropertiesHeaderAttributed somePropertiesAttributed)
+    {
+        return Ok(somePropertiesAttributed);
+    }
+
 
     [HttpGet]
     public ActionResult PrimitiveParameterWithAttributeNamed([FromHeader(Name ="x-solo")] string soloString)

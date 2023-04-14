@@ -31,12 +31,12 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        #if DEBUG
-        if (Debugger.IsAttached)
-        {
-            Debugger.Launch();
-        }
-        #endif
+        //#if DEBUG
+        //if (Debugger.IsAttached)
+        //{
+        //    Debugger.Launch();
+        //}
+        //#endif
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
@@ -83,7 +83,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         if (fileDirectory == string.Empty)
         {
-            fileDirectory = $"{Configuration.ProjectDirectory}\\out";
+            fileDirectory = $"{Configuration.ProjectDirectory}out\\";
         }
 
         if (!Directory.Exists(fileDirectory))
@@ -112,7 +112,7 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         if (Configuration.CreateClientProjectFileOnBuild)
         {
-            XmlUtilities.CreateProjectFile(finalReferences, fileDirectory, $"{projectName}.csproj", version);
+            XmlUtilities.CreateProjectFile(finalReferences, fileDirectory, $"{projectName}.CSharp.csproj", version);
 
             if (Configuration.CreateNugetPackageOnBuild)
             {
