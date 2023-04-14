@@ -207,6 +207,11 @@ public static class SymbolExtensions
 
     public static bool IsNullable(this ITypeSymbol typeSymbol)
     {
+        if (typeSymbol.TypeKind == TypeKind.Enum)
+        {
+            return false;
+        }
+
         if (typeSymbol.Name == "Nullable")
         {
             return true;

@@ -81,6 +81,11 @@ public class Configuration
 
     private static string ParseOutputPath(string outputPath)
     {
+        if (string.IsNullOrWhiteSpace(outputPath))
+        {
+            return string.Empty;
+        }
+
         if (Path.IsPathRooted(outputPath))
         {
             return outputPath;
