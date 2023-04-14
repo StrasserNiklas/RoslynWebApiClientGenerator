@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -13,12 +13,12 @@
 		</PackageReference>
 		<PackageReference Include="System.Text.Json" Version="6.0.5" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
-		<OpenApiProjectReference Include="../TestingPlayground/ComplexTestingApi.csproj">
-			<CodeGenerator>NSwagCSharp</CodeGenerator> <!-- obviously required in this case -->
-			<ClassName>{controller}Client</ClassName> <!-- required -->
-			<Options>/JsonLibrary:SystemTextJson </Options> <!-- required: /GenerateClientInterfaces:true /UseBaseUrl:false -->
+		<OpenApiProjectReference Include="../ComplexTestingApi/ComplexTestingApi.csproj">
+			<CodeGenerator>NSwagCSharp</CodeGenerator>
+			<ClassName>{controller}Client</ClassName>
+			<Options>/JsonLibrary:SystemTextJson /GenerateClientInterfaces:true /UseBaseUrl:false</Options>
 		</OpenApiProjectReference>
 	</ItemGroup>
 </Project>

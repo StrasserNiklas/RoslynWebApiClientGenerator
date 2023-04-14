@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>	  
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
+		<OpenApiRetrieveDocuments>true</OpenApiRetrieveDocuments>
+		<OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+	</PropertyGroup>
+
+  <ItemGroup>
+	  <!-- OutputItemType="Analyzer" ReferenceOutputAssembly="false" -->
+	  <PackageReference Include="AspNetCore.Authentication.ApiKey" Version="7.0.0" />
+	  <ProjectReference Include="..\..\ApiClientGenerator\ApiClientGenerator.csproj" />
+	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
+	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+	  <PackageReference Include="TestingContracts" Version="2023.2.11.193604" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<CompilerVisibleProperty Include="ACGT_PackageReferences" />
+		<CompilerVisibleProperty Include="ACGT_GenerateClientOnBuild" />
+		<CompilerVisibleProperty Include="ACGT_UseExternalAssemblyContracts" />
+		<CompilerVisibleProperty Include="ACGT_UsePartialClientClasses" />
+		<CompilerVisibleProperty Include="ACGT_UseInterfacesForClients" />
+		<CompilerVisibleProperty Include="ACGT_UseSeparateClientFiles" />
+		<CompilerVisibleProperty Include="ACGT_CreateClientProjectFileOnBuild" />
+		<CompilerVisibleProperty Include="ACGT_CreateNugetPackageOnBuild" />
+		<CompilerVisibleProperty Include="ACGT_UseGitVersionInformation" />
+		<CompilerVisibleProperty Include="ACGT_GenerateMinimalApiClient" />
+		<CompilerVisibleProperty Include="ACGT_OutputPath" />
+	</ItemGroup>	
+	
+	<PropertyGroup>
+		<ACGT_GenerateClientOnBuild />
+		<!--<ACGT_CreateNugetPackageOnBuild>true</ACGT_CreateNugetPackageOnBuild>-->
+	</PropertyGroup>
+
+</Project>
