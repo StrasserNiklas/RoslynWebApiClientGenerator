@@ -17,6 +17,7 @@
 		<!--<PackageVersion>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</PackageVersion>-->
 		<PackageVersion>1.0.1</PackageVersion>
 
+		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<!--<OutputPath>C:\Masterarbeit\testProjFolder</OutputPath>-->
 	</PropertyGroup>
