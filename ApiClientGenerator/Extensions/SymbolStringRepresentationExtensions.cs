@@ -305,9 +305,9 @@ public static class SymbolStringRepresentationExtensions
 
         foreach (var member in symbol.GetMembers())
         {
-            if (member is IFieldSymbol)
+            if (member is IFieldSymbol fieldSymbol)
             {
-                classMemberBuilder.AppendLine($"{member.Name},");
+                classMemberBuilder.AppendLine($"{member.Name} = {fieldSymbol.ConstantValue},");
             }
         }
 
