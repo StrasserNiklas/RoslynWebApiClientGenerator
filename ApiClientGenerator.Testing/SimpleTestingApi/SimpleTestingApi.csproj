@@ -7,10 +7,16 @@
   </PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="ApiClientGenerator" Version="2023.4.14.202212" />
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
   </ItemGroup>
 
 	<!--<PropertyGroup>
-		<ACGT_OutputPath>C:\Masterarbeit\Github\ApiClientGenerator.Testing\SimpleTestingApi\out</ACGT_OutputPath>
+		<ACGT_CreateNugetPackageOnBuild>true</ACGT_CreateNugetPackageOnBuild>
+		<ACGT_OutputPath>C:\Masterarbeit\testProjFolder\NugetTest</ACGT_OutputPath>
+
+
+		<ACGT_PackageReferences>TestingContracts</ACGT_PackageReferences>
+		<ACGT_UseExternalAssemblyContracts>true</ACGT_UseExternalAssemblyContracts>
 	</PropertyGroup>-->
 </Project>

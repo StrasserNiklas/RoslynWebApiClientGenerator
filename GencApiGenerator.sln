@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebApi", "ApiClientGe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingContracts", "ApiClientGenerator.Testing\TestingContracts\TestingContracts.csproj", "{AC923658-BF04-4851-B881-1DFEA2416FC6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingPlayground", "ApiClientGenerator.Testing\TestingPlayground\TestingPlayground.csproj", "{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComplexTestingApi", "ApiClientGenerator.Testing\TestingPlayground\ComplexTestingApi.csproj", "{CBB36625-843E-4CCE-BB8E-BAFEB86D7AF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingPlayground.CSharp", "ApiClientGenerator.Testing\TestingPlayground.CSharp\TestingPlayground.CSharp.csproj", "{BB0936CF-5207-457A-9008-649F945F877D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComplexTestingApi.CSharp", "ApiClientGenerator.Testing\TestingPlayground.CSharp\ComplexTestingApi.CSharp.csproj", "{BB0936CF-5207-457A-9008-649F945F877D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{6EC46177-5E82-430D-B5AB-97FE3287496A}"
 	ProjectSection(SolutionItems) = preProject

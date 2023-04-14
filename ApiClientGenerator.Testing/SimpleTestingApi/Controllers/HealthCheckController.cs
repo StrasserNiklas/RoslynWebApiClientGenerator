@@ -19,10 +19,10 @@ public class HealthCheckController : ControllerBase
     }
 
     [HttpDelete]
-    [Route("delete/{interval}")]
-    public ActionResult<HealthCheckOptions> DeleteHealthCheckOptions([FromRoute] int interval)
+    [Route("delete/{id}")]
+    public ActionResult<HealthCheckOptions> DeleteHealthCheckOptions([FromRoute] int id)
     {
-        return Ok(new HealthCheckOptions() { Interval = interval });
+        return Ok(new HealthCheckOptions() { Interval = id });
     }
 }
 
