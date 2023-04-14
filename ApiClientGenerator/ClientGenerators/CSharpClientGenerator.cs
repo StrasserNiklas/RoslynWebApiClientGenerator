@@ -1,4 +1,5 @@
 ﻿using ApiClientGenerator.Configuration;
+using ApiClientGenerator.Models.ParameterDetails;
 using ApiGenerator.Extensions;
 using ApiGenerator.Models;
 using Microsoft.CodeAnalysis;
@@ -214,7 +215,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
         var parameterCheckStringBuilder = new StringBuilder();
         var routeQueryParamStringBuilder = new StringBuilder();
         var headerKeyValuesStringBuilder = new StringBuilder();
-        ParameterDetails bodyParameter = null;
+        ParameterDetails bodyParameterDetails = null;
         var hasHeaderParameter = false;
         var fromFormString = string.Empty;
 
@@ -231,47 +232,47 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 """);
             }
 
-            // assign a possible body parameter
-            if (parameter.Value.ParameterAttributeDetails.HasBodyAttribute)
+            switch (parameter.Value)
             {
-                bodyParameter = parameter.Value;
-            }
+                case HeaderParameterDetails headerParameterDetails:
+                    hasHeaderParameter = true;
 
-            // add route query parameters e.g. /api/clients/{id}
-            if (methodDetails.HasRouteQueryParameters)
-            {
-                if (parameter.Value.IsRouteQueryParameter)
-                {
-                    routeQueryParamStringBuilder.AppendLine($$"""
-                        routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
-                        """);
-                }
-            }
-
-            // add query values e.g. ?example=10
-            if (parameter.Value.ParameterAttributeDetails.HasQueryAttribute)
-            {
-                routeQueryParamStringBuilder.AppendLine($"""
-                        routeBuilder.Append($"{parameter.Value.QueryString}");
-                        """);
-            }
-
-            // add header values
-            if (parameter.Value.ParameterAttributeDetails.HasHeaderAttribute)
-            {
-                hasHeaderParameter = true;
-
-                foreach (var header in parameter.Value.HeaderKeyValues)
-                {
-                    headerKeyValuesStringBuilder.AppendLine($$"""
+                    foreach (var header in headerParameterDetails.HeaderKeyValues)
+                    {
+                        headerKeyValuesStringBuilder.AppendLine($$"""
                     { "{{header.Key}}", {{header.Value}}.ToString()},
                     """);
-                }
-            }
+                    }
+                    break;
 
-            if (parameter.Value.ParameterAttributeDetails.HasFormAttribute)
-            {
-                fromFormString = parameter.Value.FormString;
+                case BodyParameterDetails:
+                    bodyParameterDetails = parameter.Value;
+                    break;
+
+                case QueryParameterDetails queryParameterDetails:
+                    // add route query parameters e.g. /api/clients/{id}
+                    // this is due to a simple type being parsed as a query parameter because at parsing the parameters we don´t know if it is a route parameter
+                    if (queryParameterDetails.IsRouteQueryParameter)
+                    {
+                        routeQueryParamStringBuilder.AppendLine($$"""
+                        routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
+                        """);
+                    }
+                    else
+                    {
+                        routeQueryParamStringBuilder.AppendLine($"""
+                        routeBuilder.Append($"{queryParameterDetails.QueryString}");
+                        """);
+                    }
+                    break;
+
+                case RouteQueryParameterDetails routeQueryParameterDetails:
+                    routeQueryParamStringBuilder.AppendLine(routeQueryParameterDetails.RouteQueryManipulationString);
+                    break;
+
+                case FormParameterDetails formParameterDetails:
+                    fromFormString = formParameterDetails.FormString;
+                    break;
             }
         }
 
@@ -282,8 +283,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             };
             """ : string.Empty;
 
-        var methodCallString = bodyParameter is not null ?
-            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameter.ParameterTypeString}>(uri, {bodyParameter.ParameterName}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
+        var methodCallString = bodyParameterDetails is not null ?
+            $"var httpRequestMessage = this.PrepareRequestMessage<{bodyParameterDetails.ParameterTypeString}>(uri, {bodyParameterDetails.ParameterName}, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);"
             : $"var httpRequestMessage = this.PrepareRequestMessage<object>(uri, null, new HttpMethod(\"{methodDetails.HttpMethod.Method}\"), {(hasHeaderParameter ? "headers, " : "null, ")}prepareSingleRequest);";
 
         return $$"""

@@ -8,6 +8,7 @@ using ApiGenerator.Models;
 using System.Net.Http;
 using System;
 using ApiGenerator.Diagnostics;
+using ApiClientGenerator.Models.ParameterDetails;
 
 namespace ApiGenerator;
 
@@ -89,19 +90,6 @@ public class ControllerClientBuilder
                         continue;
                     }
 
-                    var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
-                    var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
-                    var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
-                    var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
-                    var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
-
-                    var headerKeys = new Dictionary<string, HeaderDetails>();
-
-                    if (fromHeader is not null)
-                    {
-                        headerKeys = this.GetHeaderValues(methodParameter, method.Name, clientInformation.ClientName.Replace("Client", "Controller"));
-                    }
-
                     if (!methodParameter.Type.IsSimpleType())
                     {
                         var generatedClassDetails = methodParameter.Type.GenerateClassString();
@@ -109,8 +97,8 @@ public class ControllerClientBuilder
                         generatedClasses.AddMany(generatedClassDetails.GeneratedCodeClasses);
                     }
 
-                    var parameterAttributeDetails = new ParameterAttributeDetails(fromBody, fromQuery, fromHeader, fromRoute, fromForm);
-                    parameterMapping.Add(methodParameter.Name, new ParameterDetails(methodParameter, methodParameter.Type.IsSimpleType(), parameterAttributeDetails, headerKeys));
+                    var parameterDetails = this.GetParameterDetails(methodParameter, method.Name, clientInformation.ClientName.Replace("Client", "Controller"));
+                    parameterMapping.Add(methodParameter.Name, parameterDetails);
                 }
 
                 var returnType = this.UnwrapReturnType(methodSymbol.ReturnType);
@@ -122,6 +110,43 @@ public class ControllerClientBuilder
 
         clientInformation.AdditionalUsings = additionalUsings;
         clientInformation.GeneratedCodeClasses = generatedClasses;
+    }
+
+    private ParameterDetails GetParameterDetails(IParameterSymbol methodParameter, string methodName, string controllerClassName)
+    {
+        var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
+        var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
+        var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+        var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
+        var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
+        var isSimpleType = methodParameter.Type.IsSimpleType();
+
+        if (fromHeader is not null)
+        {
+            var headerKeys = this.GetHeaderValues(methodParameter, methodName, controllerClassName);
+            return new HeaderParameterDetails(methodParameter, isSimpleType, headerKeys);
+        }
+        else if (fromQuery is not null)
+        {
+            return new QueryParameterDetails(methodParameter, isSimpleType);
+        }
+        else if (fromForm is not null)
+        {
+            return new FormParameterDetails(methodParameter, isSimpleType);
+        }
+        else if (fromBody is not null)
+        {
+            return new BodyParameterDetails(methodParameter);
+        }
+        else if (fromRoute is not null)
+        {
+            return new RouteQueryParameterDetails(methodParameter, isSimpleType);
+        }
+
+        // no attribute set
+        // what if its a route parameter?
+        return new QueryParameterDetails(methodParameter, isSimpleType);
+
     }
 
     private Dictionary<string, HeaderDetails> GetHeaderValues(IParameterSymbol methodParameter, string methodName, string controllerClassName)
