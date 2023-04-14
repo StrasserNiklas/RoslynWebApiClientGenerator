@@ -219,8 +219,13 @@ public class ApiClientGenerator : DiagnosticAnalyzer
                     finalReferences.Add(packageDetail);
                     Configuration.ConfiguredPackageReferences.Remove(configuredPackage);
                 }
+
+                continue;
             }
 
+            
+            // check if the package is used in the project
+            // inference happens here
             foreach (var singleUsing in allAdditionalUsings)
             {
                 if (packageDetail.Namespaces.Contains(singleUsing))
@@ -239,6 +244,10 @@ public class ApiClientGenerator : DiagnosticAnalyzer
             if (configuredPackage.VersionInfo == string.Empty)
             {
                 DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.PackageVersionNotFound, Location.None, configuredPackage.PackageName));
+            }
+            else
+            {
+                finalReferences.Add(configuredPackage);
             }
         }
 
