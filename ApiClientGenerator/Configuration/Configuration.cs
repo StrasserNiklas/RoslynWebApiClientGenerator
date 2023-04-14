@@ -44,16 +44,17 @@ public class Configuration
 
         foreach (var item in new Dictionary<string, bool>(buildPropertiesWithBooleanDefaultValue))
         {
-            if (globalOptions.TryGetValue(item.Key, out var value))
+            if (globalOptions.TryGetValue(item.Key, out string value))
             {
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     continue;
                 }
 
-                if (value != "false" || value != "true")
+                if (value != "false" && value != "true")
                 {
                     DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericWarning, Location.None, $"Configuration value {item.Key} has the wrong format, so it is ignored.", "Use 'true' or 'false'."));
+                    continue;
                 }
 
                 buildPropertiesWithBooleanDefaultValue[item.Key] = value.Equals("true", StringComparison.OrdinalIgnoreCase);
