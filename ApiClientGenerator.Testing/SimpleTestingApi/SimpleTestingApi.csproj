@@ -6,10 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="ApiClientGenerator" Version="2023.4.14.165634" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	<ItemGroup>
+	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
   </ItemGroup>
 
 	<!--<PropertyGroup>

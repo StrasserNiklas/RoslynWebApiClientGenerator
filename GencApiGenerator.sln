@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingClient", "ApiClientG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTestingApi", "ApiClientGenerator.Testing\SimpleTestingApi\SimpleTestingApi.csproj", "{C4ED621E-8B1D-4FB1-A226-2D11BE645B72}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTestingApi.CSharp", "ApiClientGenerator.Testing\SimpleTestingApi.CSharp\SimpleTestingApi.CSharp.csproj", "{32A174C9-E519-43B5-B23D-8DB02EA07604}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{C4ED621E-8B1D-4FB1-A226-2D11BE645B72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4ED621E-8B1D-4FB1-A226-2D11BE645B72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4ED621E-8B1D-4FB1-A226-2D11BE645B72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32A174C9-E519-43B5-B23D-8DB02EA07604}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32A174C9-E519-43B5-B23D-8DB02EA07604}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32A174C9-E519-43B5-B23D-8DB02EA07604}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32A174C9-E519-43B5-B23D-8DB02EA07604}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +76,7 @@ Global
 		{BB0936CF-5207-457A-9008-649F945F877D} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 		{5CF6AE86-ACF8-41A6-BEA1-DA3EEEF2FC7B} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 		{C4ED621E-8B1D-4FB1-A226-2D11BE645B72} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
+		{32A174C9-E519-43B5-B23D-8DB02EA07604} = {07038FF7-199D-4E7B-AFEF-E9B30DE32F2B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF97F604-81DD-40F1-8923-3BF65CA6D815}
