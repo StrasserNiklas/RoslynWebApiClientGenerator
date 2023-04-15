@@ -12,15 +12,15 @@ namespace ComplexTestingApi.Controllers;
 public class AuthorizationController : ControllerBase
 {
     [HttpGet]
-    public ActionResult AuthTest(AllPropertiesQueryAttributed allPropertiesAttributed)
+    public ActionResult<AllPropertiesQueryAttributed> AuthTest(AllPropertiesQueryAttributed allPropertiesAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesAttributed);
     }
 
     [HttpPost]
-    public ActionResult AuthTestPost(TestEnum allPropertiesAttributed)
+    public ActionResult<TestEnum> AuthTestPost(TestEnum allPropertiesAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesAttributed);
     }
 }
 

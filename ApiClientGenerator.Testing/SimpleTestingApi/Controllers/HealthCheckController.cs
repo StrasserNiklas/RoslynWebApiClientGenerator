@@ -31,4 +31,3 @@ public class HealthCheckOptions
     public string Path { get; set; }
     public int Interval { get; set; }
 }
-

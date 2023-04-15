@@ -9,51 +9,51 @@ namespace ComplexTestingApi.Controllers;
 public class FromQueryController : ControllerBase
 {
     [HttpGet]
-    public ActionResult ClassParameterWithoutAttributeAllPropertiesAttributed(AllPropertiesQueryAttributed allPropertiesAttributed)
+    public ActionResult<AllPropertiesQueryAttributed> ClassParameterWithoutAttributeAllPropertiesAttributed(AllPropertiesQueryAttributed allPropertiesAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesAttributed);
     }
 
     // check if you need builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressInferBindingSourcesForParameters = true);
     [HttpGet]
-    public ActionResult ClassParameterWithoutAttributeSomePropertiesAttributed(SomePropertiesQueryAttributed somePropertiesAttributed)
+    public ActionResult<SomePropertiesQueryAttributed> ClassParameterWithoutAttributeSomePropertiesAttributed(SomePropertiesQueryAttributed somePropertiesAttributed)
     {
-        return Ok();
+        return Ok(somePropertiesAttributed);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterWithAttributeSomePropertiesAttributed([FromQuery] SomePropertiesQueryAttributed somePropertiesAttributed)
+    public ActionResult<SomePropertiesQueryAttributed> ClassParameterWithAttributeSomePropertiesAttributed([FromQuery] SomePropertiesQueryAttributed somePropertiesAttributed)
     {
-        return Ok();
+        return Ok(somePropertiesAttributed);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterWithAttributeAllPropertiesAttributed([FromQuery] AllPropertiesQueryAttributed somePropertiesAttributed)
+    public ActionResult<AllPropertiesQueryAttributed> ClassParameterWithAttributeAllPropertiesAttributed([FromQuery] AllPropertiesQueryAttributed allPropertiesQueryAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesQueryAttributed);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterWithAttribute([FromQuery] NoPropertiesAttributedClass simpleQueryClass)
+    public ActionResult<NoPropertiesAttributedClass> ClassParameterWithAttribute([FromQuery] NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
-        return Ok();
+        return Ok(noPropertiesAttributedClass);
     }
 
     [HttpGet]
-    public ActionResult PrimitiveParameterWithAttribute([FromQuery] string soloString)
+    public ActionResult<string> PrimitiveParameterWithAttribute([FromQuery] string soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 
     [HttpGet]
-    public ActionResult PrimitiveParameterNoAttribute(string soloString)
+    public ActionResult<string> PrimitiveParameterNoAttribute(string soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterNoAttribute(NoPropertiesAttributedClass soloString)
+    public ActionResult<NoPropertiesAttributedClass> ClassParameterNoAttribute(NoPropertiesAttributedClass soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 }

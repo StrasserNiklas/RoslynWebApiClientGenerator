@@ -8,20 +8,20 @@ namespace ComplexTestingApi.Controllers;
 public class FromBodyController : ControllerBase
 {
     [HttpPost]
-    public ActionResult ClassParameterNoAttribute(NoPropertiesAttributedClass simpleBodyClass)
+    public ActionResult<NoPropertiesAttributedClass> ClassParameterNoAttribute(NoPropertiesAttributedClass simpleBodyClass)
     {
-        return Ok();
+        return Ok(simpleBodyClass);
     }
 
     [HttpPost]
     public ActionResult ClassParameterWithAttribute([FromBody] NoPropertiesAttributedClass simpleBodyClass)
     {
-        return Ok();
+        return Ok(simpleBodyClass);
     }
 
     [HttpPost]
-    public ActionResult PrimitiveParameterWithAttribute([FromBody] string simpleString)
+    public ActionResult<string> PrimitiveParameterWithAttribute([FromBody] string simpleString)
     {
-        return Ok();
+        return Ok(simpleString);
     }
 }

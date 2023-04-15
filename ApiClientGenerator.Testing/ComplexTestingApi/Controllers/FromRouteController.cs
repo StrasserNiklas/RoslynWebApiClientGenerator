@@ -1,4 +1,4 @@
-﻿using ComplexTestingApi.Models.FromQuery;
+﻿using ComplexTestingApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ComplexTestingApi.Controllers;
@@ -7,24 +7,24 @@ namespace ComplexTestingApi.Controllers;
 [ApiController]
 public class FromRouteController : ControllerBase
 {
-    [Route("allProps")]
+    [Route("allProps/{exampleString}/{exampleInteger}")]
     [HttpGet]
-    public ActionResult Class_Parameter_WithoutAttribute_AllPropertiesAttributed([FromRoute] AllPropertiesQueryAttributed allPropertiesAttributed)
+    public ActionResult Class_Parameter_WithoutAttribute_AllPropertiesAttributed([FromRoute] NoPropertiesAttributedClass allPropertiesAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesAttributed);
     }
 
     [Route("Primitive")]
     [HttpGet]
     public ActionResult PrimitiveParameterWithAttribute([FromRoute] string soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 
     [Route("route/{id}")]
     [HttpGet]
     public ActionResult PrimitiveParameterNoAttribute(string id)
     {
-        return Ok();
+        return Ok(id);
     }
 }

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.HttpLogging;
+
 namespace SimpleTestingApi;
 
 public class Program
@@ -11,6 +13,12 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
+        builder.Services.AddHttpLogging(logging =>
+        {
+            // Customize HTTP logging here.
+            logging.LoggingFields = HttpLoggingFields.RequestPath;
+        });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -19,10 +27,10 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
+        app.UseHttpLogging();
         app.UseAuthorization();
 
-
+        app.UseCors();
         app.MapControllers();
 
         app.Run();

@@ -9,59 +9,58 @@ namespace ComplexTestingApi.Controllers;
 public class FromHeaderController : ControllerBase
 {
     [HttpGet]
-    public ActionResult ClassParameterWithAttributeAllPropertiesAttributed([FromHeader] AllPropertiesHeaderAttributed allPropertiesAttributed)
+    public ActionResult<AllPropertiesHeaderAttributed> ClassParameterWithAttributeAllPropertiesAttributed([FromHeader] AllPropertiesHeaderAttributed allPropertiesAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesAttributed);
     }
 
     [HttpGet]
-    public ActionResult PrimitiveParameterWithAttribute([FromHeader] string soloString)
+    public ActionResult<string> PrimitiveParameterWithAttribute([FromHeader] string soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterWithAttribute(NoPropertiesAttributedClass noPropertiesAttributedClass)
+    public ActionResult<NoPropertiesAttributedClass> ClassParameterWithAttribute(NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
-        return Ok();
+        return Ok(noPropertiesAttributedClass);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterWithAttributeSomePropertiesAttributed(
-        [FromHeader] SomePropertiesHeaderAttributed somePropertiesAttributed)
+    public ActionResult<SomePropertiesHeaderAttributed> ClassParameterWithAttributeSomePropertiesAttributed([FromHeader] SomePropertiesHeaderAttributed somePropertiesAttributed)
     {
         return Ok(somePropertiesAttributed);
     }
 
 
     [HttpGet]
-    public ActionResult PrimitiveParameterWithAttributeNamed([FromHeader(Name = "x-solo")] string soloString)
+    public ActionResult<string> PrimitiveParameterWithAttributeNamed([FromHeader(Name = "x-solo")] string soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 
     [HttpGet]
-    public ActionResult ClassParameterWithoutAttributeAllPropertiesAttributed(AllPropertiesHeaderAttributed allPropertiesAttributed)
+    public ActionResult<AllPropertiesHeaderAttributed> ClassParameterWithoutAttributeAllPropertiesAttributed(AllPropertiesHeaderAttributed allPropertiesAttributed)
     {
-        return Ok();
+        return Ok(allPropertiesAttributed);
     }
 
     // check if you need builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressInferBindingSourcesForParameters = true);
     [HttpGet]
-    public ActionResult ClassParameterWithoutAttributeSomePropertiesAttributed(SomePropertiesHeaderAttributed somePropertiesAttributed)
+    public ActionResult<SomePropertiesHeaderAttributed> ClassParameterWithoutAttributeSomePropertiesAttributed(SomePropertiesHeaderAttributed somePropertiesAttributed)
     {
-        return Ok();
+        return Ok(somePropertiesAttributed);
     }
 
     [HttpGet]
-    public ActionResult PrimitiveParameterNoAttribute(string soloString)
+    public ActionResult<string> PrimitiveParameterNoAttribute(string soloString)
     {
-        return Ok();
+        return Ok(soloString);
     }
 
     [HttpGet]
     public ActionResult ClassParameterNoAttribute(NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
-        return Ok();
+        return Ok(noPropertiesAttributedClass);
     }
 }

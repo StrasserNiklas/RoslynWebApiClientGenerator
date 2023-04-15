@@ -37,7 +37,6 @@
 	</ItemGroup>	
 	
 	<PropertyGroup>
-		<ACGT_GenerateClientOnBuild />
 		<!--<ACGT_CreateNugetPackageOnBuild>true</ACGT_CreateNugetPackageOnBuild>-->
 	</PropertyGroup>
 

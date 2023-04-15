@@ -15,6 +15,7 @@
 
 	<ItemGroup>
 		<OpenApiProjectReference Include="../SimpleTestingApi/SimpleTestingApi.csproj">
+			<Namespace>NSwag.SimpleTestingApi.CSharp</Namespace>
 			<CodeGenerator>NSwagCSharp</CodeGenerator>
 			<Options>/JsonLibrary:SystemTextJson </Options> <!-- required -->
 		</OpenApiProjectReference>

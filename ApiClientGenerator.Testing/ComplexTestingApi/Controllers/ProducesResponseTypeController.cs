@@ -17,41 +17,41 @@ public class ProducesResponseTypeController : ControllerBase
         return Ok();
     }
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
     [HttpPost]
-    public ActionResult NoResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass, [FromQuery] bool flag = true)
-    {
-        return Ok();
-    }
-
-    [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
-    public ActionResult<NoPropertiesAttributedClass> ClassResponseOnSuccessNoBody()
-    {
-        return Ok();
-    }
-
-    [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
     public ActionResult<NoPropertiesAttributedClass> ClassResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
-        return Ok();
+        return Ok(noPropertiesAttributedClass);
+    }
+
+    [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
+    [HttpGet]
+    public ActionResult<NoPropertiesAttributedClass> ClassResponseOnNotFound([FromBody] NotFoundResponse notFoundResponse)
+    {
+        return BadRequest(notFoundResponse);
+    }
+
+    [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
+    [HttpGet]
+    public ActionResult<NoPropertiesAttributedClass> ClassResponseOnServerError([FromBody] ServerSideErrorResponse serverSideErrorResponse)
+    {
+        return this.StatusCode(500, serverSideErrorResponse);
     }
 
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
     [HttpGet]
-    public ActionResult<string> SimpleResponseOnSuccessNoBody()
+    public ActionResult<string> SimpleResponseOnSuccessNoBody([FromQuery] string response)
     {
-        return Ok();
+        return Ok(response);
     }
 
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -60,6 +60,6 @@ public class ProducesResponseTypeController : ControllerBase
     [HttpGet]
     public ActionResult<string> SimpleResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
-        return Ok();
+        return Ok(noPropertiesAttributedClass.ExampleString);
     }
 }
