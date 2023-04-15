@@ -317,6 +317,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         foreach (var pair in methodDetails.ReturnTypes)
         {
+            var isSuccessCase = pair.Key == 200 || pair.Key == 201;
+
             if (pair.Value is not null)
             {
                 var cleanClassValue = pair.Value.CheckAndSanitizeClassString();
@@ -327,7 +329,6 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     return new ApiResponse(statusCode, result{{pair.Key}}.Message) { ErrorResponse = result{{pair.Key}}.ErrorResponse, Exception = result{{pair.Key}}.Exception };
                     """;
 
-                var isSuccessCase = pair.Key == 200 || pair.Key == 201;
                 var defaultString = isSuccessCase ? $"result{pair.Key}.SuccessResponse" : "default";
                 var errorResponseString = isSuccessCase ? string.Empty : $"ErrorResponse = result{pair.Key}.SuccessResponse";
 
@@ -354,10 +355,46 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
             else
             {
-                switchStringBuilder.AppendLine($$"""
-                    case {{pair.Key}}:
-                        return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
+                // TODO fix this hack if possible
+                if (isSuccessCase && methodDetails.ReturnTypes.Any(x => x.Key != pair.Key && (x.Key == 200 || x.Key == 201)))
+                {
+                    //if (methodDetails.HasReturnType && methodDetails.MainReturnTypeString != pair.Value.CheckAndSanitizeClassString())
+                    //{
+
+                    //}
+
+                    if (methodDetails.HasReturnType)
+                    {
+                        switchStringBuilder.AppendLine($$"""
+                            case {{pair.Key}}:
+                                return new ApiResponse<{{methodDetails.MainReturnTypeString}}>(default, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) { };
+                            """);
+                    }
+                    else
+                    {
+                        switchStringBuilder.AppendLine($$"""
+                            case {{pair.Key}}:
+                                return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty);
+                            """);
+                    }
+                }
+                else
+                {
+                    if (methodDetails.HasReturnType)
+                    {
+                        switchStringBuilder.AppendLine($$"""
+                            case {{pair.Key}}:
+                                return new ApiResponse<{{methodDetails.MainReturnTypeString}}>(default, statusCode,  httpClientResponse.ReasonPhrase ?? string.Empty) { ErrorResponse = new ApiError() };
+                            """);
+                    }
+                    else
+                    {
+                        switchStringBuilder.AppendLine($$"""
+                        case {{pair.Key}}:
+                            return new ApiResponse(statusCode, httpClientResponse.ReasonPhrase ?? string.Empty)  { ErrorResponse = new ApiError() };
                     """);
+                    }
+                }
             }
         }
 
@@ -635,6 +672,10 @@ public class CSharpClientGenerator : ClientGeneratorBase
             {
                 throw new TimeoutException($"Did not receive an answer from the service within a timespan of {this.httpClient.Timeout}.");
             }
+            //catch (HttpRequestException)
+            //{
+            //    throw new TimeoutException($"Did not receive an answer from the service within a timespan of {this.httpClient.Timeout}.");
+            //}
         }
         """;
 }

@@ -1,13 +1,10 @@
 using AspNetCore.Authentication.ApiKey;
 using ComplexTestingApi.Controllers;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.HttpLogging;
 using NJsonSchema;
 using NSwag;
-using NSwag.Generation.Processors.Contexts;
 using NSwag.Generation.Processors;
-using NSwag.Generation.Processors.Security;
-using System.Reflection;
-using Microsoft.AspNetCore.HttpLogging;
+using NSwag.Generation.Processors.Contexts;
 
 namespace ComplexTestingApi;
 

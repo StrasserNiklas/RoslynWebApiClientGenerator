@@ -14,11 +14,17 @@
 
   <ItemGroup>
 	  <!-- OutputItemType="Analyzer" ReferenceOutputAssembly="false" -->
+	  <!--<ProjectReference Include="..\..\ApiClientGenerator\ApiClientGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>-->
+	  
+	  <PackageReference Include="ApiClientGenerator" Version="2023.4.15.221140" />
+	  
 	  <PackageReference Include="AspNetCore.Authentication.ApiKey" Version="7.0.0" />
-	  <ProjectReference Include="..\..\ApiClientGenerator\ApiClientGenerator.csproj" />
-	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
+	 
+	  <!--<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />-->
+	  <!--<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />-->
+
+
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	  <PackageReference Include="TestingContracts" Version="2023.2.11.193604" />
   </ItemGroup>
 

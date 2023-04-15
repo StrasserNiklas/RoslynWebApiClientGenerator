@@ -7,16 +7,6 @@ namespace ComplexTestingApi.Controllers;
 [ApiController]
 public class ProducesResponseTypeController : ControllerBase
 {
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
-    public ActionResult NoResponseOnSuccessNoBody()
-    {
-        return Ok();
-    }
-
     [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
@@ -25,6 +15,16 @@ public class ProducesResponseTypeController : ControllerBase
     public ActionResult<NoPropertiesAttributedClass> ClassResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
         return Ok(noPropertiesAttributedClass);
+    }
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
+    [HttpGet]
+    public ActionResult NoResponseOnSuccessNoBody()
+    {
+        return Ok();
     }
 
     [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
