@@ -7,11 +7,13 @@
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="NSwag.ApiDescription.Client" Version="13.18.0">
+		<PackageReference Include="NSwag.ApiDescription.Client" Version="13.18.2">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 		<PackageReference Include="System.Text.Json" Version="6.0.5" />
+		<PackageReference Include="TestingContracts" Version="1.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -19,7 +21,7 @@
 			<CodeGenerator>NSwagCSharp</CodeGenerator>
 			<ClassName>{controller}Client</ClassName>
 			<Namespace>NSwag.ComplexTestingApi.CSharp</Namespace>
-			<Options>/JsonLibrary:SystemTextJson /GenerateClientInterfaces:true /UseBaseUrl:false</Options>
+			<Options>/JsonLibrary:SystemTextJson /GenerateClientInterfaces:true /UseBaseUrl:false /AdditionalNamespaceUsages:TestingContracts.Enums,TestingContracts.Models /ExcludedTypeNames:AccessoryType,Accessory,AccessoryFeature,Car,CarPool,DataResponse,EngineType</Options>
 		</OpenApiProjectReference>
 	</ItemGroup>
 </Project>

@@ -91,21 +91,21 @@ public class Program
         //    app.UseSwaggerUI();
         //}
 
-        app
-            .UseOpenApi(settings =>
-            {
-                //settings.
-                //settings.op
-                settings.PostProcess = (document, _) =>
-                {
-                    document.Schemes = new List<OpenApiSchema>
-                    {
-                        OpenApiSchema.Https,
-                        OpenApiSchema.Http
-                    };
-                };
-            })
-             .UseSwaggerUi3(settings => settings.Path = "/swagger");
+        //app
+        //    .UseOpenApi(settings =>
+        //    {
+        //        //settings.
+        //        //settings.op
+        //        //settings.PostProcess = (document, _) =>
+        //        //{
+        //        //    document.Schemes = new List<OpenApiSchema>
+        //        //    {
+        //        //        OpenApiSchema.Https,
+        //        //        OpenApiSchema.Http
+        //        //    };
+        //        //};
+        //    });
+            // .UseSwaggerUi3(settings => settings.Path = "/swagger");
 
         app.UseHttpsRedirection();
 
