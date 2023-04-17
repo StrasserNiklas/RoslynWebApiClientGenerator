@@ -1,4 +1,5 @@
 ﻿using ComplexTestingApi.Models;
+using ComplexTestingApi.Models.FromHeader;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ComplexTestingApi.Controllers;
@@ -37,13 +38,13 @@ public class CombinedAttributesController : ControllerBase
 
     [Route("Route5/{exampleString}/{exampleInteger}")]
     [HttpPost]
-    public ActionResult<CombinedClass> ComplexHeaderComplexRouteComplexQueryComplexBody(
+    public ActionResult<ComplexCombinedClass> ComplexHeaderComplexRouteComplexQueryComplexBody(
         [FromRoute] NoPropertiesAttributedClass simpleClass1,
         [FromQuery] NoPropertiesAttributedClass simpleClass2, 
-        [FromHeader] NoPropertiesAttributedClass simpleClass3, 
+        [FromHeader] AllPropertiesHeaderAttributed simpleClass3, 
         [FromBody] NoPropertiesAttributedClass simpleClass4)
     {
-        return Ok(new ComplexCombinedClass() { SimpleBodyClass1 = simpleClass1, SimpleBodyClass2 = simpleClass2, SimpleBodyClass3 = simpleClass3, SimpleBodyClass4 = simpleClass4 });
+        return Ok(new ComplexCombinedClass() { SimpleBodyClass1 = simpleClass1, SimpleBodyClass2 = simpleClass2, SimpleBodyClass3 = new NoPropertiesAttributedClass() { ExampleInteger = simpleClass3.ExampleInteger, ExampleString = simpleClass3.ExampleString }, SimpleBodyClass4 = simpleClass4 });
     }
 }
 
