@@ -6,8 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<!-- If you dont use this, you will use an outdated schema when updating request response classes or anything like that-->
+		<OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+	</PropertyGroup>
+	
 	<ItemGroup>
-	  <PackageReference Include="ApiClientGenerator" Version="2023.4.14.202212" />
+	  <!--<PackageReference Include="ApiClientGenerator" Version="2023.4.14.202212" />-->
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
 	  <PackageReference Include="TestingContracts" Version="1.0.0" />
   </ItemGroup>

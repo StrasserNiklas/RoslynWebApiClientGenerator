@@ -60,42 +60,71 @@ internal class CombinedAttributesTestingHandler
         var httpClient = HttpClientHelper.CreateHttpClient();
         var client = new CombinedAttributesClient(httpClient);
         //client.JsonSerializerOptions.WithAllPossiblyNecessarySettings();
-        //this.healthCheckClient = client;
+        this.client = client;
 
     }
 
     [Test]
     public async Task Test_ComplexHeaderSimpleRouteSimpleQuerySimpleBody()
     {
-        var result = await this.client.ComplexHeaderSimpleRouteSimpleQuerySimpleBodyAsync(combinedClass.Id, combinedClass.Name, combinedClass.SimpleBodyClass, combinedClass.Intervall);
+        var result = await this.client.ComplexHeaderSimpleRouteSimpleQuerySimpleBodyAsync(
+            combinedClass.Id, 
+            combinedClass.Name, 
+            combinedClass.SimpleBodyClass, 
+            combinedClass.Intervall);
+
         combinedClass.Should().BeEquivalentTo(result);
     }
 
     [Test]
     public async Task Test_SimpleHeaderComplexRouteSimpleQuerySimpleBody()
     {
-        var result = await this.client.SimpleHeaderComplexRouteSimpleQuerySimpleBodyAsync(combinedClass.Id, combinedClass.Name, combinedClass.SimpleBodyClass.ExampleString, combinedClass.SimpleBodyClass.ExampleInteger, combinedClass.Intervall);
+        var result = await this.client.SimpleHeaderComplexRouteSimpleQuerySimpleBodyAsync(
+            combinedClass.Id, 
+            combinedClass.Name, 
+            combinedClass.SimpleBodyClass.ExampleString, 
+            combinedClass.SimpleBodyClass.ExampleInteger, 
+            combinedClass.Intervall);
+
         combinedClass.Should().BeEquivalentTo(result);
     }
 
     [Test]
     public async Task Test_SimpleHeaderSimpleRouteComplexQuerySimpleBody()
     {
-        var result = await this.client.SimpleHeaderComplexRouteSimpleQuerySimpleBodyAsync(combinedClass.Id, combinedClass.Name, combinedClass.SimpleBodyClass.ExampleString, combinedClass.SimpleBodyClass.ExampleInteger, combinedClass.Intervall);
+        var result = await this.client.SimpleHeaderComplexRouteSimpleQuerySimpleBodyAsync(
+            combinedClass.Id, 
+            combinedClass.Name, 
+            combinedClass.SimpleBodyClass.ExampleString, 
+            combinedClass.SimpleBodyClass.ExampleInteger, 
+            combinedClass.Intervall);
+
         combinedClass.Should().BeEquivalentTo(result);
     }
 
     [Test]
     public async Task Test_SimpleHeaderSimpleRouteSimpleQueryComplexBody()
     {
-        var result = await this.client.SimpleHeaderSimpleRouteSimpleQueryComplexBodyAsync(combinedClass.Id, combinedClass.Name, combinedClass.Intervall, combinedClass.SimpleBodyClass);
+        var result = await this.client.SimpleHeaderSimpleRouteSimpleQueryComplexBodyAsync(
+            combinedClass.Id, 
+            combinedClass.Name, 
+            combinedClass.Intervall, 
+            combinedClass.SimpleBodyClass);
+
         combinedClass.Should().BeEquivalentTo(result);
     }
 
     [Test]
     public async Task Test_ComplexHeaderComplexRouteComplexQueryComplexBody()
     {
-        var result = await this.client.ComplexHeaderComplexRouteComplexQueryComplexBodyAsync(combinedClass.SimpleBodyClass.ExampleString, combinedClass.SimpleBodyClass.ExampleInteger, combinedClass.SimpleBodyClass.ExampleString, combinedClass.SimpleBodyClass.ExampleInteger, combinedClass.SimpleBodyClass, combinedClass.SimpleBodyClass);
+        var result = await this.client.ComplexHeaderComplexRouteComplexQueryComplexBodyAsync(
+            combinedClass.SimpleBodyClass.ExampleString, 
+            combinedClass.SimpleBodyClass.ExampleInteger, 
+            combinedClass.SimpleBodyClass.ExampleString, 
+            combinedClass.SimpleBodyClass.ExampleInteger, 
+            new AllPropertiesHeaderAttributed() { ExampleInteger = combinedClass.SimpleBodyClass.ExampleInteger, ExampleString = combinedClass.SimpleBodyClass.ExampleString }, 
+            combinedClass.SimpleBodyClass);
+
         combinedClass.Should().BeEquivalentTo(result);
     }
 }

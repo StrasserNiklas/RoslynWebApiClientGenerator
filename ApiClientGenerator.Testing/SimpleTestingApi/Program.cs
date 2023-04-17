@@ -13,6 +13,9 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
+
+        builder.Services.AddOpenApiDocument();
+
         builder.Services.AddHttpLogging(logging =>
         {
             // Customize HTTP logging here.

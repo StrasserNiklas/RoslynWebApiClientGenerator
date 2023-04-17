@@ -7,9 +7,12 @@
   </PropertyGroup>
 
 	<PropertyGroup>
+		<!-- If you dont use this, you will use an outdated schema -->
 		<!--<IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>-->
 		<!--<OpenApiRetrieveDocuments>true</OpenApiRetrieveDocuments>-->
-		<!--<OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>-->
+
+		<!-- If you dont use this, you will use an outdated schema when updating request response classes or anything like that-->
+		<OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
 	</PropertyGroup>
 
   <ItemGroup>
