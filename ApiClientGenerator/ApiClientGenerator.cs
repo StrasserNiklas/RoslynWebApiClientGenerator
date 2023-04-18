@@ -83,13 +83,10 @@ public class ApiClientGenerator : DiagnosticAnalyzer
 
         if (fileDirectory == string.Empty)
         {
-            fileDirectory = $"{Configuration.ProjectDirectory}out\\";
+            fileDirectory = Path.Combine(Configuration.ProjectDirectory, "out");
         }
 
-        if (!Directory.Exists(fileDirectory))
-        {
             Directory.CreateDirectory(fileDirectory);
-        }
 
         foreach (var clientGenerator in this.clientGenerators)
         {
