@@ -284,7 +284,15 @@ public class ControllerClientBuilder
             additionalUsings.AddRange(generatedCodeDetails.AdditionalUsings);
             generatedClasses.AddMany(generatedCodeDetails.GeneratedCodeClasses);
 
-            var exists = additionalReturnTypes.SingleOrDefault(x => x.Value.Name == returnType.Name);
+            var exists = additionalReturnTypes.SingleOrDefault(x =>
+            {
+                if (x.Value is not null)
+                {
+                    return x.Value.Name == returnType.Name;
+                }
+
+                return false;
+            });
 
             if (exists.Value != null)
             {
