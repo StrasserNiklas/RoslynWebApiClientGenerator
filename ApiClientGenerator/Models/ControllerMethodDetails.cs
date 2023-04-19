@@ -15,7 +15,7 @@ public class ControllerMethodDetails
         this.HttpMethod = httpMethod;
         this.ReturnTypes = returnTypes;
         this.MethodName = methodName + "Async";
-        this.Route = finalRoute;
+        this.Route = finalRoute.ToLower();
 
         var matches = Regex.Matches(finalRoute, @"\{(.*?)\}");
 

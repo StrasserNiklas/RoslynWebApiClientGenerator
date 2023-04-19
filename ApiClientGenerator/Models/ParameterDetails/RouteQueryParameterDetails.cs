@@ -13,7 +13,7 @@ public class RouteQueryParameterDetails : ParameterDetails
         if (isSimpleType)
         {
             this.RouteQueryManipulationString = $$"""
-                                routeBuilder.Replace("{{{parameterSymbol.Name}}}", Uri.EscapeDataString({{parameterSymbol.Name}}.ToString()));
+                                routeBuilder.Replace("{{{parameterSymbol.Name.ToLowerInvariant()}}}", Uri.EscapeDataString({{parameterSymbol.Name}}.ToString()));
                         """;
         }
         // extract members
@@ -29,7 +29,7 @@ public class RouteQueryParameterDetails : ParameterDetails
                     if (property.Type is INamedTypeSymbol)
                     {
                         routeQueryManipulationStringBuilder.Append($$"""
-                                routeBuilder.Replace("{{{member.Name}}}", Uri.EscapeDataString({{parameterSymbol.Name}}.{{member.Name}}.ToString()));
+                                routeBuilder.Replace("{{{member.Name.ToLowerInvariant()}}}", Uri.EscapeDataString({{parameterSymbol.Name}}.{{member.Name}}.ToString()));
                                 """);
                     }
                 }
