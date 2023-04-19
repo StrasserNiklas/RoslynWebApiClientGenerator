@@ -147,7 +147,7 @@ public class ControllerClientBuilder
         // no attribute set
         // what if its a route parameter?
         // TODO check if there are attributes on the properties
-        return httpMethod == HttpMethod.Get || httpMethod == HttpMethod.Head
+        return (httpMethod == HttpMethod.Get || httpMethod == HttpMethod.Head) || methodParameter.Type.IsSimpleType()
             ? new QueryParameterDetails(methodParameter, isSimpleType)
             : new BodyParameterDetails(methodParameter);
 
