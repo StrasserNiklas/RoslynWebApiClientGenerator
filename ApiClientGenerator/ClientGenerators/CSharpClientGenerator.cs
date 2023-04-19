@@ -328,7 +328,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
 
         foreach (var pair in methodDetails.ReturnTypes)
         {
-            var isSuccessCase = pair.Key == 200 || pair.Key == 201;
+            // TODO fix hack later
+            var isSuccessCase = pair.Key == 200 || pair.Key == 201 || pair.Key == 204;
 
             if (pair.Value is not null)
             {
@@ -366,8 +367,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
             }
             else
             {
-                // TODO fix this hack if possible
-                if (isSuccessCase && methodDetails.ReturnTypes.Any(x => x.Key != pair.Key && (x.Key == 200 || x.Key == 201)))
+                // TODO fix this hack 
+                if (isSuccessCase && methodDetails.ReturnTypes.Any(x => x.Key != pair.Key && (x.Key == 200 || x.Key == 201 || x.Key == 204)))
                 {
                     //if (methodDetails.HasReturnType && methodDetails.MainReturnTypeString != pair.Value.CheckAndSanitizeClassString())
                     //{
@@ -581,7 +582,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 }
                 catch (JsonException exception)
                 {
-                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.") { Exception = exception };
+                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialize stream of type {typeof(T).FullName}.") { Exception = exception };
                 }
             }
             else
@@ -589,12 +590,17 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
+                    if (typeof(T) == typeof(string))
+                    {
+                        return new ApiResponse<T>(responseText, (int)response.StatusCode);
+                    }
+
                     var result = JsonSerializer.Deserialize<T>(responseText, this.jsonSerializerOptions);
                     return new ApiResponse<T>(result, (int)response.StatusCode);
                 }
                 catch (JsonException exception)
                 {
-                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialze stream of type {typeof(T).FullName}.") { Exception = exception };
+                    return new ApiResponse<T>(default, (int)response.StatusCode, $"Failed to deserialize object of type {typeof(T).FullName}.") { Exception = exception };
                 }
             }
         }
