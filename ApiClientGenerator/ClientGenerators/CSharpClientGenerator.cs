@@ -94,7 +94,8 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {{this.AddPrepareRequestMessageMethod()}}
                 {{this.AddPostJsonHelperMethod()}}
                 {{this.AddDeserializeMethod()}}
-                {{this.AddAuthorizationHelperMethod()}}
+                {{this.AddHeaderHelperMethod()}}
+                {{this.AddSetClientAuthorizationHeaderHelperMethod()}}
                 {{this.AddPrepareRequestDelegate()}}
                 {{this.AddProcessResponseDelegate()}}
             }
@@ -455,12 +456,12 @@ public class CSharpClientGenerator : ClientGeneratorBase
             private HttpClient httpClient;
             private JsonSerializerOptions jsonSerializerOptions;
             private Dictionary<string, string> clientWideHeaders;
-
+            
             public {{clientName}}(HttpClient httpClient)
             {
                 this.httpClient = httpClient;
                 this.jsonSerializerOptions = new JsonSerializerOptions();
-                this.clientWideHeaders = new Dictionary<string, string>();
+                this.clientWideHeaders = new Dictionary<string, string>();    
             }
 
             public JsonSerializerOptions JsonSerializerOptions => this.jsonSerializerOptions;
@@ -550,10 +551,17 @@ public class CSharpClientGenerator : ClientGeneratorBase
         public Action<HttpClient, HttpResponseMessage> ProcessResponse { get; set; } = (HttpClient client, HttpResponseMessage httpResponseMessage) => {};
         """;
 
-    private string AddAuthorizationHelperMethod() => """
-        public void AddClientWideAuthorizationHeader(string headerKey, string headerValue)
+    private string AddHeaderHelperMethod() => """
+        public void AddClientWideHeader(string headerKey, string headerValue)
         {
             this.clientWideHeaders.Add(headerKey, headerValue);
+        }
+        """;
+
+    private string AddSetClientAuthorizationHeaderHelperMethod() => """
+        public void SetClientAuthorizationHeader(string headerKey, string headerValue)
+        {
+            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(headerKey, headerValue);
         }
         """;
 
