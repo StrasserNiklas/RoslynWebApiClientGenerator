@@ -592,7 +592,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                 {
                     if (typeof(T) == typeof(string))
                     {
-                        return new ApiResponse<T>(responseText, (int)response.StatusCode);
+                        return new ApiResponse<T>((T)(object)responseText, (int)response.StatusCode);
                     }
 
                     var result = JsonSerializer.Deserialize<T>(responseText, this.jsonSerializerOptions);
