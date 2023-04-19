@@ -80,7 +80,7 @@ public class ControllerClientBuilder
                 foreach (var methodParameter in methodParameters)
                 {
                     // filter out from services attribute as its value is not needed for the api call
-                    if (methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromServicesAttribute") is not null || methodParameter.ToString() == "System.Threading.CancellationToken")
+                    if (methodParameter.GetAttribute(AttributeHelper.FromServicesAttributeNamespace) is not null || methodParameter.ToString() == "System.Threading.CancellationToken")
                     {
                         continue;
                     }
@@ -97,7 +97,7 @@ public class ControllerClientBuilder
                         generatedClasses.AddMany(generatedClassDetails.GeneratedCodeClasses);
                     }
 
-                    var parameterDetails = this.GetParameterDetails(methodParameter, method.Name, clientInformation.ClientName.Replace("Client", "Controller"));
+                    var parameterDetails = this.GetParameterDetails(methodParameter, method.Name, httpMethod, clientInformation.ClientName.Replace("Client", "Controller"));
                     parameterMapping.Add(methodParameter.Name, parameterDetails);
                 }
 
@@ -112,18 +112,18 @@ public class ControllerClientBuilder
         clientInformation.GeneratedCodeClasses = generatedClasses;
     }
 
-    private ParameterDetails GetParameterDetails(IParameterSymbol methodParameter, string methodName, string controllerClassName)
+    private ParameterDetails GetParameterDetails(IParameterSymbol methodParameter, string methodName, HttpMethod httpMethod, string controllerClassName)
     {
-        var fromQuery = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromQueryAttribute");
-        var fromBody = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromBodyAttribute");
-        var fromHeader = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
-        var fromRoute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromRouteAttribute");
-        var fromForm = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromFormAttribute");
+        var fromQuery = methodParameter.GetAttribute(AttributeHelper.FromQueryAttributeNamespace);
+        var fromBody = methodParameter.GetAttribute(AttributeHelper.FromBodyAttributeNamespace);
+        var fromHeader = methodParameter.GetAttribute(AttributeHelper.FromHeaderAttributebuteNamespace);
+        var fromRoute = methodParameter.GetAttribute(AttributeHelper.FromRouteAttributeNamespace);
+        var fromForm = methodParameter.GetAttribute(AttributeHelper.FromFormAttributeNamespace);
         var isSimpleType = methodParameter.Type.IsSimpleType();
 
         if (fromHeader is not null)
         {
-            var headerKeys = this.GetHeaderValues(methodParameter, methodName, controllerClassName);
+            var headerKeys = this.GetHeaderValues(methodParameter, AttributeHelper.FromHeaderAttributebuteNamespace, methodName, controllerClassName, false);
             return new HeaderParameterDetails(methodParameter, isSimpleType, headerKeys);
         }
         else if (fromQuery is not null)
@@ -143,19 +143,23 @@ public class ControllerClientBuilder
             return new RouteQueryParameterDetails(methodParameter, isSimpleType);
         }
 
+        // If not GET or HEAD then use body parameter
         // no attribute set
         // what if its a route parameter?
-        return new QueryParameterDetails(methodParameter, isSimpleType);
+        // TODO check if there are attributes on the properties
+        return httpMethod == HttpMethod.Get || httpMethod == HttpMethod.Head
+            ? new QueryParameterDetails(methodParameter, isSimpleType)
+            : new BodyParameterDetails(methodParameter);
 
     }
 
-    private Dictionary<string, HeaderDetails> GetHeaderValues(IParameterSymbol methodParameter, string methodName, string controllerClassName)
+    private Dictionary<string, HeaderDetails> GetHeaderValues(IParameterSymbol methodParameter, string attributeNamespace, string methodName, string controllerClassName, bool onlyCheckProperties)
     {
         var headerKeys = new Dictionary<string, HeaderDetails>();
 
-        if (methodParameter.Type.IsSimpleType())
+        if (methodParameter.Type.IsSimpleType() && !onlyCheckProperties)
         {
-            var fromHeaderAttribute = methodParameter.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+            var fromHeaderAttribute = methodParameter.GetAttribute(attributeNamespace);
             headerKeys.Add(this.GetHeaderName(methodParameter, fromHeaderAttribute), new HeaderDetails(methodParameter.Name, methodParameter.Type));
         }
         else
@@ -169,7 +173,7 @@ public class ControllerClientBuilder
             {
                 if (member is IPropertySymbol property)
                 {
-                    var fromHeaderAttribute = property.GetAttribute("Microsoft.AspNetCore.Mvc.FromHeaderAttribute");
+                    var fromHeaderAttribute = property.GetAttribute(attributeNamespace);
 
                     if (fromHeaderAttribute is null)
                     {
@@ -184,7 +188,7 @@ public class ControllerClientBuilder
 
             if (!hasMemberWithAttribute)
             {
-                DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AttributeMissing, Location.None, "[FromHeader]", methodParameter.Name, methodName,  controllerClassName));
+                DiagnosticReporter.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.AttributeMissing, Location.None, attributeNamespace.Split('.').Last() ?? "Attribute", methodParameter.Name, methodName,  controllerClassName));
             }
 
             // name müsste der key werden...
@@ -243,7 +247,7 @@ public class ControllerClientBuilder
 
     private IEnumerable<KeyValuePair<int, ITypeSymbol>> AddMethodResponseTypes(IMethodSymbol methodSymbol, ITypeSymbol returnType, IDictionary<string, string> generatedClasses, List<string> additionalUsings)
     {
-        var responseTypeAttributes = methodSymbol.GetAttributes("Microsoft.AspNetCore.Mvc.ProducesResponseTypeAttribute");
+        var responseTypeAttributes = methodSymbol.GetAttributes(AttributeHelper.ProducesResponseTypeAttributeNamespace);
         var additionalReturnTypes = new List<KeyValuePair<int, ITypeSymbol>>();
 
         foreach (var responseTypeAttribute in responseTypeAttributes)

@@ -10,7 +10,7 @@ public static class SymbolExtensions
 {
     public static AttributeData GetRouteAttribute(this ISymbol symbol)
     {
-        return symbol.GetAttribute("Microsoft.AspNetCore.Mvc.RouteAttribute");
+        return symbol.GetAttribute(AttributeHelper.RouteAttributeNamespace);
     }
 
     public static (HttpMethod, AttributeData) GetHttpMethodWithAtrributeData(this ISymbol symbol)
@@ -20,7 +20,8 @@ public static class SymbolExtensions
             { "HttpGetAttribute",  HttpMethod.Get },
             { "HttpPutAttribute",  HttpMethod.Put },
             { "HttpPostAttribute",  HttpMethod.Post },
-            { "HttpDeleteAttribute",  HttpMethod.Delete }
+            { "HttpDeleteAttribute",  HttpMethod.Delete },
+            { "HttpHeadAttribute",  HttpMethod.Head }
         };
 
         var attributes = symbol.GetAttributes();
