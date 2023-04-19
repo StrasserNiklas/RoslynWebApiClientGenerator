@@ -19,7 +19,7 @@ public class AuthorizationTestingHandler
     [SetUp]
     public void Setup()
     { 
-        var httpClient = HttpClientHelper.CreateHttpClient();
+        var httpClient = HttpHelper.CreateHttpClient();
         var client = new AuthorizationClient(httpClient);
         //client.
         //client.JsonSerializerOptions.WithAllPossiblyNecessarySettings();
@@ -57,7 +57,7 @@ internal class CombinedAttributesTestingHandler
     [SetUp]
     public void Setup()
     {
-        var httpClient = HttpClientHelper.CreateHttpClient();
+        var httpClient = HttpHelper.CreateHttpClient();
         var client = new CombinedAttributesClient(httpClient);
         //client.JsonSerializerOptions.WithAllPossiblyNecessarySettings();
         this.client = client;
@@ -73,7 +73,7 @@ internal class CombinedAttributesTestingHandler
             combinedClass.SimpleBodyClass, 
             combinedClass.Intervall);
 
-        combinedClass.Should().BeEquivalentTo(result);
+        result.Should().BeEquivalentTo(combinedClass);
     }
 
     [Test]
@@ -86,7 +86,7 @@ internal class CombinedAttributesTestingHandler
             combinedClass.SimpleBodyClass.ExampleInteger, 
             combinedClass.Intervall);
 
-        combinedClass.Should().BeEquivalentTo(result);
+        result.Should().BeEquivalentTo(combinedClass);
     }
 
     [Test]
@@ -99,7 +99,7 @@ internal class CombinedAttributesTestingHandler
             combinedClass.SimpleBodyClass.ExampleInteger, 
             combinedClass.Intervall);
 
-        combinedClass.Should().BeEquivalentTo(result);
+        result.Should().BeEquivalentTo(combinedClass);
     }
 
     [Test]
@@ -111,7 +111,7 @@ internal class CombinedAttributesTestingHandler
             combinedClass.Intervall, 
             combinedClass.SimpleBodyClass);
 
-        combinedClass.Should().BeEquivalentTo(result);
+        result.Should().BeEquivalentTo(combinedClass);
     }
 
     [Test]
@@ -125,7 +125,7 @@ internal class CombinedAttributesTestingHandler
             new AllPropertiesHeaderAttributed() { ExampleInteger = combinedClass.SimpleBodyClass.ExampleInteger, ExampleString = combinedClass.SimpleBodyClass.ExampleString }, 
             combinedClass.SimpleBodyClass);
 
-        combinedClass.Should().BeEquivalentTo(result);
+        result.Should().BeEquivalentTo(combinedClass.SimpleBodyClass);
     }
 }
 

@@ -3,7 +3,8 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>	  
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<Version>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</Version>
   </PropertyGroup>
 
 	<PropertyGroup>
@@ -24,11 +25,11 @@
 
 
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
-	  <!--<PackageReference Include="ApiClientGenerator" Version="2023.4.15.221140" />-->
+	  <PackageReference Include="ApiClientGenerator" Version="2023.4.19.225348" />
 	  <PackageReference Include="TestingContracts" Version="1.0.1" />
   </ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 		<CompilerVisibleProperty Include="ACGT_PackageReferences" />
 		<CompilerVisibleProperty Include="ACGT_GenerateClientOnBuild" />
 		<CompilerVisibleProperty Include="ACGT_UseExternalAssemblyContracts" />
@@ -40,10 +41,13 @@
 		<CompilerVisibleProperty Include="ACGT_UseGitVersionInformation" />
 		<CompilerVisibleProperty Include="ACGT_GenerateMinimalApiClient" />
 		<CompilerVisibleProperty Include="ACGT_OutputPath" />
-	</ItemGroup>	
+	</ItemGroup>-->	
 	
 	<PropertyGroup>
-		<!--<ACGT_CreateNugetPackageOnBuild>true</ACGT_CreateNugetPackageOnBuild>-->
+		<ACGT_PackageReferences>TestingContracts</ACGT_PackageReferences>
+		<ACGT_UseExternalAssemblyContracts>true</ACGT_UseExternalAssemblyContracts>
+		<ACGT_OutputPath>C:\Masterarbeit\testProjFolder\NugetTest</ACGT_OutputPath>
+		<ACGT_CreateNugetPackageOnBuild>true</ACGT_CreateNugetPackageOnBuild>
 	</PropertyGroup>
 
 </Project>

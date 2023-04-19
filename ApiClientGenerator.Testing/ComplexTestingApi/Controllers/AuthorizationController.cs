@@ -12,22 +12,8 @@ namespace ComplexTestingApi.Controllers;
 public class AuthorizationController : ControllerBase
 {
     [HttpGet]
-    public ActionResult<AllPropertiesQueryAttributed> AuthTest(AllPropertiesQueryAttributed allPropertiesAttributed)
-    {
-        return Ok(allPropertiesAttributed);
-    }
-
-    [HttpPost]
-    public ActionResult<TestEnum> AuthTestPost(TestEnum allPropertiesAttributed)
+    public ActionResult<AllPropertiesQueryAttributed> AuthenticationTest([FromQuery] AllPropertiesQueryAttributed allPropertiesAttributed)
     {
         return Ok(allPropertiesAttributed);
     }
 }
-
-public enum TestEnum
-{
-    Value1 = 1,
-    Value2 = 2,
-    Value3 = 4
-}
-

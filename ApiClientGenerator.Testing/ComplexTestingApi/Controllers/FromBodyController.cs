@@ -14,7 +14,7 @@ public class FromBodyController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult ClassParameterWithAttribute([FromBody] NoPropertiesAttributedClass simpleBodyClass)
+    public ActionResult<NoPropertiesAttributedClass> ClassParameterWithAttribute([FromBody] NoPropertiesAttributedClass simpleBodyClass)
     {
         return Ok(simpleBodyClass);
     }

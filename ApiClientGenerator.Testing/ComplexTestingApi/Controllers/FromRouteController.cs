@@ -9,21 +9,21 @@ public class FromRouteController : ControllerBase
 {
     [Route("allProps/{exampleString}/{exampleInteger}")]
     [HttpGet]
-    public ActionResult Class_Parameter_WithoutAttribute_AllPropertiesAttributed([FromRoute] NoPropertiesAttributedClass allPropertiesAttributed)
+    public ActionResult<NoPropertiesAttributedClass> ClassParameterWithAttributeNoPropertiesAttributed([FromRoute] NoPropertiesAttributedClass allPropertiesAttributed)
     {
         return Ok(allPropertiesAttributed);
     }
 
-    [Route("Primitive")]
+    [Route("Primitive/{soloString}")]
     [HttpGet]
-    public ActionResult PrimitiveParameterWithAttribute([FromRoute] string soloString)
+    public ActionResult<string> PrimitiveParameterWithAttribute([FromRoute] string soloString)
     {
         return Ok(soloString);
     }
 
     [Route("route/{id}")]
     [HttpGet]
-    public ActionResult PrimitiveParameterNoAttribute(string id)
+    public ActionResult<int> PrimitiveParameterNoAttribute(int id)
     {
         return Ok(id);
     }

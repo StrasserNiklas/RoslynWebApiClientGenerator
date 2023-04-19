@@ -30,7 +30,7 @@ public class ProducesResponseTypeController : ControllerBase
     [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
+    [HttpPost]
     public ActionResult<NoPropertiesAttributedClass> ClassResponseOnNotFound([FromBody] NotFoundResponse notFoundResponse)
     {
         return BadRequest(notFoundResponse);
@@ -39,7 +39,7 @@ public class ProducesResponseTypeController : ControllerBase
     [ProducesResponseType(typeof(NoPropertiesAttributedClass), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
+    [HttpPost]
     public ActionResult<NoPropertiesAttributedClass> ClassResponseOnServerError([FromBody] ServerSideErrorResponse serverSideErrorResponse)
     {
         return this.StatusCode(500, serverSideErrorResponse);
@@ -57,7 +57,7 @@ public class ProducesResponseTypeController : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(NotFoundResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ServerSideErrorResponse), StatusCodes.Status500InternalServerError)]
-    [HttpGet]
+    [HttpPost]
     public ActionResult<string> SimpleResponseOnSuccessWithBody([FromBody] NoPropertiesAttributedClass noPropertiesAttributedClass)
     {
         return Ok(noPropertiesAttributedClass.ExampleString);

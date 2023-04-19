@@ -21,7 +21,7 @@
 			<CodeGenerator>NSwagCSharp</CodeGenerator>
 			<ClassName>{controller}Client</ClassName>
 			<Namespace>NSwag.ComplexTestingApi.CSharp</Namespace>
-			<Options>/JsonLibrary:SystemTextJson /GenerateClientInterfaces:true /UseBaseUrl:false /AdditionalNamespaceUsages:TestingContracts.Enums,TestingContracts.Models /ExcludedTypeNames:AccessoryType,Accessory,AccessoryFeature,Car,CarPool,DataResponse,EngineType</Options>
+			<Options>/JsonLibrary:SystemTextJson /GenerateClientInterfaces:true /UseBaseUrl:false /ExposeJsonSerializerSettings:true /AdditionalNamespaceUsages:TestingContracts.Enums,TestingContracts.Models /ExcludedTypeNames:AccessoryType,Accessory,AccessoryFeature,Car,CarPool,DataResponse,EngineType</Options>
 		</OpenApiProjectReference>
 	</ItemGroup>
 </Project>

@@ -10,12 +10,17 @@ public class CombinedAttributesController : ControllerBase
 {
     [Route("Route1/{id}")]
     [HttpPost]
-    public ActionResult<CombinedClass> ComplexHeaderSimpleRouteSimpleQuerySimpleBody(int id, [FromQuery] string name, [FromBody] int intervall, [FromHeader] NoPropertiesAttributedClass simpleClass)
+    public ActionResult<CombinedClass> ComplexHeaderSimpleRouteSimpleQuerySimpleBody(int id, [FromQuery] string name, [FromBody] int intervall, [FromHeader] AllPropertiesHeaderAttributed simpleClass)
     {
-        return Ok(new CombinedClass() { Id = id, Intervall = intervall, Name = name, SimpleBodyClass = simpleClass });
+        return Ok(new CombinedClass() { Id = id, Intervall = intervall, Name = name, 
+            SimpleBodyClass = new NoPropertiesAttributedClass() 
+            { 
+                ExampleInteger = simpleClass.ExampleInteger, 
+                ExampleString = simpleClass.ExampleString 
+            } });
     }
 
-    [Route("Route2/{exampleString}/{exampleInteger}")]
+    [Route("Route2/{ExampleString}/{ExampleInteger}")]
     [HttpPost]
     public ActionResult<CombinedClass> SimpleHeaderComplexRouteSimpleQuerySimpleBody(int id, [FromQuery] string name, [FromBody] int intervall, [FromRoute] NoPropertiesAttributedClass simpleClass)
     {
@@ -36,7 +41,7 @@ public class CombinedAttributesController : ControllerBase
         return Ok(new CombinedClass() { Id = id, Intervall = intervall, Name = name, SimpleBodyClass = simpleClass });
     }
 
-    [Route("Route5/{exampleString}/{exampleInteger}")]
+    [Route("Route5/{ExampleString}/{ExampleInteger}")]
     [HttpPost]
     public ActionResult<ComplexCombinedClass> ComplexHeaderComplexRouteComplexQueryComplexBody(
         [FromRoute] NoPropertiesAttributedClass simpleClass1,
@@ -44,7 +49,15 @@ public class CombinedAttributesController : ControllerBase
         [FromHeader] AllPropertiesHeaderAttributed simpleClass3, 
         [FromBody] NoPropertiesAttributedClass simpleClass4)
     {
-        return Ok(new ComplexCombinedClass() { SimpleBodyClass1 = simpleClass1, SimpleBodyClass2 = simpleClass2, SimpleBodyClass3 = new NoPropertiesAttributedClass() { ExampleInteger = simpleClass3.ExampleInteger, ExampleString = simpleClass3.ExampleString }, SimpleBodyClass4 = simpleClass4 });
+        return Ok(new ComplexCombinedClass() 
+        { 
+            SimpleBodyClass1 = simpleClass1, 
+            SimpleBodyClass2 = simpleClass2, 
+            SimpleBodyClass3 = new NoPropertiesAttributedClass() 
+            { 
+                ExampleInteger = simpleClass3.ExampleInteger, 
+                ExampleString = simpleClass3.ExampleString }, 
+            SimpleBodyClass4 = simpleClass4 });
     }
 }
 

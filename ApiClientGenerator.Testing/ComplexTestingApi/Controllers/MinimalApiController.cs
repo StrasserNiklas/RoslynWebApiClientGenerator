@@ -1,31 +1,36 @@
-﻿namespace ComplexTestingApi.Controllers;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace ComplexTestingApi.Controllers;
 
 public static class MinimalApiController
 {
     public static void AddMinimalEndpoints(this IEndpointRouteBuilder endpointRouteBuilder)
     {
-        //endpointRouteBuilder.MapGet("/todoitems", (HttpContext http) => { return Results.Ok(new Todo()); });
-        //endpointRouteBuilder.MapPost("/todoitems", async ([FromBody] Todo todo) =>
-        //{
-        //    return Results.Created($"/todoitems/{todo.Id}", todo);
-        //});
+        endpointRouteBuilder.MapGet("/todoitems", () => { return Results.Ok(new Todo() { Id = 1, IsComplete = true, Name = "todo" }); });
 
-        //endpointRouteBuilder.MapPut("/todoitems/{id}", async (int id, Todo inputTodo) =>
-        //{
-        //    if (inputTodo is null) return Results.NotFound();
+        endpointRouteBuilder.MapPost("/todoitems", async ([FromBody] Todo todo) =>
+        {
+            return Results.Ok();
+        });
 
-        //    return Results.NoContent();
-        //});
+        endpointRouteBuilder.MapPut("/todoitems/{id}", async (int id, Todo inputTodo) =>
+        {
+            if (inputTodo is null) return Results.NotFound();
 
-        //endpointRouteBuilder.MapDelete("/todoitems/{id}", async (int id, Todo db) =>
-        //{
-        //    if (db is Todo todo)
-        //    {
-        //        return Results.Ok(todo);
-        //    }
+            inputTodo.Id = id;
+            return Results.Ok(inputTodo);
+        });
 
-        //    return Results.NotFound();
-        //});
+        endpointRouteBuilder.MapDelete("/todoitems/{id}", (int id, [FromBody] Todo deleteTodo) =>
+        {
+            if (deleteTodo is Todo)
+            {
+                deleteTodo.Id = id;
+                return Results.Ok(deleteTodo);
+            }
+
+            return Results.NotFound();
+        });
     }
 }
 

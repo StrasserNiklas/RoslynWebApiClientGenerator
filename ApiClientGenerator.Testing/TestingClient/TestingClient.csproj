@@ -9,8 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ComplexTestingApi.CSharp" Version="2023.4.20.1936" />
     <PackageReference Include="FluentAssertions" Version="6.10.0" />
-    <PackageReference Include="NSwagComplexTestingApi.CSharp" Version="1.0.9" />
+    <PackageReference Include="NSwagComplexTestingApi.CSharp" Version="1.0.11" />
     <PackageReference Include="NSwagSimpleTestingApi.CSharp" Version="1.0.1" />
     <PackageReference Include="NUnit" Version="3.13.3" />
 	<PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />

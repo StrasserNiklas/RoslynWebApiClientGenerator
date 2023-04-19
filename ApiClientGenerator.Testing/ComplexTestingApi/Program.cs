@@ -5,6 +5,7 @@ using NJsonSchema;
 using NSwag;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
+using System.Text.Json.Serialization;
 
 namespace ComplexTestingApi;
 
@@ -12,7 +13,7 @@ internal class AddApiKeyHeaderParameter : IOperationProcessor
 {
     public bool Process(OperationProcessorContext context)
     {
-        if (context.ControllerType.Name == "AuthorizationController")
+        if (context.ControllerType?.Name == "AuthorizationController")
         {
             context.OperationDescription.Operation.Parameters.Add(new OpenApiParameter
             {
@@ -36,7 +37,9 @@ public class Program
 
         // Add services to the container.
 
-        builder.Services.AddControllers();
+        builder.Services
+            .AddControllers()
+            .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         //builder.Services.AddSwaggerGen();
@@ -91,27 +94,28 @@ public class Program
         //    app.UseSwaggerUI();
         //}
 
-        //app
-        //    .UseOpenApi(settings =>
-        //    {
-        //        //settings.
-        //        //settings.op
-        //        //settings.PostProcess = (document, _) =>
-        //        //{
-        //        //    document.Schemes = new List<OpenApiSchema>
-        //        //    {
-        //        //        OpenApiSchema.Https,
-        //        //        OpenApiSchema.Http
-        //        //    };
-        //        //};
-        //    });
-            // .UseSwaggerUi3(settings => settings.Path = "/swagger");
+        app
+            .UseOpenApi(settings =>
+            {
+                //settings.
+                //settings.op
+                //settings.PostProcess = (document, _) =>
+                //{
+                //    document.Schemes = new List<OpenApiSchema>
+                //    {
+                //        OpenApiSchema.Https,
+                //        OpenApiSchema.Http
+                //    };
+                //};
+            })
+         .UseSwaggerUi3(settings => settings.Path = "/swagger");
 
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
+        app.UseHttpLogging();
         app.UseAuthentication();
-
+        app.UseCors();
         app.MapControllers();
         app.AddMinimalEndpoints();
 
