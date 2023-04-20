@@ -21,7 +21,7 @@ public class AuthorizationTestingHandler
     [Test]
     public async Task Test_AuthenticationTest()
     {
-        client.AddClientWideAuthorizationHeader("Api-Key", "TestApiKey");
+        client.AddClientWideHeader("Api-Key", "TestApiKey");
         var result = await this.client.AuthenticationTestAsync(ACGTClassHelper.AllPropertiesQueryAttributed);
         result.SuccessResponse.Should().BeEquivalentTo(ACGTClassHelper.AllPropertiesQueryAttributed);
     }

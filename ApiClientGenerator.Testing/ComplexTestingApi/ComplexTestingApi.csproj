@@ -25,7 +25,7 @@
 
 
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
-	  <PackageReference Include="ApiClientGenerator" Version="2023.4.19.225348" />
+	  <PackageReference Include="ApiClientGenerator" Version="2023.4.20.123716" />
 	  <PackageReference Include="TestingContracts" Version="1.0.1" />
   </ItemGroup>
 

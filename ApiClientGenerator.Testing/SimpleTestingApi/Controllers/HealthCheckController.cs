@@ -7,7 +7,7 @@ namespace SimpleTestingApi.Controllers;
 public class HealthCheckController : ControllerBase
 {
     [HttpPost]
-    public ActionResult<HealthCheckOptions> PostHealthCheckOptions([FromBody] HealthCheckOptions healthCheckOptions, [FromHeader] string test)
+    public ActionResult<HealthCheckOptions> PostHealthCheckOptions([FromBody] HealthCheckOptions healthCheckOptions)
     {
         return Ok(healthCheckOptions);
     }

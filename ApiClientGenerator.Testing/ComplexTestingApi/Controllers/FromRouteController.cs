@@ -7,7 +7,7 @@ namespace ComplexTestingApi.Controllers;
 [ApiController]
 public class FromRouteController : ControllerBase
 {
-    [Route("allProps/{exampleString}/{exampleInteger}")]
+    [Route("allProps/{ExampleString}/{ExampleInteger}")]
     [HttpGet]
     public ActionResult<NoPropertiesAttributedClass> ClassParameterWithAttributeNoPropertiesAttributed([FromRoute] NoPropertiesAttributedClass allPropertiesAttributed)
     {

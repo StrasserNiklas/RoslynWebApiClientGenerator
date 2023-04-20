@@ -14,25 +14,25 @@ public class ACGTSimpleTestingHandler
     [SetUp]
     public void Setup()
     {
-        var client = new HealthCheckClient(new HttpClient() { BaseAddress = new Uri("https://localhost:7205") });
+        var httpClient = HttpHelper.CreateHttpClient();
+        var client = new HealthCheckClient(httpClient);
         client.JsonSerializerOptions.WithAllPossiblyNecessarySettings();
         this.healthCheckClient = client;
         this.healthCheckOptions = new HealthCheckOptions() { Interval = 1, Path = "test" };
-
     }
 
     [Test]
     public async Task Test_PostHealthCheckOptions()
     {
         var result = await this.healthCheckClient.PostHealthCheckOptionsAsync(this.healthCheckOptions);
-        healthCheckOptions.Should().BeEquivalentTo(result.SuccessResponse);
+        result.SuccessResponse.Should().BeEquivalentTo(this.healthCheckOptions);
     }
 
     [Test]
     public async Task Test_GetHealthCheckOptions()
     {
         var result = await this.healthCheckClient.GetHealthCheckOptionsAsync(this.healthCheckOptions.Interval, this.healthCheckOptions.Path);
-        this.healthCheckOptions.Should().BeEquivalentTo(result.SuccessResponse);
+        result.SuccessResponse.Should().BeEquivalentTo(this.healthCheckOptions);
 
     }
 
@@ -40,6 +40,6 @@ public class ACGTSimpleTestingHandler
     public async Task Test_DeleteHealthCheckOptions()
     {
         var result = await this.healthCheckClient.DeleteHealthCheckOptionsAsync(this.healthCheckOptions.Interval);
-        this.healthCheckOptions.Interval.Should().Be(result.SuccessResponse.Interval);
+        result.SuccessResponse.Interval.Should().Be(this.healthCheckOptions.Interval);
     }
 }

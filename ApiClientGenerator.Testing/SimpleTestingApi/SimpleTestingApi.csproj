@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<!--<Version>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmmss"))</Version>-->
   </PropertyGroup>
 
 	<PropertyGroup>
@@ -12,17 +13,12 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
-	  <!--<PackageReference Include="ApiClientGenerator" Version="2023.4.14.202212" />-->
+	  <PackageReference Include="ApiClientGenerator" Version="2023.4.20.123716" />
 	  <PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
-	  <PackageReference Include="TestingContracts" Version="1.0.0" />
   </ItemGroup>
 
-	<!--<PropertyGroup>
-		<ACGT_CreateNugetPackageOnBuild>true</ACGT_CreateNugetPackageOnBuild>
+	<PropertyGroup>
+		<ACGT_CreateNugetPackageOnBuild>false</ACGT_CreateNugetPackageOnBuild>
 		<ACGT_OutputPath>C:\Masterarbeit\testProjFolder\NugetTest</ACGT_OutputPath>
-
-
-		<ACGT_PackageReferences>TestingContracts</ACGT_PackageReferences>
-		<ACGT_UseExternalAssemblyContracts>true</ACGT_UseExternalAssemblyContracts>
-	</PropertyGroup>-->
+	</PropertyGroup>
 </Project>

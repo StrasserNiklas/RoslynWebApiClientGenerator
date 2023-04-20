@@ -1,11 +1,12 @@
-﻿
-using NSwag.ComplexTestingApi.CSharp;
+﻿using NSwag.ComplexTestingApi.CSharp;
+using TestingContracts.Enums;
+using TestingContracts.Models;
 
 namespace TestingClient.ComplexApi.NSwag;
 
 public static class NSwagClassHelper
 {
-    public static NoPropertiesAttributedClass SimpleClass = new NoPropertiesAttributedClass()
+    public static NoPropertiesAttributedClass NoPropertiesAttributed = new NoPropertiesAttributedClass()
     {
         ExampleInteger = 2023,
         ExampleString = "CombinedSimpleClass"
@@ -59,5 +60,64 @@ public static class NSwagClassHelper
             ErrorMessage = "InternalServerError"
         },
         ServerGuid = Guid.Parse("2c5b3b16-7b75-4d82-9a9e-974ca52bbae2")
+    };
+
+    public static Accessory Accessory = new Accessory()
+    {
+        AccessoryFeatures = new List<AccessoryFeature>()
+                            {
+                                new AccessoryFeature()
+                                {
+                                    Description = "AccessoryFeature1"
+                                },
+                                new AccessoryFeature()
+                                {
+                                    Description = "AccessoryFeature2"
+                                }
+                            },
+        AccessoryGuid = Guid.Parse("2c5b3b16-7b75-4d82-9a9e-974ca52bbae2"),
+        AccessoryType = AccessoryType.Internal
+    };
+
+    public static Car Car = new Car()
+    {
+        Accessories = new List<Accessory>()
+                    {
+                        Accessory,
+                        new Accessory()
+                        {
+                            AccessoryFeatures = new List<AccessoryFeature>()
+                            {
+                                new AccessoryFeature()
+                                {
+                                    Description = "AccessoryFeature3"
+                                },
+                                new AccessoryFeature()
+                                {
+                                    Description = "AccessoryFeature4"
+                                }
+                            },
+                            AccessoryGuid = Guid.Parse("2c5b3b16-7b75-4d82-9a9e-974ca52bbae2"),
+                            AccessoryType = AccessoryType.External
+                        }
+                    },
+        CarIdentifier = "CarIdentifier",
+        CarImgBase64 = "CarImgBase64",
+        EngineType = EngineType.Electric,
+        Properties = new Dictionary<string, string>()
+                    {
+                        { "TestProperty1", "1" },
+                        { "TestProperty2", "2" }
+                    }
+    };
+
+    public static CarPool CarPool = new CarPool()
+    {
+        Cars = new List<Car>()
+            {
+                Car
+            },
+        LocationName = "Test",
+        ZipCode = 1234
     };
 }
