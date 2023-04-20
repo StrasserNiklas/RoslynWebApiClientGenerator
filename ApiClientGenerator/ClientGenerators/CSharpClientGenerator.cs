@@ -257,7 +257,7 @@ public class CSharpClientGenerator : ClientGeneratorBase
                     if (queryParameterDetails.IsRouteQueryParameter)
                     {
                         routeQueryParamStringBuilder.AppendLine($$"""
-                            routeBuilder.Replace("{{{parameter.Key.ToLowerInvariant()}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
+                            routeBuilder.Replace("{{{parameter.Key}}}", Uri.EscapeDataString({{parameter.Key}}.ToString()));
                             """);
                     }
                     else
