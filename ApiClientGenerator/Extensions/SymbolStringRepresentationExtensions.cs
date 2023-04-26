@@ -239,8 +239,17 @@ public static class SymbolStringRepresentationExtensions
             }
         }
 
+        var baseTypeString = string.Empty;
+
+        if (symbol.BaseType != null && symbol.BaseType.ToString() != "object")
+        {
+            CheckAndGenerateClassString(symbol.BaseType, classGenerationDetails);
+            var baseTypeClassName = symbol.BaseType.CheckAndSanitizeClassString();
+            baseTypeString = $": {baseTypeClassName}";
+        }
+
         var genericCode = $$"""
-                public class {{genericClassName}}
+                public class {{genericClassName}} {{baseTypeString}}
                 {
                     public {{className}}({{genericConstructorStringBuilder.ToString().TrimEnd(',')}})
                     {
@@ -253,7 +262,7 @@ public static class SymbolStringRepresentationExtensions
                 """;
 
         var classCode = $$"""
-            {{accessibility}} {{classModifiers}} {{classType}} {{className}}
+            {{accessibility}} {{classModifiers}} {{classType}} {{className}} {{baseTypeString}}
             {
                 {{classMemberBuilder}}
             }
